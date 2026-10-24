@@ -8,7 +8,7 @@ var App = (function () {
   var role = null;        // 'uprava' (Team) | 'gost' (Jagdgast)
   var teamNav = null;     // ursprüngliche Navigation (Team)
   var GOST_ROUTES = ['gost', 'karta', 'lovostaj', 'wetter'];
-  var syncState = 'ok';   // ok | pending | offline | error | auth
+  var syncState = 'ok';   // ok | pending | offline | unavailable | error | auth
 
   function route(name, def) { routes[name] = def; }
 
@@ -78,6 +78,7 @@ var App = (function () {
     var errors = Store.outbox().filter(function (e) { return e.status === 'error'; }).length;
     var cls = '', label;
     if (syncState === 'auth') { cls = 'error'; label = I18n.t('pillCode'); }
+    else if (syncState === 'unavailable') { cls = 'error'; label = I18n.t('pillServer'); }
     else if (errors) { cls = 'error'; label = I18n.t('pillErrors', { n: errors }); }
     else if (Sync.isRunning()) { cls = 'pending'; label = I18n.t('pillSending'); }
     else if (n) { cls = navigator.onLine ? 'pending' : 'offline'; label = I18n.t('pillPending', { n: n }); }
@@ -106,22 +107,24 @@ var App = (function () {
     if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
     var res = await Sync.run({ pull: true });
     if (res.authError) syncState = 'auth';
+    else if (res.unavailable) syncState = 'unavailable';
     else if (res.networkError) syncState = 'offline';
     else syncState = 'ok';
     if (res.pull) { await Store.applyPull(res.pull, res.pullStartedAt); lastPull = Date.now(); }
     await Store.reloadOutbox();
-    if (!res.pull && !res.networkError && !res.authError && (res.sent.length || opts.pull)) {
+    if (!res.pull && !res.networkError && !res.unavailable && !res.authError && (res.sent.length || opts.pull)) {
       var startedPull = Date.now();
       var p = await Store.refresh();
       if (p === 'auth') syncState = 'auth';
       else if (p === 'offline') syncState = 'offline';
+      else if (p === 'unavailable') syncState = 'unavailable';
       else if (p === 'ok') lastPull = startedPull;
     }
     updateSyncPill();
     if (res.warnings.length && !opts.quiet) UI.toast(res.warnings.join(' '), { timeout: 7000 });
     // Wiederholen, solange etwas wartet und es am Netz/Server lag
     var still = Store.outbox().filter(function (e) { return e.status !== 'error'; }).length;
-    if (still && (res.networkError || res.busy || syncState === 'offline')) {
+    if (still && (res.networkError || res.unavailable || res.busy || syncState === 'offline' || syncState === 'unavailable')) {
       retryTimer = setTimeout(function () { retryTimer = null; syncNow({ quiet: true }); }, RETRY[Math.min(retryStep, RETRY.length - 1)] * 1000);
       retryStep++;
     } else retryStep = 0;
@@ -176,7 +179,7 @@ var App = (function () {
     if (!code) { err.textContent = I18n.t('errCodeEmpty'); err.hidden = false; return; }
     var btn = document.getElementById('setup-submit');
     btn.disabled = true; btn.textContent = I18n.t('checking');
-    var offline = false, newRole = null;
+    var offline = false, unavailable = false, newRole = null;
     try {
       var res = await API.call('options', code);
       newRole = res.role;
@@ -187,6 +190,7 @@ var App = (function () {
         return;
       }
       offline = true; // ohne Netz trotzdem speichern — geprüft wird beim ersten Senden
+      unavailable = e.kind === 'unavailable';
     }
     btn.disabled = false; btn.textContent = I18n.t('btnSave');
     await DB.set('code', code);
@@ -197,7 +201,7 @@ var App = (function () {
     updateBrand();
     if (offline) {
       var n = document.getElementById('setup-notice');
-      n.textContent = I18n.t('setupOffline'); n.hidden = false;
+      n.textContent = I18n.t(unavailable ? 'setupServer' : 'setupOffline'); n.hidden = false;
       setTimeout(closeSetup, 1800);
     } else closeSetup();
     syncNow({ pull: true }).then(function () { Tutorial.maybeShow(); autoSaveMap(); });
@@ -383,7 +387,7 @@ var App = (function () {
     injectIcons(document.getElementById('bottomnav'));
     document.getElementById('sync-pill').onclick = function () { go('#/vise?sync=1'); };
     window.addEventListener('hashchange', function () { render(); });
-    window.addEventListener('online', function () { syncState = 'ok'; retryStep = 0; syncNow({ pull: true, quiet: true }); });
+    window.addEventListener('online', function () { if (syncState === 'offline') syncState = 'ok'; retryStep = 0; syncNow({ pull: true, quiet: true }); });
     window.addEventListener('focus', function () { syncNow({ pull: true, quiet: true }); });
     window.addEventListener('pageshow', function () { syncNow({ pull: true, quiet: true }); });
     UI.onSheetClosed(function () { if (dirty) refreshView(); });

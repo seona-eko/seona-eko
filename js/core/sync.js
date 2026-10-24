@@ -10,7 +10,7 @@
  *
  * Ein Eintrag wird nur gelöscht, wenn der Server ok:true meldet — und nur, wenn er während des Sendens nicht
  * weiter geändert wurde (rev). Die bestätigte Fassung kommt vorher per Store.confirm in den Datenstand.
- *  - Netzfehler / Server beschäftigt: Abbruch, alles bleibt liegen (App versucht es von selbst wieder)
+ *  - Netzfehler / Server nicht erreichbar / beschäftigt: Abbruch, alles bleibt liegen (App versucht es von selbst wieder)
  *  - Auth-Fehler: Abbruch, App fordert neuen Code an
  *  - abgelehnt / keine Berechtigung: Eintrag bekommt Fehlertext, die übrigen gehen weiter
  *  - "stale": Server hatte einen neueren Stand — der gewinnt, Eintrag gilt als erledigt
@@ -30,7 +30,7 @@ var Sync = (function () {
     if (running) return running;
     opts = opts || {};
     running = (async function () {
-      var result = { sent: [], warnings: [], stale: [], networkError: false, authError: false, configError: false, busy: false, pull: null, pullStartedAt: 0 };
+      var result = { sent: [], warnings: [], stale: [], networkError: false, unavailable: false, authError: false, configError: false, busy: false, pull: null, pullStartedAt: 0 };
       var code = await DB.get('code');
       if (!code) { result.authError = true; return result; }
       var device = (await DB.get('device')) || '';
@@ -61,6 +61,7 @@ var Sync = (function () {
       /** false = abbrechen (Netz, Code, Server beschäftigt) */
       function stop(err) {
         if (err.kind === 'network') { result.networkError = true; return true; }
+        if (err.kind === 'unavailable') { result.unavailable = true; return true; }
         if (err.kind === 'busy') { result.busy = true; return true; }
         if (err.kind === 'auth') { result.authError = true; return true; }
         if (err.kind === 'config') { result.configError = true; return true; }

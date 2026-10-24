@@ -7,6 +7,8 @@
  *
  * Fehlerarten (err.kind):
  *  - 'network':   kein Netz / Zeitüberschreitung → Änderung bleibt in der Outbox, später erneut
+ *  - 'unavailable': Netz da, aber der Server antwortet nicht mit App-Daten (HTTP-Fehler, Google-Fehlerseite,
+ *                 z. B. gesperrte oder falsch bereitgestellte Web-App) → wie 'network', aber eigene Anzeige
  *  - 'busy':      Server gerade beschäftigt → wie Netzfehler, später erneut
  *  - 'auth':      falscher Code → Nutzer muss den Code ändern
  *  - 'forbidden': Rolle reicht nicht (Jäger-Code für Verwaltungsaktion)
@@ -37,7 +39,7 @@ var API = (function () {
       redirect: 'follow',
       signal: controller ? controller.signal : undefined
     }).then(function (res) {
-      if (!res.ok) throw ApiError('network', 'HTTP ' + res.status);
+      if (!res.ok) throw ApiError('unavailable', 'HTTP ' + res.status);
       return res.text();
     }, function (err) {
       throw ApiError('network', err && err.message);
@@ -45,7 +47,7 @@ var API = (function () {
       var data;
       try { data = JSON.parse(text); } catch (e) {
         // Apps Script liefert bei Ausnahmen oder falscher Bereitstellung eine HTML-Seite.
-        throw ApiError('server', 'Neočekivan odgovor poslužitelja.');
+        throw ApiError('unavailable', 'Neočekivan odgovor poslužitelja.');
       }
       if (data && data.ok === false) {
         if (data.busy) throw ApiError('busy', data.error); // Sperre belegt (mehrere Handys gleichzeitig) → später erneut

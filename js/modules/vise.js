@@ -79,7 +79,7 @@
         this.disabled = true;
         if (!navigator.onLine) { UI.toast(t('pillOffline')); this.disabled = false; return; }
         var res = await App.syncNow({ pull: true });
-        UI.toast(res && res.networkError ? t('subOffline') : res && res.authError ? t('pillCode') : t('syncDone'));
+        UI.toast(res && res.unavailable ? t('subServer') : res && res.networkError ? t('subOffline') : res && res.authError ? t('pillCode') : t('syncDone'));
       };
       UI.$$('[data-discard]', el).forEach(function (b) {
         b.onclick = async function () {

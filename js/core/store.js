@@ -42,7 +42,7 @@ var Store = (function () {
         await applyPull(res, startedAt);
         return 'ok';
       } catch (err) {
-        return err.kind === 'network' ? 'offline' : err.kind || 'error';
+        return err.kind === 'network' ? 'offline' : err.kind || 'error';   // 'unavailable' = Server antwortet nicht richtig
       }
     })().finally(function () { pulling = null; });
     return pulling;
