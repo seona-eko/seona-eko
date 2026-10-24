@@ -48,6 +48,7 @@
     <h2 id="setup-title">Seona Eko</h2>
     <p class="setup-welcome" data-i18n="setupWelcome">Dobro došli u revir.</p>
     <p data-i18n="setupText">Skenirajte svoj QR kod ili upišite kod.</p>
+    <p class="hint" data-i18n="setupAbout">Interna aplikacija revira Seona Eko za tim i lovne goste.</p>
     <div class="seg setup-lang" id="setup-lang" aria-label="Jezik">
       <button type="button" data-lang="hr">HR</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="de">DE</button>
     </div>
@@ -55,7 +56,7 @@
     <div class="or-line"><span data-i18n="setupOr">ili upišite kod</span></div>
     <div class="field">
       <label class="field-label req" for="setup-code" data-i18n="lblCode">Kod</label>
-      <input type="password" id="setup-code" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input type="text" id="setup-code" name="revier-code" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       <p class="hint setup-hint" data-i18n="setupQrHint">Kod stoji i ispod QR koda.</p>
     </div>
     <div class="field">
