@@ -94,6 +94,7 @@ var App = (function () {
    * solange etwas wartet. navigator.onLine wird nicht vertraut (auf dem iPhone oft falsch) — es wird einfach versucht.
    */
   var RETRY = [5, 15, 30, 60];
+  var RETRY_SERVER = [60, 300, 900]; // Server lehnt ab (z. B. gesperrt): nicht im Minutentakt nachfragen
   var retryStep = 0, retryTimer = null, queued = null, lastPull = 0;
   async function syncNow(opts) {
     opts = opts || {};
@@ -125,7 +126,7 @@ var App = (function () {
     // Wiederholen, solange etwas wartet und es am Netz/Server lag
     var still = Store.outbox().filter(function (e) { return e.status !== 'error'; }).length;
     if (still && (res.networkError || res.unavailable || res.busy || syncState === 'offline' || syncState === 'unavailable')) {
-      retryTimer = setTimeout(function () { retryTimer = null; syncNow({ quiet: true }); }, RETRY[Math.min(retryStep, RETRY.length - 1)] * 1000);
+      retryTimer = setTimeout(function () { retryTimer = null; syncNow({ quiet: true }); }, (syncState === 'unavailable' ? RETRY_SERVER[Math.min(retryStep, RETRY_SERVER.length - 1)] : RETRY[Math.min(retryStep, RETRY.length - 1)]) * 1000);
       retryStep++;
     } else retryStep = 0;
     if (queued) { var q = queued; queued = null; return syncNow(q); }
@@ -417,10 +418,11 @@ var App = (function () {
     if (!code) { openSetup(true); return; }
     Tutorial.maybeShow();
     syncNow({ pull: true, quiet: true }).then(function () { Tutorial.maybeShow(); autoSaveMap(); });
-    // Solange die App offen ist: alle 90 s abgleichen (Stand anderer Jäger, Drückjagden …)
+    // Solange die App offen ist: alle 5 min abgleichen (Stand anderer Jäger, Drückjagden …). Eigene Einträge
+    // erscheinen sofort, beim Öffnen der App wird ohnehin abgeglichen — seltener fragen heißt weniger „Bot-Verkehr“.
     setInterval(function () {
-      if (document.visibilityState === 'visible') syncNow({ pull: true, quiet: true });
-    }, 90000);
+      if (document.visibilityState === 'visible' && syncState !== 'unavailable') syncNow({ pull: true, quiet: true });
+    }, 300000);
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') { retryStep = 0; syncNow({ pull: true, quiet: true }); }
     });

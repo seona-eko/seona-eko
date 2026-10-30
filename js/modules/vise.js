@@ -31,6 +31,21 @@
     }, { noFocus: true });
   }
 
+  /** Kopie von Datenstand und wartenden Einträgen als Datei — falls der Server wegfällt, gehen die Daten nicht verloren. */
+  async function exportBackup() {
+    var pull = await DB.get('pull'), outbox = await DB.outboxAll();
+    if (!pull && !outbox.length) { UI.toast(t('backupNone')); return; }
+    var name = 'seona-eko-' + new Date().toISOString().slice(0, 10) + '.json';
+    var file = new File([JSON.stringify({ app: 'seona-eko', version: APP_CONFIG.VERSION, exportedAt: Date.now(), pull: pull, outbox: outbox })], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: name }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(file); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+  }
+
   App.route('vise', {
     nav: 'vise',
     render: function (ctx) {
@@ -52,7 +67,8 @@
             (e.status === 'error' ? '<span class="r-sub" style="color:var(--warn);white-space:normal">' + esc(e.error) + '</span>' : '<span class="r-sub">' + esc(UI.fmtStamp(e.createdAt)) + '</span>') + '</span>' +
             '<button type="button" class="btn small ghost" data-discard="' + esc(e.key) + '" aria-label="' + esc(t('discard')) + '">' + ICONS.trash + '</button></div></li>';
         }).join('') + '</ul>' : '') +
-        '<button type="button" class="btn dark block" id="sync-now">' + ICONS.sync + esc(t('syncNow')) + '</button></div>' +
+        '<button type="button" class="btn dark block" id="sync-now">' + ICONS.sync + esc(t('syncNow')) + '</button>' +
+        (role === 'uprava' ? '<button type="button" class="btn block" id="backup" style="margin-top:10px">' + esc(t('backupBtn')) + '</button>' : '') + '</div>' +
 
         '<div class="section-title"><h2>' + esc(t('offlineMap')) + '</h2></div>' +
         '<div class="panel" id="map-panel"><p class="hint" style="margin:0 0 12px" id="map-status">' + esc(t('loading')) + '</p>' +
@@ -81,6 +97,8 @@
         var res = await App.syncNow({ pull: true });
         UI.toast(res && res.unavailable ? t('subServer') : res && res.networkError ? t('subOffline') : res && res.authError ? t('pillCode') : t('syncDone'));
       };
+      var bk = el.querySelector('#backup');
+      if (bk) bk.onclick = exportBackup;
       UI.$$('[data-discard]', el).forEach(function (b) {
         b.onclick = async function () {
           if (await UI.confirm(t('discard'), t('confirmDiscard'), t('discard'), true)) await Store.discard(b.getAttribute('data-discard'));
