@@ -811,9 +811,43 @@ a.row:active,button.row:active,.row[data-id]:active{background:color-mix(in srgb
 @media (prefers-reduced-motion: reduce){.skel{animation:none;}.toast{animation:none;}}
 
 /* Karte im Dunkelmodus gedämpft, damit das helle QField-Grün nicht gegen die ruhige App „schreit“ */
-:root[data-theme="dark"] .leaflet-tile-pane{filter:saturate(.72) brightness(.8) contrast(1.06);}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:saturate(.72) brightness(.8) contrast(1.06);}}
+:root[data-theme="dark"] .leaflet-tile-pane{filter:saturate(.62) brightness(.72) contrast(1.08);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:saturate(.62) brightness(.72) contrast(1.08);}}
 
 /* Glückwunsch nach dem Eintragen eines Abschusses */
 #done .done-cheer{font-family:var(--font-display);font-weight:500;font-size:1.7rem;letter-spacing:.02em;color:var(--accent);margin:10px 0 0;line-height:1.1;}
 #done .done-cheer + h2{font-size:1.05rem;opacity:.9;margin-top:4px;}
+
+/* ---------------- Karte: einheitliche Glas-Bedienelemente ----------------
+   Säule rechts oben (Ebenen · Ortung · Vollbild), Wind-Plakette links oben, nur das „+“ unten rechts farbig. */
+.map-tools{position:absolute;right:12px;top:12px;z-index:520;display:flex;flex-direction:column;gap:10px;}
+body.map-full .map-tools,body.map-full .map-wind{top:calc(env(safe-area-inset-top,0px) + 12px);}
+.fab.glass,.map-wind.glass{background:color-mix(in srgb, var(--cream) 62%, transparent);color:var(--ink);
+  border:1px solid color-mix(in srgb, #fff 14%, transparent);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
+  box-shadow:0 4px 16px rgba(0,0,0,.22);}
+.fab.glass{width:44px;height:44px;}
+.fab.glass svg{width:21px;height:21px;}
+.map-tools .map-full-btn{position:static;width:44px;height:44px;}
+.fab.glass.active{color:#5b9ae6;}
+.fab.glass.active.follow{background:#2f6fc0;color:#fff;border-color:transparent;}
+.fab.glass.marked{position:relative;}
+.fab.glass.marked::after{content:"";position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--cream);}
+.map-wind.glass{position:absolute;left:12px;right:auto;top:12px;width:auto;height:auto;z-index:520;display:flex;align-items:center;gap:8px;
+  padding:6px 14px 6px 6px;border-radius:999px;text-decoration:none;}
+.map-wind.glass[hidden]{display:none;}
+.map-wind .wind-pfeil{width:32px;height:32px;border-radius:50%;background:color-mix(in srgb, var(--ink) 9%, transparent);display:flex;align-items:center;justify-content:center;color:var(--accent);}
+.map-wind .wind-pfeil svg{width:18px;height:18px;transition:transform .4s cubic-bezier(.4,0,.2,1);}
+.map-wind.turning .wind-pfeil{box-shadow:0 0 0 2px #2f6fc0;}
+.map-wind .wind-txt{display:flex;flex-direction:column;line-height:1.1;font-size:.72rem;font-weight:600;color:var(--ink-soft);}
+.map-wind .wind-txt b{font-family:var(--font-display);font-weight:500;font-size:1.05rem;color:var(--ink);}
+.map-wind .wind-txt small{font-size:.68rem;font-weight:600;color:var(--ink-soft);}
+.layer-list{display:flex;flex-direction:column;}
+.layer-list .switch-row{padding:6px 0;border-bottom:1px solid var(--line);}
+.layer-list .switch-row:last-child{border-bottom:none;}
+/* Quellenhinweis winzig und dezent */
+.leaflet-container .leaflet-control-attribution{font-size:9px;opacity:.55;background:transparent !important;}
+/* Auf der Karte: Menüleiste dunkler getönt, damit das Kartengrün sie nicht einfärbt */
+@media (max-width: 719px) and (orientation: portrait){
+  html.ios body.auf-karte .bottomnav{background:color-mix(in srgb, var(--cream) 72%, transparent);}
+  html.ios body.auf-karte .map-wrap .leaflet-bottom{bottom:calc(var(--nav-h) + var(--nav-unten) + 2px);}
+}

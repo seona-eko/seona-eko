@@ -116,6 +116,8 @@ function rahmenMaske(map, meta) {
 var REVIER_FARBE = { 'XIV/189': '#e0995c', 'XIV/191': '#f0e2bd', 'XIV/192': '#c9685a' };
 function revierFarbe(p) { return REVIER_FARBE[p && p.broj] || (p && p.boja) || '#e0995c'; }
 
+var EBENEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l8 4-8 4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4"/></svg>';
+
 var Karta = (function () {
   var esc = UI.esc, t = I18n.t;
   var map = null, layers = {}, watchId = null, meMarker = null, meCircle = null, mode = null, focusMarker = null;
@@ -130,16 +132,16 @@ var Karta = (function () {
 
   function render(ctx) {
     var g = guest();
+    // Einheitliche Glas-Knöpfe: rechts oben eine Säule (Ebenen · Ortung · Vollbild), links oben der Wind als Plakette,
+    // unten rechts nur die eine farbige Hauptaktion „+“. Zoomen mit zwei Fingern (keine +/−-Knöpfe).
     return '<div class="map-wrap"><div id="map" aria-label="' + esc(t('navKarta')) + '"></div>' +
-      (g ? '' : '<div class="map-top"><div class="chips" id="layer-chips">' +
-      ['objekti', 'biljeske', 'odstrjel', 'odjeli'].map(function (k) {
-        return '<button type="button" class="chip" data-layer="' + k + '" aria-pressed="' + show[k] + '">' + esc(t('layer_' + k)) + '</button>';
-      }).join('') + '</div></div>') +
+      '<a class="map-wind glass" id="map-wind" href="#/wetter" hidden></a>' +
+      '<div class="map-tools">' +
+      (g ? '' : '<button type="button" class="fab glass" id="fab-layers" aria-label="' + esc(t('mapLayers')) + '">' + EBENEN_ICON + '</button>') +
+      '<button type="button" class="fab glass" id="fab-locate" aria-label="' + esc(t('myLocation')) + '">' + ICONS.locate + '</button>' +
+      '<button type="button" class="fab glass map-full-btn" id="fab-full" aria-label="' + esc(t('fullscreen')) + '">' + ICONS.expand + '</button></div>' +
       '<div class="map-fab" id="map-fab">' +
-      '<button type="button" class="fab" id="fab-locate" aria-label="' + esc(t('myLocation')) + '">' + ICONS.locate + '</button>' +
       (g ? '' : '<button type="button" class="fab primary" id="fab-add" aria-label="' + esc(t('addObjekt')) + '">' + ICONS.plus + '</button>') + '</div>' +
-      '<button type="button" class="fab map-full-btn" id="fab-full" aria-label="' + esc(t('fullscreen')) + '">' + ICONS.expand + '</button>' +
-      '<a class="map-wind" id="map-wind" href="#/wetter" hidden></a>' +
       '<div id="map-overlay"></div></div>';
   }
 
@@ -148,29 +150,52 @@ var Karta = (function () {
    * (Fahne zeigt zur Mitte, wie der Wind weht). Kupferpunkt = Norden. Ist die Blickrichtung bekannt (nach „Mein Standort“),
    * dreht sich die Scheibe mit dem Handy: Marke oben = Wind von vorn, unten = von hinten.
    */
+  /**
+   * Wind als kleine Glas-Plakette oben links: Pfeil zeigt, wohin der Wind weht, daneben Stärke und Richtung.
+   * Ist die Blickrichtung bekannt (nach „Mein Standort“), dreht sich der Pfeil mit dem Handy (oben = weht von dir weg).
+   */
   function drawWind() {
     var box = document.getElementById('map-wind');
     var c = Wetter.current();
     if (!box) return;
     if (!c || c.wind_direction_10m == null) { box.hidden = true; return; }
     box.hidden = false;
-    box.setAttribute('aria-label', t('windFrom', { d: Wetter.dirName(c.wind_direction_10m, I18n.lang()) }) + ', ' + Math.round(c.wind_speed_10m) + ' km/h');
-    var striche = '';
-    for (var d = 0; d < 360; d += 45) striche += '<path d="M28 ' + (d % 90 ? '3.4v2.2' : '3v3.2') + '" transform="rotate(' + d + ' 28 28)"/>';
-    box.innerHTML = '<svg class="wind-compass" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="26" class="wc-ring"/>' +
-      '<g class="wc-rose"><g class="wc-ticks">' + striche + '</g><circle cx="28" cy="1.9" r="1.9" class="wc-n"/></g>' +
-      '<g class="wc-from"><path d="M26.9 12.5L28 17.5l1.1-5z" class="wc-streak"/><path d="M28 13.2L22.6 4.6Q28 7 33.4 4.6z" class="wc-flag"/></g>' +
-      '<text x="28" y="31.5" class="wc-v">' + Math.round(c.wind_speed_10m) + '</text><text x="28" y="40" class="wc-u">km/h</text></svg>';
+    var von = Wetter.dirName(c.wind_direction_10m, I18n.lang());
+    box.setAttribute('aria-label', t('windFrom', { d: von }) + ', ' + Math.round(c.wind_speed_10m) + ' km/h');
+    box.innerHTML = '<span class="wind-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M7 10l5-5 5 5"/></svg></span>' +
+      '<span class="wind-txt"><b>' + Math.round(c.wind_speed_10m) + '</b> km/h<small>' + esc(t('windFrom', { d: von })) + '</small></span>';
     updateCompass();
   }
   function updateCompass() {
     var box = document.getElementById('map-wind'), c = Wetter.current();
     if (!box || !c || c.wind_direction_10m == null) return;
     var h = heading == null ? 0 : heading;
-    var rose = box.querySelector('.wc-rose'), from = box.querySelector('.wc-from');
-    if (rose) rose.setAttribute('transform', 'rotate(' + (-h).toFixed(1) + ' 28 28)');
-    if (from) from.setAttribute('transform', 'rotate(' + (c.wind_direction_10m - h).toFixed(1) + ' 28 28)');
+    var pf = box.querySelector('.wind-pfeil svg');
+    if (pf) pf.style.transform = 'rotate(' + ((c.wind_direction_10m + 180 - h) % 360).toFixed(1) + 'deg)';
     box.classList.toggle('turning', heading != null);
+  }
+
+  /** Ebenen ein- und ausblenden — als Glas-Blatt mit Schaltern (statt abgeschnittener Schalterleiste oben). */
+  function openLayers(ctx) {
+    var keys = ['objekti', 'biljeske', 'odstrjel', 'odjeli'];
+    UI.openSheet('<h2>' + esc(t('mapLayers')) + '</h2><div class="layer-list">' + keys.map(function (k) {
+      return '<label class="switch-row"><span>' + esc(t('layer_' + k)) + '</span><input type="checkbox" class="switch" data-layer="' + k + '"' + (show[k] ? ' checked' : '') + '></label>';
+    }).join('') + '</div>', function (el) {
+      UI.$$('input[data-layer]', el).forEach(function (inp) {
+        inp.onchange = function () {
+          var k = inp.getAttribute('data-layer');
+          show[k] = inp.checked; saveLayers();
+          if (k === 'odjeli') drawOdjeli(); else drawData(ctx);
+          if (k === 'odjeli' && show.odjeli) UI.toast(t('odjeliLegend'), { timeout: 6000 });
+          ebenenMarke();
+        };
+      });
+    }, { noFocus: true });
+  }
+  /** Ebenen-Knopf zeigt einen Punkt, wenn etwas außer den Einrichtungen eingeblendet ist. */
+  function ebenenMarke() {
+    var b = document.getElementById('fab-layers');
+    if (b) b.classList.toggle('marked', !!(show.odstrjel || show.odjeli || !show.objekti || !show.biljeske));
   }
 
   /* ---------- Blickrichtung: Kegel am Standortpunkt und mitdrehender Wind-Kompass ---------- */
@@ -479,7 +504,7 @@ var Karta = (function () {
       minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds,
       attribution: 'Seona Eko · QField-karta (DGU, OSM, HŠ)'
     }).addTo(map);
-    L.control.zoom({ position: 'bottomleft' }).addTo(map);
+    // keine +/−-Knöpfe: Zoomen mit zwei Fingern (wie in Karten-Apps)
 
     var view = null;
     try { view = JSON.parse(sessionStorage.getItem('seona_map_view') || 'null'); } catch (e) {}
@@ -500,15 +525,10 @@ var Karta = (function () {
     drawOdjeli();
     drawData(ctx);
 
-    UI.$$('#layer-chips .chip', el).forEach(function (b) {
-      b.onclick = function () {
-        var k = b.getAttribute('data-layer');
-        show[k] = !show[k]; saveLayers();
-        b.setAttribute('aria-pressed', String(show[k]));
-        if (k === 'odjeli') drawOdjeli(); else drawData(ctx);
-        if (k === 'odjeli' && show.odjeli) UI.toast(t('odjeliLegend'), { timeout: 6000 });
-      };
-    });
+    var eb = el.querySelector('#fab-layers');
+    if (eb) eb.onclick = function () { openLayers(ctx); };
+    ebenenMarke();
+    document.body.classList.add('auf-karte');
     drawWind();
     Wetter.refresh();
     el.querySelector('#fab-locate').onclick = function () { locate(); };
@@ -549,7 +569,7 @@ var Karta = (function () {
     // Beim Eintragen alles zeigen, was man gerade anlegen kann (Einrichtungen und Notizen)
     if (!show.objekti || !show.biljeske) {
       show.objekti = true; show.biljeske = true; saveLayers(); drawData({ query: {} });
-      ['objekti', 'biljeske'].forEach(function (k) { var c = document.querySelector('[data-layer="' + k + '"]'); if (c) c.setAttribute('aria-pressed', 'true'); });
+      ebenenMarke();
     }
     placeMode(t('placeHint'), function (pos) { Objekti.openForm({ lat: pos.lat, lon: pos.lon }); });
   }
@@ -567,6 +587,7 @@ var Karta = (function () {
   }
 
   function unmount() {
+    document.body.classList.remove('auf-karte');
     if (isFull()) setFull(false);
     stopLocate();
     stopHeading();
