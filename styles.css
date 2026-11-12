@@ -739,3 +739,11 @@ body.picker-open{overflow:hidden;}
   #bottomnav a[data-sync="error"]::after{background:#e8836a;}
   #bottomnav a[data-sync="offline"]::after{background:#9aa39c;}
 }
+
+/* Wischen zwischen Reitern: neuer Inhalt gleitet aus der Wischrichtung herein (Reiterleiste bleibt stehen) */
+@keyframes wisch-l{from{transform:translateX(44px);opacity:.25;}to{transform:none;opacity:1;}}
+@keyframes wisch-r{from{transform:translateX(-44px);opacity:.25;}to{transform:none;opacity:1;}}
+@media (prefers-reduced-motion: no-preference){
+  #view.wisch-l > :not(.section-tabs){animation:wisch-l .32s cubic-bezier(.22,1,.36,1);}
+  #view.wisch-r > :not(.section-tabs){animation:wisch-r .32s cubic-bezier(.22,1,.36,1);}
+}

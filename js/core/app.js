@@ -475,6 +475,54 @@ var App = (function () {
 })();
 
 /**
+ * Wischen zwischen den Reitern einer Seite (z. B. Jagden: Drückjagden ↔ Gäste; Strecke: Liste ↔ Plan ↔ Kühlzelle).
+ * Nach links = nächster Reiter, nach rechts = voriger. Nur deutlich waagrechte, zügige Bewegungen (≥ 70 px, < 0,7 s).
+ * Nicht auf Bereichen, die selbst seitlich scrollen (Filterzeilen, Tabellen), Eingabefeldern, Karten oder offenen Feldern.
+ */
+(function () {
+  var sx = 0, sy = 0, st = 0, aktiv = false;
+  function scrolltSeitlich(el) {
+    for (; el && el !== document.body; el = el.parentElement) {
+      if (el.scrollWidth > el.clientWidth + 2) {
+        var o = getComputedStyle(el).overflowX;
+        if (o === 'auto' || o === 'scroll') return true;
+      }
+    }
+    return false;
+  }
+  document.addEventListener('touchstart', function (e) {
+    aktiv = false;
+    if (e.touches.length !== 1) return;
+    var view = document.getElementById('view');
+    if (!view || !view.contains(e.target) || !view.querySelector('.section-tabs')) return;
+    if (UI.isSheetOpen() || e.target.closest('input, textarea, select, .leaflet-container, [data-noswipe]')) return;
+    if (scrolltSeitlich(e.target)) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); aktiv = true;
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!aktiv) return;
+    aktiv = false;
+    var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Date.now() - st > 700 || Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+    var reiter = [].slice.call(document.querySelectorAll('#view .section-tabs a'));
+    var i = reiter.findIndex(function (a) { return a.getAttribute('aria-current') === 'page'; });
+    var j = dx < 0 ? i + 1 : i - 1;
+    if (i < 0 || j < 0 || j >= reiter.length) return;
+    var richtung = dx < 0 ? 'wisch-l' : 'wisch-r';
+    window.addEventListener('hashchange', function einmal() {
+      window.removeEventListener('hashchange', einmal);
+      requestAnimationFrame(function () {
+        var v = document.getElementById('view');
+        if (!v) return;
+        v.classList.add(richtung);
+        setTimeout(function () { v.classList.remove(richtung); }, 400);
+      });
+    });
+    location.hash = reiter[j].getAttribute('href');
+  }, { passive: true });
+})();
+
+/**
  * iPhone wie iOS 26 / Instagram (Klassen an <html>):
  *  - „kopf-weg“: Kopfzeile verschwindet beim Runterscrollen, kommt beim Hochscrollen oder ganz oben zurück.
  *  - „scrollt“: Glasleiste wird beim Runterscrollen klein; groß nach 0,9 s Pause, beim Hochscrollen oder unten am Ende.
