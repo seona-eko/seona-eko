@@ -693,17 +693,19 @@ body.picker-open{overflow:hidden;}
     -webkit-backdrop-filter:blur(26px) saturate(190%);backdrop-filter:blur(26px) saturate(190%);
     box-shadow:0 10px 30px rgba(0,0,0,.22),inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
     transform-origin:50% 100%;
-    transition:transform .5s cubic-bezier(.22,1,.36,1),background-color .5s,box-shadow .5s;
+    /* gleich weicher Verlauf in beide Richtungen (langsam anlaufen, langsam auslaufen) */
+    transition:transform .75s cubic-bezier(.45,0,.25,1),background-color .75s ease-in-out,box-shadow .75s ease-in-out;
   }
   html.ios .bottomnav a{height:calc(var(--nav-h) - 10px);margin:5px 0;border-radius:24px;gap:2px;font-size:.64rem;transition:background .25s;}
   html.ios .bottomnav a[aria-current="page"]{background:color-mix(in srgb, var(--ink) 13%, transparent);}
   html.ios .bottomnav a .ind{display:none;}
-  html.ios .bottomnav a svg{transition:transform .5s cubic-bezier(.22,1,.36,1);}
-  html.ios .bottomnav a > span[data-i18n]{transition:opacity .3s;}
+  html.ios .bottomnav a svg{transition:transform .75s cubic-bezier(.45,0,.25,1);}
+  /* Beschriftung: beim Größerwerden erst einblenden, wenn die Leiste schon fast groß ist */
+  html.ios .bottomnav a > span[data-i18n]{transition:opacity .45s ease-in-out .25s;}
   /* Beim Runterscrollen: kleinere Pille nur mit Symbolen; groß nach kurzer Pause oder beim Hochscrollen */
   html.ios.scrollt .bottomnav{transform:scale(.88) translateY(4px);background:color-mix(in srgb, var(--paper) 16%, transparent);box-shadow:0 6px 18px rgba(0,0,0,.16),inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);}
   html.ios.scrollt .bottomnav a svg{transform:translateY(7px) scale(1.06);}
-  html.ios.scrollt .bottomnav a > span[data-i18n]{opacity:0;}
+  html.ios.scrollt .bottomnav a > span[data-i18n]{opacity:0;transition:opacity .35s ease-in-out 0s;}
   /* Kopfzeile verschwindet beim Runterscrollen (nur der Streifen unter der Uhr bleibt), kommt beim Hochscrollen zurück */
   html.ios .topbar{transition:transform .4s cubic-bezier(.22,1,.36,1);will-change:transform;}
   html.ios.kopf-weg .topbar{transform:translateY(calc(-100% + env(safe-area-inset-top,0px)));}

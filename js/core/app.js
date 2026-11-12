@@ -471,7 +471,7 @@ var App = (function () {
 /**
  * iPhone wie iOS 26 / Instagram (Klassen an <html>):
  *  - „kopf-weg“: Kopfzeile verschwindet beim Runterscrollen, kommt beim Hochscrollen oder ganz oben zurück.
- *  - „scrollt“: Glasleiste wird beim Runterscrollen klein; groß nach 0,7 s Pause, beim Hochscrollen oder unten am Ende.
+ *  - „scrollt“: Glasleiste wird beim Runterscrollen klein; groß nach 0,9 s Pause, beim Hochscrollen oder unten am Ende.
  * Richtungswechsel zählen erst nach 12 px am Stück — kleine Ruckler lösen nichts aus (ruhig statt hektisch).
  * Nachfedern (Gummiband) an den Enden wird ignoriert.
  */
@@ -495,7 +495,7 @@ var App = (function () {
       if (neu > 60) html.classList.add('kopf-weg');
       html.classList.add('scrollt');
       clearTimeout(timer);
-      timer = setTimeout(gross, 700);
+      timer = setTimeout(gross, 900);
     } else { zeigeKopf(); gross(); }
   }, { passive: true });
   window.addEventListener('hashchange', function () { gross(); zeigeKopf(); weg = 0; richtung = 0; });
