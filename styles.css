@@ -107,8 +107,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* Seitenwechsel: Inhalt blendet kurz über, Kopf und Menüzeile bleiben stehen */
 @media (prefers-reduced-motion: no-preference){
-  .topbar{view-transition-name:topbar;}
-  .bottomnav{view-transition-name:bottomnav;}
+  html:not(.ios) .topbar{view-transition-name:topbar;}
+  html:not(.ios) .bottomnav{view-transition-name:bottomnav;}
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s;animation-timing-function:ease-out;}
 }
 main#view{flex:1;width:100%;max-width:560px;margin:0 auto;padding:0 16px calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 28px);}

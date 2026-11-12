@@ -390,7 +390,9 @@ var App = (function () {
     // Seitenwechsel weich überblenden (wo der Browser es kann; „Bewegung reduzieren“ wird beachtet)
     window.addEventListener('hashchange', function () {
       var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (document.startViewTransition && !still) { try { document.startViewTransition(function () { render(); }); return; } catch (e) {} }
+      // iPhone/iPad: in installierten Web-Apps noch fehleranfällig (schwarzer Bildschirm gemeldet) → dort ohne Überblenden
+      var ios = document.documentElement.classList.contains('ios');
+      if (document.startViewTransition && !still && !ios) { try { document.startViewTransition(function () { render(); }); return; } catch (e) {} }
       render();
     });
     window.addEventListener('online', function () { if (syncState === 'offline') syncState = 'ok'; retryStep = 0; syncNow({ pull: true, quiet: true }); });
