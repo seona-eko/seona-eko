@@ -477,7 +477,11 @@ var App = (function () {
   window.addEventListener('scroll', function () {
     var neu = window.scrollY, d = Math.abs(neu - y);
     y = neu;
-    if (!html.classList.contains('ios') || d < 3) return;
+    if (!html.classList.contains('ios')) return;
+    // Oben oder unten angekommen (auch Nachfedern): Leiste sofort wieder groß, nicht mehr zucken lassen
+    var max = Math.max(0, html.scrollHeight - window.innerHeight);
+    if (neu <= 2 || neu >= max - 2) { clearTimeout(timer); html.classList.remove('scrollt'); return; }
+    if (d < 3) return;
     html.classList.add('scrollt');
     clearTimeout(timer);
     timer = setTimeout(function () { html.classList.remove('scrollt'); }, 250);

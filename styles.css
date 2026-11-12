@@ -682,8 +682,7 @@ body.picker-open{overflow:hidden;}
    Schwebende, abgerundete Leiste mit Weichzeichner; Inhalt und Karte laufen darunter durch.
    Nur iPhone im Hochformat — im Breitformat steht die Leiste links (siehe oben). */
 @media (max-width: 719px) and (orientation: portrait){
-  html.ios{--nav-h:60px;--nav-unten:max(10px, calc(env(safe-area-inset-bottom,0px) - 8px));}
-  html.ios .bottomnav{
+  html.ios{--nav-h:60px;--nav-unten:max(10px, calc(env(safe-area-inset-bottom,0px) - 8px));}  html.ios .bottomnav{
     left:14px;right:14px;bottom:var(--nav-unten);padding:0 5px;
     border:1px solid color-mix(in srgb, var(--ink) 12%, transparent);border-radius:30px;
     background:color-mix(in srgb, var(--paper) 58%, transparent);
