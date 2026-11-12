@@ -197,6 +197,7 @@ var UI = (function () {
     isSheetOpen: function () { return !!current; }, onSheetClosed: function (fn) { closedListeners.push(fn); }, confirm: confirmSheet,
     readPhoto: readPhoto, loadPhoto: loadPhoto, emptyState: emptyState, sectionTabs: sectionTabs,
     // Kurzer Impuls als Bestätigung (nur Android; iPhones erlauben Web-Apps keine Vibration)
-    haptic: function () { try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) {} }
+    // ms: 25 = gespeichert, 10 = großer Knopf angetippt
+    haptic: function (ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 25); } catch (e) {} }
   };
 })();

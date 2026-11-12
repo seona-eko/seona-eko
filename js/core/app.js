@@ -446,6 +446,18 @@ var App = (function () {
 })();
 
 /**
+ * Leichtes Tippen spürbar machen — nur bei den großen Knöpfen (Hauptaktionen, Kacheln, runde Kartenknöpfe,
+ * Wildart-Auswahl), nicht bei jedem kleinen Schalter. Nur Android; iPhones erlauben Web-Apps keine Vibration.
+ */
+(function () {
+  var GROSS = '.btn.primary, .btn.block, .quick a, .fab, .species-btn';
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest(GROSS) : null;
+    if (b && !b.disabled) UI.haptic(10);
+  }, true);
+})();
+
+/**
  * Systemfarbe (Statusleiste/Adresszeile) = Farbe der Kopfzeile, auch beim Wechsel hell/dunkel.
  */
 (function () {
