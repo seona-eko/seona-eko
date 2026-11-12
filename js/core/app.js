@@ -86,6 +86,12 @@ var App = (function () {
     else { label = I18n.t('pillSynced'); }
     pill.className = 'sync-pill ' + cls;
     text.textContent = label;
+    // Ohne Kopfzeile (Handy hochkant): derselbe Stand als Punkt am Menüpunkt „Mehr“ (Kupfer = wartet, Rot = Problem)
+    var mehr = document.querySelector('#bottomnav a[data-nav="vise"]');
+    if (mehr) {
+      if (cls) mehr.setAttribute('data-sync', cls); else mehr.removeAttribute('data-sync');
+      mehr.setAttribute('title', label);
+    }
   }
 
   /**

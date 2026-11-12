@@ -723,3 +723,19 @@ body.picker-open{overflow:hidden;}
   html.ios body:not(.map-full) .place-bar{bottom:calc(var(--nav-h) + var(--nav-unten) + 14px);}
   html.ios body:not(.map-full) .map-wrap .leaflet-bottom{bottom:calc(var(--nav-h) + var(--nav-unten) + 4px);}
 }
+
+/* ---------------- Handy hochkant: keine Kopfzeile (spart Platz) ----------------
+   Der Sync-Stand steht stattdessen als Punkt am Menüpunkt „Mehr“. Hinter Uhr/Akku liegt ein schmaler Glasstreifen,
+   damit die Statusleiste über scrollendem Inhalt lesbar bleibt. */
+@media (max-width: 719px) and (orientation: portrait){
+  :root{--top-h:0px;}
+  .topbar{display:none !important;}
+  main#view{padding-top:env(safe-area-inset-top,0px);}
+  body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);z-index:35;pointer-events:none;
+    background:color-mix(in srgb, var(--cream) 72%, transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);}
+  body.map-full::before{display:none;}
+  #bottomnav a[data-sync]::after{content:"";position:absolute;top:8px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;
+    background:var(--copper);box-shadow:0 0 0 2px var(--paper);}
+  #bottomnav a[data-sync="error"]::after{background:#e8836a;}
+  #bottomnav a[data-sync="offline"]::after{background:#9aa39c;}
+}
