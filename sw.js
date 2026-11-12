@@ -7,7 +7,7 @@
  * Bei jeder Änderung an App-Dateien CACHE_VERSION hochzählen — sonst sehen installierte Handys
  * die neue Version nicht. Die App zeigt dann „Dostupna je nova verzija — Osvježi".
  */
-var CACHE_VERSION = 'seona-v59';
+var CACHE_VERSION = 'seona-v60';
 var MAP_CACHE = 'seona-karta-v3';
 var SHELL = [
   './', 'index.html', 'styles.css', 'config.js', 'manifest.webmanifest',
