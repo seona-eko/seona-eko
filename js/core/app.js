@@ -369,6 +369,16 @@ var App = (function () {
     mapAuto = false;
   }
 
+  /** Startbildschirm (Logo aus index.html) ausblenden — frühestens 0,6 s nach dem Öffnen, damit man ihn sieht. */
+  function bootWeg() {
+    var b = document.getElementById('boot');
+    if (!b) return;
+    var rest = Math.max(0, 600 - (window.performance ? performance.now() : 0));
+    setTimeout(function () { b.classList.add('weg'); setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 350); }, rest);
+  }
+  // Sicherheitsnetz: hängt der Start irgendwo, verschwindet das Logo trotzdem nach 4 s
+  setTimeout(function () { bootWeg(); }, 4000);
+
   async function start() {
     // iPhone/iPad erkennen (für die Seitenlänge, styles.css „html.ios") — andere Geräte bleiben unberührt
     var ua = navigator.userAgent || '';
@@ -417,6 +427,7 @@ var App = (function () {
     await Store.load();
     await Wetter.load();
     render();
+    bootWeg();
     Wetter.refresh();
     updateSyncPill();
 

@@ -105,6 +105,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .sync-pill.offline .dot{background:#9aa39c;}
 .sync-pill.error .dot{background:#e8836a;}
 
+/* Startbildschirm mit Logo (index.html #boot) — gleicher Grund wie die App, blendet nach dem Laden weich aus */
+#boot{position:fixed;inset:0;z-index:10000;background:var(--forest-1);color:var(--copper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s ease-out;}
+#boot svg{width:72px;height:72px;}
+#boot b{font-family:var(--font-display);font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-size:1.05rem;}
+#boot.weg{opacity:0;pointer-events:none;}
+
 /* Seitenwechsel: Inhalt blendet kurz über, Kopf und Menüzeile bleiben stehen */
 @media (prefers-reduced-motion: no-preference){
   html:not(.ios) .topbar{view-transition-name:topbar;}
