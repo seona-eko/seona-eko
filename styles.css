@@ -708,7 +708,8 @@ body.picker-open{overflow:hidden;}
   html.ios.scrollt .bottomnav a > span[data-i18n]{opacity:0;transition:opacity .35s ease-in-out 0s;}
   /* Kopfzeile verschwindet beim Runterscrollen (nur der Streifen unter der Uhr bleibt), kommt beim Hochscrollen zurück */
   html.ios .topbar{transition:transform .4s cubic-bezier(.22,1,.36,1);will-change:transform;}
-  html.ios.kopf-weg .topbar{transform:translateY(calc(-100% + env(safe-area-inset-top,0px)));}
+  /* ganz weg, auch der Streifen hinter Uhr/Akku — der Inhalt läuft bis oben durch (wie Instagram) */
+  html.ios.kopf-weg .topbar{transform:translateY(-100%);}
   html.ios .topbar > *{transition:opacity .25s;}
   html.ios.kopf-weg .topbar > *{opacity:0;}
   html.ios .section-tabs{transition:top .4s cubic-bezier(.22,1,.36,1);}
