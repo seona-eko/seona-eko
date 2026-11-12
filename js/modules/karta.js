@@ -77,7 +77,8 @@ function kartenRandFarbe() {
 var KARTE_RAND = 0.6;
 function kartenGrenzen(map, meta, onResize) {
   function minZoom() {
-    var z = map.getBoundsZoom(meta.reviere, false, L.point(20, 20));
+    // Zwischenstufen (zoomSnap 0.25): sonst rundet Leaflet auf ganze Stufen ab und die Reviere füllen nur die halbe Breite
+    var z = map.getBoundsZoom(meta.reviere, false, L.point(0, 0));
     map.setMinZoom(Math.max(meta.minZoom, Math.min(z, meta.maxNativeZoom)));
   }
   minZoom();
@@ -464,7 +465,7 @@ var Karta = (function () {
     catch (e) { el.querySelector('#map').innerHTML = UI.emptyState('map', t('mapDataMissing'), t('mapDataMissingText')); return; }
     if (!document.getElementById('map')) return; // inzwischen weiter navigiert
     grenzen = L.latLngBounds(meta.bounds).pad(KARTE_RAND);
-    map = L.map('map', { zoomControl: false, attributionControl: true, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
+    map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: 0.25, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
     kartenGrenzen(map, meta, zentrieren);
     rahmenMaske(map, meta);
     L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', {
@@ -480,7 +481,7 @@ var Karta = (function () {
       map.setView(ll, 16);
       focusMarker = L.circleMarker(ll, { radius: 16, color: '#471b28', weight: 3, fill: false }).addTo(map);
     } else if (view) map.setView(view.c, view.z);
-    else map.fitBounds(meta.reviere, { padding: [20, 20] });
+    else map.fitBounds(meta.reviere, { padding: [0, 0] });
     map.on('moveend', function () { try { sessionStorage.setItem('seona_map_view', JSON.stringify({ c: map.getCenter(), z: map.getZoom() })); } catch (e) {} });
 
     if (!guest()) try {
@@ -593,7 +594,7 @@ var MapPicker = (function () {
         '<button type="button" class="btn small primary" data-ok>' + esc(t('placeHere')) + '</button></div></div>';
       document.body.appendChild(ov);
       document.body.classList.add('picker-open');
-      var map = L.map('picker-map', { zoomControl: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
+      var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0.25, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
       kartenGrenzen(map, meta);
       L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', { minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds }).addTo(map);
       rahmenMaske(map, meta);
@@ -604,7 +605,7 @@ var MapPicker = (function () {
         L.marker([o.lat, o.lon], { icon: Karta.objIcon(o, 15), interactive: false, keyboard: false }).addTo(map);
       });
       if (start && Number(start.lat) && Number(start.lon)) map.setView([start.lat, start.lon], 16);
-      else map.fitBounds(meta.reviere, { padding: [20, 20] });
+      else map.fitBounds(meta.reviere, { padding: [0, 0] });
       setTimeout(function () { map.invalidateSize(); }, 50);
       function done(v) { map.remove(); ov.remove(); document.body.classList.remove('picker-open'); resolve(v); }
       ov.querySelector('[data-cancel]').onclick = function () { done(null); };
