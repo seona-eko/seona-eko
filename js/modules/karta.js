@@ -105,7 +105,9 @@ function rahmenMaske(map, meta) {
   var pane = map.createPane('rahmen');
   pane.style.zIndex = 250; pane.style.pointerEvents = 'none';
   L.polygon([[[35, 5], [55, 5], [55, 30], [35, 30]], [[s, w], [n, w], [n, e], [s, e]]], {
-    stroke: false, fillColor: kartenRandFarbe(), fillOpacity: 1, interactive: false, pane: 'rahmen'
+    stroke: false, fillColor: kartenRandFarbe(), fillOpacity: 1, interactive: false, pane: 'rahmen',
+    // eigene Zeichenfläche, die weit über den Bildschirm hinausreicht — sonst blitzt beim Zoomen der helle Kartenrand durch
+    renderer: L.svg({ padding: 2, pane: 'rahmen' })
   }).addTo(map);
 }
 
@@ -465,7 +467,7 @@ var Karta = (function () {
     catch (e) { el.querySelector('#map').innerHTML = UI.emptyState('map', t('mapDataMissing'), t('mapDataMissingText')); return; }
     if (!document.getElementById('map')) return; // inzwischen weiter navigiert
     grenzen = L.latLngBounds(meta.bounds).pad(KARTE_RAND);
-    map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: 0.25, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
+    map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: 0.25, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
     kartenGrenzen(map, meta, zentrieren);
     rahmenMaske(map, meta);
     L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', {
@@ -594,7 +596,7 @@ var MapPicker = (function () {
         '<button type="button" class="btn small primary" data-ok>' + esc(t('placeHere')) + '</button></div></div>';
       document.body.appendChild(ov);
       document.body.classList.add('picker-open');
-      var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0.25, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
+      var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0.25, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
       kartenGrenzen(map, meta);
       L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', { minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds }).addTo(map);
       rahmenMaske(map, meta);
