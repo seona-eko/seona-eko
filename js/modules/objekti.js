@@ -5,7 +5,9 @@
  */
 var Objekti = (function () {
   var esc = UI.esc, t = I18n.t;
-  var ARTEN = ['kanzel', 'leiter', 'drueckjagdbock', 'bodensitz', 'kirrung', 'salzlecke', 'suhle', 'fuetterung', 'schranke', 'kamera', 'zentrale', 'jagdhuette'];
+  // „bodensitz“ wird nicht mehr angeboten (alte Einträge bleiben lesbar); dafür „biljeska“ = Notiz auf der Karte
+  var ARTEN = ['kanzel', 'leiter', 'drueckjagdbock', 'kirrung', 'salzlecke', 'suhle', 'fuetterung', 'schranke', 'kamera', 'zentrale', 'jagdhuette', 'biljeska'];
+  function isNotiz(art) { return art === 'biljeska'; }
   var STANJA = ['dobro', 'popravak', 'neupotrebljivo'];
   var BADGE = { dobro: 'ok', popravak: 'warn', neupotrebljivo: 'warn', uklonjen: 'muted' };
 
@@ -16,11 +18,11 @@ var Objekti = (function () {
     var o = byId(id);
     if (!o) return;
     var up = App.isUprava();
-    var kv = [[t('lblLoviste'), o.lokacija], [t('objStanje'), I18n.stanje(o.stanje)], [t('lblNapomena'), o.napomena],
+    var kv = [[t('lblLoviste'), o.lokacija], [t('objStanje'), isNotiz(o.art) ? '' : I18n.stanje(o.stanje)], [t('lblNapomena'), o.napomena],
       [t('lblGps'), o.lat + ', ' + o.lon], [t('lastChange'), (o.updatedBy || '') + (o.updatedAt ? ' · ' + UI.fmtStamp(Number(o.updatedAt)) : '')]]
       .filter(function (x) { return x[1] && String(x[1]).trim(); });
     UI.openSheet('<div style="display:flex;gap:12px;align-items:center"><img alt="" src="' + (ICONS.objekt[o.art] || '') + '" style="width:40px;height:40px">' +
-      '<div><h2 style="margin:0">' + esc(name(o)) + '</h2><span class="badge ' + (BADGE[o.stanje] || 'muted') + '">' + esc(I18n.stanje(o.stanje || 'dobro')) + '</span>' +
+      '<div><h2 style="margin:0">' + esc(name(o)) + '</h2>' + (isNotiz(o.art) ? '' : '<span class="badge ' + (BADGE[o.stanje] || 'muted') + '">' + esc(I18n.stanje(o.stanje || 'dobro')) + '</span>') +
       (o._pending ? ' <span class="badge muted">' + esc(t('stPending')) + '</span>' : '') + '</div></div>' +
       (o._error ? '<p class="error-msg">' + esc(o._error) + '</p>' : '') +
       '<dl class="kv">' + kv.map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') + '</dl>' +
@@ -74,9 +76,9 @@ var Objekti = (function () {
         ARTEN.map(function (a) {
           return '<button type="button" data-art="' + a + '" aria-pressed="' + (st.art === a) + '"><img alt="" src="' + ICONS.objekt[a] + '"><span>' + esc(I18n.objekt(a)) + '</span></button>';
         }).join('') + '</div></div>' +
-        '<div class="grid-2"><div class="field"><label class="field-label" for="obj-broj">' + esc(t('objBroj')) + '</label><input type="text" id="obj-broj" value="' + esc(o ? o.broj : '') + '" inputmode="text"></div>' +
-        '<div class="field"><label class="field-label" for="obj-naziv">' + esc(t('objNaziv')) + '</label><input type="text" id="obj-naziv" value="' + esc(o ? o.naziv : '') + '"></div></div>') +
-      '<div class="field"><span class="field-label">' + esc(t('objStanje')) + '</span><div class="seg" id="stanje-seg">' +
+        '<div class="grid-2" id="obj-names"><div class="field" id="obj-broj-wrap"><label class="field-label" for="obj-broj">' + esc(t('objBroj')) + '</label><input type="text" id="obj-broj" value="' + esc(o ? o.broj : '') + '" inputmode="text"></div>' +
+        '<div class="field"><label class="field-label" id="obj-naziv-label" for="obj-naziv">' + esc(t('objNaziv')) + '</label><input type="text" id="obj-naziv" value="' + esc(o ? o.naziv : '') + '"></div></div>') +
+      '<div class="field" id="stanje-wrap"><span class="field-label">' + esc(t('objStanje')) + '</span><div class="seg" id="stanje-seg">' +
       stanja.map(function (s) { return '<button type="button" data-st="' + s + '" aria-pressed="' + (st.stanje === s) + '">' + esc(I18n.stanje(s)) + '</button>'; }).join('') + '</div>' +
       '</div>' +
       '<div class="field"><label class="field-label" for="obj-nap">' + esc(t('lblNapomena')) + '</label><textarea id="obj-nap" placeholder="' + esc(t('phObjNapomena')) + '">' + esc(o ? o.napomena : '') + '</textarea></div>' +
@@ -85,9 +87,20 @@ var Objekti = (function () {
       '<button type="submit" class="btn primary block" style="margin-top:6px">' + esc(t('btnSave')) + '</button></form>';
 
     UI.openSheet(html, function (el, api) {
+      // Notiz: nur Titel, Text und Foto — keine Nummer, kein Zustand
+      function forArt() {
+        var n = isNotiz(st.art);
+        var bw = el.querySelector('#obj-broj-wrap'), sw = el.querySelector('#stanje-wrap'), nl = el.querySelector('#obj-naziv-label'), ng = el.querySelector('#obj-names');
+        if (bw) bw.hidden = n;
+        if (sw) sw.hidden = n;
+        if (nl) nl.textContent = t(n ? 'objTitel' : 'objNaziv');
+        if (ng) ng.classList.toggle('grid-2', !n);
+        var ta = el.querySelector('#obj-nap'); if (ta) ta.placeholder = n ? '' : t('phObjNapomena');
+      }
       UI.$$('#art-grid button', el).forEach(function (b) {
-        b.onclick = function () { st.art = b.getAttribute('data-art'); UI.$$('#art-grid button', el).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); };
+        b.onclick = function () { st.art = b.getAttribute('data-art'); UI.$$('#art-grid button', el).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); forArt(); };
       });
+      forArt();
       UI.$$('#stanje-seg button', el).forEach(function (b) {
         b.onclick = function () { st.stanje = b.getAttribute('data-st'); UI.$$('#stanje-seg button', el).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); };
       });
@@ -102,8 +115,9 @@ var Objekti = (function () {
         if (limited) {
           rec = { id: o.id, stanje: st.stanje, napomena: nap };
         } else {
-          rec = { id: o ? o.id : Store.uuid(), art: st.art, broj: el.querySelector('#obj-broj').value.trim(), naziv: el.querySelector('#obj-naziv').value.trim(),
-            stanje: st.stanje, napomena: nap, lokacija: lok || '' };
+          var notiz = isNotiz(st.art);
+          rec = { id: o ? o.id : Store.uuid(), art: st.art, broj: notiz ? '' : el.querySelector('#obj-broj').value.trim(), naziv: el.querySelector('#obj-naziv').value.trim(),
+            stanje: notiz ? 'dobro' : st.stanje, napomena: nap, lokacija: lok || '' };
           if (!o) { rec.lat = opts.lat; rec.lon = opts.lon; }
           await DB.set('lastObjArt', st.art);
         }

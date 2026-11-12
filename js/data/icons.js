@@ -82,7 +82,7 @@ var ICONS = (function () {
     kirrung: 'icons/objekti/kirrung.svg', salzlecke: 'icons/objekti/salzlecke.svg',
     suhle: 'icons/objekti/suhle.svg', fuetterung: 'icons/objekti/fuetterung.svg',
     schranke: 'icons/objekti/schranke.svg', kamera: 'icons/objekti/kamera.svg',
-    zentrale: 'icons/objekti/zentrale.svg', jagdhuette: 'icons/objekti/jagdhuette.svg'
+    zentrale: 'icons/objekti/zentrale.svg', jagdhuette: 'icons/objekti/jagdhuette.svg', biljeska: 'icons/objekti/biljeska.svg'
   };
   return I;
 })();

@@ -111,7 +111,7 @@ function rahmenMaske(map, meta) {
 var Karta = (function () {
   var esc = UI.esc, t = I18n.t;
   var map = null, layers = {}, watchId = null, meMarker = null, meCircle = null, mode = null, focusMarker = null;
-  var show = { objekti: true, odstrjel: false, odjeli: false };
+  var show = { objekti: true, biljeske: true, odstrjel: false, odjeli: false };
   try { var saved = JSON.parse(localStorage.getItem('seona_map_layers') || 'null'); if (saved) show = Object.assign(show, saved); } catch (e) {}
 
   function saveLayers() { try { localStorage.setItem('seona_map_layers', JSON.stringify(show)); } catch (e) {} }
@@ -124,7 +124,7 @@ var Karta = (function () {
     var g = guest();
     return '<div class="map-wrap"><div id="map" aria-label="' + esc(t('navKarta')) + '"></div>' +
       (g ? '' : '<div class="map-top"><div class="chips" id="layer-chips">' +
-      ['objekti', 'odstrjel', 'odjeli'].map(function (k) {
+      ['objekti', 'biljeske', 'odstrjel', 'odjeli'].map(function (k) {
         return '<button type="button" class="chip" data-layer="' + k + '" aria-pressed="' + show[k] + '">' + esc(t('layer_' + k)) + '</button>';
       }).join('') + '</div></div>') +
       '<div class="map-fab" id="map-fab">' +
@@ -255,7 +255,7 @@ var Karta = (function () {
   var PUNKT_BIS = 14;
   function objIcon(o, zoom) {
     var cls = 'obj-marker' + (o.stanje === 'uklonjen' ? ' removed' : '') + (o.stanje === 'popravak' || o.stanje === 'neupotrebljivo' ? ' bad' : '');
-    if (zoom != null && zoom <= PUNKT_BIS) return L.divIcon({ className: '', html: '<div class="obj-dot' + (o.stanje === 'uklonjen' ? ' removed' : '') + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
+    if (zoom != null && zoom <= PUNKT_BIS) return L.divIcon({ className: '', html: '<div class="obj-dot' + (o.art === 'biljeska' ? ' note' : '') + (o.stanje === 'uklonjen' ? ' removed' : '') + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
     var art = ICONS.objekt[o.art] ? o.art : 'kanzel';
     var ay = FUSS[art] ? Math.round(2 + FUSS[art] * 26 / 24) : 15;
     return L.divIcon({ className: '', html: '<div class="' + cls + '" style="position:relative"><img alt="" src="' + ICONS.objekt[art] + '"></div>', iconSize: [30, 30], iconAnchor: [15, ay] });
@@ -263,19 +263,24 @@ var Karta = (function () {
 
   function drawData(ctx) {
     if (!map) return;
-    ['objekti', 'odstrjel', 'lovFocus'].forEach(function (k) { if (layers[k]) { map.removeLayer(layers[k]); layers[k] = null; } });
+    ['objekti', 'biljeske', 'odstrjel', 'lovFocus'].forEach(function (k) { if (layers[k]) { map.removeLayer(layers[k]); layers[k] = null; } });
     drawMeet(ctx);
     if (guest()) return;
     var lovFocus = ctx && ctx.query && ctx.query.lov ? Store.lovovi().filter(function (l) { return l.id === ctx.query.lov; })[0] : null;
-    if (show.objekti || lovFocus) {
-      var g = L.layerGroup();
+    // Einrichtungen und Notizen sind getrennt ein- und ausblendbar
+    var zeigeObj = show.objekti || !!lovFocus, zeigeNotiz = show.biljeske;
+    if (zeigeObj || zeigeNotiz) {
+      var g = L.layerGroup(), n = L.layerGroup();
       Store.objekti().forEach(function (o) {
         if (!(Number(o.lat) && Number(o.lon))) return;
-        var m = L.marker([o.lat, o.lon], { icon: objIcon(o, map.getZoom()), keyboard: true, title: I18n.objekt(o.art) + (o.broj ? ' ' + o.broj : '') });
+        var notiz = o.art === 'biljeska';
+        if (notiz ? !zeigeNotiz : !zeigeObj) return;
+        var m = L.marker([o.lat, o.lon], { icon: objIcon(o, map.getZoom()), keyboard: true, title: notiz ? (o.naziv || I18n.objekt(o.art)) : I18n.objekt(o.art) + (o.broj ? ' ' + o.broj : '') });
         m.on('click', function () { Objekti.openDetail(o.id); });
-        g.addLayer(m);
+        (notiz ? n : g).addLayer(m);
       });
-      layers.objekti = g.addTo(map);
+      if (zeigeObj) layers.objekti = g.addTo(map);
+      if (zeigeNotiz) layers.biljeske = n.addTo(map);
     }
     if (lovFocus && Array.isArray(lovFocus.stajalista)) {
       var ring = L.layerGroup(), pts = [];
@@ -531,7 +536,11 @@ var Karta = (function () {
 
   function startAdd() {
     if (!map) return;
-    if (!show.objekti) { show.objekti = true; saveLayers(); drawData({ query: {} }); var c = document.querySelector('[data-layer="objekti"]'); if (c) c.setAttribute('aria-pressed', 'true'); }
+    // Beim Eintragen alles zeigen, was man gerade anlegen kann (Einrichtungen und Notizen)
+    if (!show.objekti || !show.biljeske) {
+      show.objekti = true; show.biljeske = true; saveLayers(); drawData({ query: {} });
+      ['objekti', 'biljeske'].forEach(function (k) { var c = document.querySelector('[data-layer="' + k + '"]'); if (c) c.setAttribute('aria-pressed', 'true'); });
+    }
     placeMode(t('placeHint'), function (pos) { Objekti.openForm({ lat: pos.lat, lon: pos.lon }); });
   }
 
