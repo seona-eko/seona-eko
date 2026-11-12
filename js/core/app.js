@@ -469,6 +469,23 @@ var App = (function () {
 })();
 
 /**
+ * iPhone-Glasleiste: während man scrollt, wird sie kleiner und durchsichtiger (Klasse „scrollt“ an <html>);
+ * 0,25 s nach dem letzten Scrollen kehrt sie weich zurück. Kleine Bewegungen (Seitenaufbau) lösen nichts aus.
+ */
+(function () {
+  var html = document.documentElement, timer = null, y = window.scrollY;
+  window.addEventListener('scroll', function () {
+    var neu = window.scrollY, d = Math.abs(neu - y);
+    y = neu;
+    if (!html.classList.contains('ios') || d < 3) return;
+    html.classList.add('scrollt');
+    clearTimeout(timer);
+    timer = setTimeout(function () { html.classList.remove('scrollt'); }, 250);
+  }, { passive: true });
+  window.addEventListener('hashchange', function () { clearTimeout(timer); html.classList.remove('scrollt'); });
+})();
+
+/**
  * Systemfarbe (Statusleiste/Adresszeile) = Farbe der Kopfzeile, auch beim Wechsel hell/dunkel.
  */
 (function () {
