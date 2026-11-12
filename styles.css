@@ -29,8 +29,8 @@
   --accent-ink:#f7f5ee;       /* heller Text auf dunklem Grün */
   --ok:#4a6535;
   --ok-soft:#dfe7cf;
-  --warn:#a8491f;
-  --warn-soft:#f3e0d2;
+  --warn:#b4372f;             /* Warnung: eigenes Rot — Kupfer bleibt nur für Aktionen */
+  --warn-soft:#f6dedb;
   --muted-soft:#dde2d3;
   --line:#cdd5c0;
   --backdrop:#cfd6c3;
@@ -50,7 +50,7 @@
     --cream:#181c19; --cream-2:#242a26; --paper:#1f2521;
     --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
     --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
-    --ok:#a9c28a; --ok-soft:#2c3827; --warn:#e79468; --warn-soft:#3c2519; --muted-soft:#2b322d;
+    --ok:#a9c28a; --ok-soft:#2c3827; --warn:#f2776e; --warn-soft:#3a1d1c; --muted-soft:#2b322d;
     --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;
     color-scheme:dark;
   }
@@ -60,7 +60,7 @@
     --cream:#181c19; --cream-2:#242a26; --paper:#1f2521;
     --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
     --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
-    --ok:#a9c28a; --ok-soft:#2c3827; --warn:#e79468; --warn-soft:#3c2519; --muted-soft:#2b322d;
+    --ok:#a9c28a; --ok-soft:#2c3827; --warn:#f2776e; --warn-soft:#3a1d1c; --muted-soft:#2b322d;
     --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;
     color-scheme:dark;
 }
@@ -105,7 +105,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .sync-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--sage);}
 .sync-pill.pending .dot{background:var(--copper);}
 .sync-pill.offline .dot{background:#9aa39c;}
-.sync-pill.error .dot{background:#e8836a;}
+.sync-pill.error .dot{background:var(--warn);}
 
 /* Startbildschirm mit Logo (index.html #boot) — gleicher Grund wie die App, blendet nach dem Laden weich aus */
 #boot{position:fixed;inset:0;z-index:10000;background:var(--forest-1);color:var(--copper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s ease-out;}
@@ -137,8 +137,8 @@ html.ios main#view{min-height:calc(100vh + env(safe-area-inset-top,0px) + 1px);}
 }
 .bottomnav a svg{width:24px;height:24px;}
 .bottomnav a[aria-current="page"]{color:var(--forest-1);}
-:root[data-theme="dark"] .bottomnav a[aria-current="page"]{color:var(--ok);}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bottomnav a[aria-current="page"]{color:var(--ok);}}
+:root[data-theme="dark"] .bottomnav a[aria-current="page"]{color:var(--ink);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bottomnav a[aria-current="page"]{color:var(--ink);}}
 .bottomnav a[aria-current="page"] svg{stroke-width:2.4;}
 .bottomnav a .ind{width:22px;height:3px;border-radius:2px;background:transparent;margin-top:1px;}
 .bottomnav a[aria-current="page"] .ind{background:var(--accent);}
@@ -743,7 +743,7 @@ body.picker-open{overflow:hidden;}
   body.map-full::before{display:none;}
   #bottomnav a[data-sync]::after{content:"";position:absolute;top:8px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;
     background:var(--copper);box-shadow:0 0 0 2px var(--paper);}
-  #bottomnav a[data-sync="error"]::after{background:#e8836a;}
+  #bottomnav a[data-sync="error"]::after{background:var(--warn);}
   #bottomnav a[data-sync="offline"]::after{background:#9aa39c;}
 }
 
@@ -806,3 +806,11 @@ a.row:active,button.row:active,.row[data-id]:active{background:color-mix(in srgb
 @keyframes skel{from{background-position:100% 0;}to{background-position:-100% 0;}}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 @media (prefers-reduced-motion: reduce){.skel{animation:none;}.toast{animation:none;}}
+
+/* Karte im Dunkelmodus gedämpft, damit das helle QField-Grün nicht gegen die ruhige App „schreit“ */
+:root[data-theme="dark"] .leaflet-tile-pane{filter:saturate(.72) brightness(.8) contrast(1.06);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:saturate(.72) brightness(.8) contrast(1.06);}}
+
+/* Glückwunsch nach dem Eintragen eines Abschusses */
+#done .done-cheer{font-family:var(--font-display);font-weight:500;font-size:1.7rem;letter-spacing:.02em;color:var(--accent);margin:10px 0 0;line-height:1.1;}
+#done .done-cheer + h2{font-size:1.05rem;opacity:.9;margin-top:4px;}

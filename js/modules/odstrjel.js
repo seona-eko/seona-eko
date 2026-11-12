@@ -384,6 +384,8 @@ var Odstrjel = (function () {
   function showDone(sent, warnings, data) {
     var o = document.getElementById('done');
     document.getElementById('done-icon').innerHTML = ICONS.check.replace('<svg', '<svg class="success-icon"');
+    // Jägerischer Glückwunsch: HR „Čestitam!“, DE „Waidmannsheil!“, EN „Congratulations!“ (dezent, über dem Status)
+    var cheer = document.getElementById('done-cheer'); if (cheer) cheer.textContent = t('congrats');
     document.getElementById('done-title').textContent = sent ? t('doneSent') : t('doneLocal');
     document.getElementById('done-text').textContent = kategorija(data.vrsta, data.spol, data.dobnaKlasa, I18n.lang()) + ' · ' + data.tezina + ' kg · #' + data.brojMarkice + ' — ' + (sent ? t('doneSentText') : t('doneLocalText'));
     var w = document.getElementById('done-warn');

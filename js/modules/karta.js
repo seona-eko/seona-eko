@@ -4,9 +4,10 @@
  * Einrichtungen werden über ein Fadenkreuz in der Kartenmitte eingetragen (einhändig bedienbar).
  */
 var MapOffline = (function () {
-  var CACHE = 'seona-karta-v3';
-  // Team: tiles/ (QField-Karte mit Reviergrenzen) · Gäste: tiles_gast/ (dieselbe Karte ohne Grenzen)
-  function prefix() { return App.isGost() ? 'tiles_gast' : 'tiles'; }
+  var CACHE = 'seona-karta-v4';
+  // Alle nutzen tiles_gast/ (QField-Karte ohne eingebrannte Reviergrenzen). Die Grenzen zeichnet die App fürs Team selbst
+  // (Farben passend zur App, siehe REVIER_FARBE). tiles/ (mit Grenzen in QField-Farben) bleibt nur als Reserve liegen.
+  function prefix() { return 'tiles_gast'; }
   // Flag hängt an der Kartenversion: neue Karte (neuer Cache) → wird automatisch neu gespeichert
   function flag() { return (App.isGost() ? 'mapSavedGast' : 'mapSaved') + ':' + CACHE; }
   async function status() {
@@ -110,6 +111,10 @@ function rahmenMaske(map, meta) {
     renderer: L.svg({ padding: 2, pane: 'rahmen' })
   }).addTo(map);
 }
+
+/** Reviergrenzen in Farben der App (statt Standard-Orange/Rot/Blau): Kupfer · Sand · Rost. */
+var REVIER_FARBE = { 'XIV/189': '#e0995c', 'XIV/191': '#f0e2bd', 'XIV/192': '#c9685a' };
+function revierFarbe(p) { return REVIER_FARBE[p && p.broj] || (p && p.boja) || '#e0995c'; }
 
 var Karta = (function () {
   var esc = UI.esc, t = I18n.t;
@@ -290,7 +295,7 @@ var Karta = (function () {
       Store.objekti().forEach(function (o) {
         if (lovFocus.stajalista.indexOf(o.id) === -1) return;
         pts.push([o.lat, o.lon]);
-        ring.addLayer(L.circleMarker([o.lat, o.lon], { radius: 20, color: '#471b28', weight: 3, fill: false, interactive: false }));
+        ring.addLayer(L.circleMarker([o.lat, o.lon], { radius: 20, color: '#dd985f', weight: 3, fill: false, interactive: false }));
       });
       layers.lovFocus = ring.addTo(map);
       if (pts.length && !ctx._fitted) { map.fitBounds(pts, { padding: [60, 60], maxZoom: 16 }); ctx._fitted = true; }
@@ -481,14 +486,16 @@ var Karta = (function () {
     if (ctx.query.lat && ctx.query.lon) {
       var ll = [Number(ctx.query.lat), Number(ctx.query.lon)];
       map.setView(ll, 16);
-      focusMarker = L.circleMarker(ll, { radius: 16, color: '#471b28', weight: 3, fill: false }).addTo(map);
+      focusMarker = L.circleMarker(ll, { radius: 16, color: '#dd985f', weight: 3, fill: false }).addTo(map);
     } else if (view) map.setView(view.c, view.z);
     else map.fitBounds(meta.reviere, { padding: [0, 0] });
     map.on('moveend', function () { try { sessionStorage.setItem('seona_map_view', JSON.stringify({ c: map.getCenter(), z: map.getZoom() })); } catch (e) {} });
 
     if (!guest()) try {
       var rev = await Geo.loadGeo('reviere');
-      layers.reviere = L.geoJSON(rev, { interactive: false, style: function (f) { return { color: f.properties.boja, weight: 3, opacity: .9, fillOpacity: 0 }; } }).addTo(map);
+      // dunkle Unterlage + Linie in Revierfarbe: auf heller wie dunkler Karte klar lesbar
+      L.geoJSON(rev, { interactive: false, style: { color: '#14110d', weight: 6, opacity: .35, fillOpacity: 0 } }).addTo(map);
+      layers.reviere = L.geoJSON(rev, { interactive: false, style: function (f) { return { color: revierFarbe(f.properties), weight: 3, opacity: .95, fillOpacity: 0 }; } }).addTo(map);
     } catch (e) {}
     drawOdjeli();
     drawData(ctx);
