@@ -195,6 +195,8 @@ var UI = (function () {
     fmtDate: fmtDate, fmtDay: fmtDay, fmtLong: fmtLong, fmtTime: fmtTime, fmtStamp: fmtStamp, daysSince: daysSince,
     toast: toast, hideToast: hideToast, openSheet: openSheet, closeSheet: closeSheet,
     isSheetOpen: function () { return !!current; }, onSheetClosed: function (fn) { closedListeners.push(fn); }, confirm: confirmSheet,
-    readPhoto: readPhoto, loadPhoto: loadPhoto, emptyState: emptyState, sectionTabs: sectionTabs
+    readPhoto: readPhoto, loadPhoto: loadPhoto, emptyState: emptyState, sectionTabs: sectionTabs,
+    // Kurzer Impuls als Bestätigung (nur Android; iPhones erlauben Web-Apps keine Vibration)
+    haptic: function () { try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) {} }
   };
 })();

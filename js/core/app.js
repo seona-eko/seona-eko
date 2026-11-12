@@ -387,7 +387,12 @@ var App = (function () {
     injectIcons(document.getElementById('setup'));
     injectIcons(document.getElementById('bottomnav'));
     document.getElementById('sync-pill').onclick = function () { go('#/vise?sync=1'); };
-    window.addEventListener('hashchange', function () { render(); });
+    // Seitenwechsel weich überblenden (wo der Browser es kann; „Bewegung reduzieren“ wird beachtet)
+    window.addEventListener('hashchange', function () {
+      var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (document.startViewTransition && !still) { try { document.startViewTransition(function () { render(); }); return; } catch (e) {} }
+      render();
+    });
     window.addEventListener('online', function () { if (syncState === 'offline') syncState = 'ok'; retryStep = 0; syncNow({ pull: true, quiet: true }); });
     window.addEventListener('focus', function () { syncNow({ pull: true, quiet: true }); });
     window.addEventListener('pageshow', function () { syncNow({ pull: true, quiet: true }); });
@@ -436,4 +441,48 @@ var App = (function () {
     syncState: function () { return syncState; },
     injectIcons: injectIcons
   };
+})();
+
+/**
+ * Systemfarbe (Statusleiste/Adresszeile) = Farbe der Kopfzeile, auch beim Wechsel hell/dunkel.
+ */
+(function () {
+  function farbe() {
+    var tb = document.querySelector('.topbar'), m = document.querySelector('meta[name="theme-color"]');
+    if (tb && m) { try { m.setAttribute('content', getComputedStyle(tb).backgroundColor); } catch (e) {} }
+  }
+  farbe();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', farbe); } catch (e) {}
+})();
+
+/**
+ * Fehler still an den Server melden, damit sie auffallen, bevor jemand anruft.
+ * Nur technische Angaben (Meldung, Datei/Zeile, Seite, Version, Browser) — kein Code, keine Namen, keine Revierdaten.
+ * Höchstens 5 je Sitzung, jede Meldung nur einmal. Ohne Netz geht die Meldung verloren (kein Problem).
+ */
+(function () {
+  var gesendet = 0, schon = {};
+  function melde(m, s, l, c, st) {
+    try {
+      if (gesendet >= 5 || !window.APP_CONFIG || !APP_CONFIG.API_URL) return;
+      var key = String(m) + '|' + (s || '') + '|' + (l || 0);
+      if (schon[key]) return;
+      schon[key] = 1; gesendet++;
+      var body = JSON.stringify({ action: 'greska', payload: {
+        m: String(m || '').slice(0, 300), s: String(s || '').replace(location.origin, '').slice(0, 120), l: l || 0, c: c || 0,
+        st: String(st || '').replace(new RegExp(location.origin.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&'), 'g'), '').slice(0, 800),
+        r: String(location.hash || '').split('?')[0].slice(0, 60), v: APP_CONFIG.VERSION || '', ua: navigator.userAgent.slice(0, 160)
+      } });
+      fetch(APP_CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body, keepalive: true }).catch(function () {});
+    } catch (e) {}
+  }
+  window.addEventListener('error', function (e) {
+    if (!e || !e.message) return; // Ladefehler von Bildern/Kacheln sind keine Programmfehler
+    melde(e.message, e.filename, e.lineno, e.colno, e.error && e.error.stack);
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e && e.reason;
+    if (r && (r.name === 'AbortError' || /Failed to fetch|NetworkError|Load failed/i.test(String(r.message || r)))) return; // kein Netz = normal
+    melde(r && r.message || String(r), 'promise', 0, 0, r && r.stack);
+  });
 })();

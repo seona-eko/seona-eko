@@ -344,6 +344,7 @@ var Odstrjel = (function () {
       if (st.edit) {
         await Store.queueUpsert('odstrjel', Object.assign({ id: st.edit.id }, data, st.foto ? { foto: st.foto } : {}));
         App.syncNow({ quiet: true });
+        UI.haptic();
         UI.toast(t('savedChanges'));
         App.go('#/odstrjel');
         return;
@@ -351,6 +352,7 @@ var Odstrjel = (function () {
       data.id = Store.uuid();
       if (st.foto) data.foto = st.foto;
       await Store.queueSubmit(data);
+      UI.haptic();
       var cold = el.querySelector('#cold');
       if (cold && cold.checked) {
         var asp = v('aspUzorak');

@@ -124,6 +124,7 @@ var Objekti = (function () {
         if (st.foto) rec.fotoNew = st.foto;
         await Store.queueUpsert('objekt', rec);
         api.close();
+        UI.haptic();
         UI.toast(navigator.onLine ? t('savedSending') : t('savedLocal'));
         App.syncNow({ quiet: true });
       });
