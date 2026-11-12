@@ -408,7 +408,9 @@ var App = (function () {
       var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
       // iPhone/iPad: in installierten Web-Apps noch fehleranfällig (schwarzer Bildschirm gemeldet) → dort ohne Überblenden
       var ios = document.documentElement.classList.contains('ios');
-      if (document.startViewTransition && !still && !ios) { try { document.startViewTransition(function () { render(); }); return; } catch (e) {} }
+      // beim Wischen zwischen Reitern läuft eine eigene Gleitbewegung → kein zusätzliches Überblenden
+      var wisch = document.documentElement.hasAttribute('data-wisch');
+      if (document.startViewTransition && !still && !ios && !wisch) { try { document.startViewTransition(function () { render(); }); return; } catch (e) {} }
       render();
     });
     window.addEventListener('online', function () { if (syncState === 'offline') syncState = 'ok'; retryStep = 0; syncNow({ pull: true, quiet: true }); });
@@ -476,11 +478,13 @@ var App = (function () {
 
 /**
  * Wischen zwischen den Reitern einer Seite (z. B. Jagden: Drückjagden ↔ Gäste; Strecke: Liste ↔ Plan ↔ Kühlzelle).
- * Nach links = nächster Reiter, nach rechts = voriger. Nur deutlich waagrechte, zügige Bewegungen (≥ 70 px, < 0,7 s).
- * Nicht auf Bereichen, die selbst seitlich scrollen (Filterzeilen, Tabellen), Eingabefeldern, Karten oder offenen Feldern.
+ * Der Inhalt folgt dem Finger (gedämpft); beim Loslassen gleitet er hinaus und der neue Reiter ruhig herein.
+ * Reicht die Bewegung nicht (oder gibt es keinen Nachbar-Reiter), federt er weich zurück.
+ * Nur waagrechte Bewegungen; nicht auf Bereichen, die selbst seitlich scrollen, Eingabefeldern, Karten, offenen Feldern.
  */
 (function () {
-  var sx = 0, sy = 0, st = 0, aktiv = false;
+  var sx = 0, sy = 0, st = 0, aktiv = false, modus = null, dx = 0, teile = [], nachbar = null, richtung = 0;
+  var AUS = 'cubic-bezier(.4,0,.2,1)';
   function scrolltSeitlich(el) {
     for (; el && el !== document.body; el = el.parentElement) {
       if (el.scrollWidth > el.clientWidth + 2) {
@@ -490,36 +494,69 @@ var App = (function () {
     }
     return false;
   }
+  function setze(x, op, trans) {
+    teile.forEach(function (el) {
+      el.style.transition = trans || 'none';
+      el.style.transform = x ? 'translate3d(' + x + 'px,0,0)' : '';
+      el.style.opacity = op == null ? '' : String(op);
+    });
+  }
+  function nachbarReiter(r) {
+    var reiter = [].slice.call(document.querySelectorAll('#view .section-tabs a'));
+    var i = reiter.findIndex(function (a) { return a.getAttribute('aria-current') === 'page'; });
+    var j = i + r;
+    return i < 0 || j < 0 || j >= reiter.length ? null : reiter[j];
+  }
   document.addEventListener('touchstart', function (e) {
-    aktiv = false;
+    aktiv = false; modus = null; dx = 0;
     if (e.touches.length !== 1) return;
     var view = document.getElementById('view');
     if (!view || !view.contains(e.target) || !view.querySelector('.section-tabs')) return;
     if (UI.isSheetOpen() || e.target.closest('input, textarea, select, .leaflet-container, [data-noswipe]')) return;
     if (scrolltSeitlich(e.target)) return;
     sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); aktiv = true;
+    teile = [].slice.call(view.children).filter(function (el) { return !el.classList.contains('section-tabs'); });
   }, { passive: true });
-  document.addEventListener('touchend', function (e) {
+  document.addEventListener('touchmove', function (e) {
+    if (!aktiv) return;
+    var t = e.touches[0], x = t.clientX - sx, y = t.clientY - sy;
+    if (!modus) {
+      if (Math.abs(x) > 10 && Math.abs(x) > Math.abs(y) * 1.5) {
+        modus = 'h'; richtung = x < 0 ? 1 : -1; nachbar = nachbarReiter(richtung);
+      } else if (Math.abs(y) > 10) { aktiv = false; return; }
+      else return;
+    }
+    dx = x;
+    // gedämpft folgen; ohne Nachbar-Reiter nur ein wenig (Gummiband)
+    var weg = nachbar && (dx < 0) === (richtung > 0) ? dx * 0.55 : dx * 0.18;
+    setze(weg, 1 - Math.min(0.5, Math.abs(weg) / 500));
+  }, { passive: true });
+  document.addEventListener('touchend', function () {
     if (!aktiv) return;
     aktiv = false;
-    var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Date.now() - st > 700 || Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
-    var reiter = [].slice.call(document.querySelectorAll('#view .section-tabs a'));
-    var i = reiter.findIndex(function (a) { return a.getAttribute('aria-current') === 'page'; });
-    var j = dx < 0 ? i + 1 : i - 1;
-    if (i < 0 || j < 0 || j >= reiter.length) return;
-    var richtung = dx < 0 ? 'wisch-l' : 'wisch-r';
-    window.addEventListener('hashchange', function einmal() {
-      window.removeEventListener('hashchange', einmal);
-      requestAnimationFrame(function () {
-        var v = document.getElementById('view');
-        if (!v) return;
-        v.classList.add(richtung);
-        setTimeout(function () { v.classList.remove(richtung); }, 400);
+    if (modus !== 'h') return;
+    var schnell = Math.abs(dx) / Math.max(1, Date.now() - st) > 0.5; // zügiger Wisch zählt auch bei kürzerem Weg
+    var weit = Math.abs(dx) > 80 || (schnell && Math.abs(dx) > 40);
+    if (!nachbar || !weit || (dx < 0) !== (richtung > 0)) { setze(0, 1, 'transform .45s ' + AUS + ', opacity .45s ' + AUS); return; }
+    // hinausgleiten, dann Reiter wechseln; der neue Inhalt gleitet aus der Gegenrichtung herein
+    var ziel = nachbar.getAttribute('href'), cls = richtung > 0 ? 'wisch-l' : 'wisch-r';
+    setze(richtung > 0 ? -90 : 90, 0, 'transform .22s ' + AUS + ', opacity .22s ' + AUS);
+    setTimeout(function () {
+      window.addEventListener('hashchange', function einmal() {
+        window.removeEventListener('hashchange', einmal);
+        requestAnimationFrame(function () {
+          var v = document.getElementById('view');
+          if (!v) return;
+          v.classList.add(cls);
+          setTimeout(function () { v.classList.remove(cls); }, 600);
+        });
       });
-    });
-    location.hash = reiter[j].getAttribute('href');
+      document.documentElement.setAttribute('data-wisch', '');
+      location.hash = ziel;
+      setTimeout(function () { document.documentElement.removeAttribute('data-wisch'); }, 50);
+    }, 200);
   }, { passive: true });
+  document.addEventListener('touchcancel', function () { if (aktiv && modus === 'h') setze(0, 1, 'transform .45s ' + AUS + ', opacity .45s ' + AUS); aktiv = false; }, { passive: true });
 })();
 
 /**
