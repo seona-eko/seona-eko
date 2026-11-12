@@ -60,6 +60,43 @@ function punktUnterFadenkreuz(map, root) {
  * im Osten Kroatiens um gut 1° schräg (Meridiankonvergenz). Damit der Rand gerade ist, deckt eine Fläche in Papierfarbe
  * alles außerhalb des größten geraden Rechtecks im Bild ab (meta.rahmen, ermittelt aus den Kacheln).
  */
+/** Farbe für alles außerhalb der Karte: Hintergrund der App (hell/dunkel), damit klar ist „hier endet die Karte“. */
+function kartenRandFarbe() {
+  var c = '';
+  try { c = getComputedStyle(document.documentElement).getPropertyValue('--map-out').trim(); } catch (e) {}
+  return c || '#1b201c';
+}
+
+/**
+ * Gemeinsame Kartenregeln für Revierkarte und Kartenauswahl:
+ *  - kleinste Zoomstufe = alle drei Reviere passen gerade auf den Bildschirm (kein schwebendes Kartenrechteck),
+ *  - Verschieben reicht weit über den Kartenrand hinaus, damit der eigene Standort auch am Rand mittig stehen kann,
+ *  - ändert sich die Größe des Kartenfelds (Kopfzeile, Vollbild, Drehen, iPhone-Leisten), rechnet Leaflet sofort neu —
+ *    sonst zentriert es mit einer veralteten Größe und der Punkt steht neben der Mitte.
+ */
+var KARTE_RAND = 0.6;
+function kartenGrenzen(map, meta, onResize) {
+  function minZoom() {
+    var z = map.getBoundsZoom(meta.reviere, false, L.point(20, 20));
+    map.setMinZoom(Math.max(meta.minZoom, Math.min(z, meta.maxNativeZoom)));
+  }
+  minZoom();
+  var box = map.getContainer(), w = box.clientWidth, h = box.clientHeight;
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(function () {
+      if (!map._loaded && !map._size) return;
+      if (box.clientWidth === w && box.clientHeight === h) return;
+      w = box.clientWidth; h = box.clientHeight;
+      if (!w || !h) return;
+      map.invalidateSize({ pan: false });
+      minZoom();
+      if (onResize) onResize();
+    });
+    ro.observe(box);
+    map.on('unload', function () { ro.disconnect(); });
+  }
+}
+
 function rahmenMaske(map, meta) {
   if (!meta.rahmen) return;
   var s = meta.rahmen[0][0], w = meta.rahmen[0][1], n = meta.rahmen[1][0], e = meta.rahmen[1][1];
@@ -67,7 +104,7 @@ function rahmenMaske(map, meta) {
   var pane = map.createPane('rahmen');
   pane.style.zIndex = 250; pane.style.pointerEvents = 'none';
   L.polygon([[[35, 5], [55, 5], [55, 30], [35, 30]], [[s, w], [n, w], [n, e], [s, e]]], {
-    stroke: false, fillColor: '#efe9d8', fillOpacity: 1, interactive: false, pane: 'rahmen'
+    stroke: false, fillColor: kartenRandFarbe(), fillOpacity: 1, interactive: false, pane: 'rahmen'
   }).addTo(map);
 }
 
@@ -214,11 +251,14 @@ var Karta = (function () {
   // sonst steht der Hochsitz optisch ein gutes Stück neben der Stelle, an die man ihn gesetzt hat.
   // Werte = unterster Punkt der Grafik im 24er-Raster der SVG (icons/objekti/); Bild 30 px, 2 px Rand.
   var FUSS = { kanzel: 21, leiter: 21, drueckjagdbock: 20, bodensitz: 18, fuetterung: 20 };
-  function objIcon(o) {
+  // Unterhalb dieser Zoomstufe nur ruhige Punkte statt Symbole — sonst stapeln sich die Hochsitze zu einem Klumpen
+  var PUNKT_BIS = 14;
+  function objIcon(o, zoom) {
     var cls = 'obj-marker' + (o.stanje === 'uklonjen' ? ' removed' : '') + (o.stanje === 'popravak' || o.stanje === 'neupotrebljivo' ? ' bad' : '');
+    if (zoom != null && zoom <= PUNKT_BIS) return L.divIcon({ className: '', html: '<div class="obj-dot' + (o.stanje === 'uklonjen' ? ' removed' : '') + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
     var art = ICONS.objekt[o.art] ? o.art : 'kanzel';
-    var ay = FUSS[art] ? Math.round(2 + FUSS[art] * 30 / 24) : 17;
-    return L.divIcon({ className: '', html: '<div class="' + cls + '" style="position:relative"><img alt="" src="' + ICONS.objekt[art] + '"></div>', iconSize: [34, 34], iconAnchor: [17, ay] });
+    var ay = FUSS[art] ? Math.round(2 + FUSS[art] * 26 / 24) : 15;
+    return L.divIcon({ className: '', html: '<div class="' + cls + '" style="position:relative"><img alt="" src="' + ICONS.objekt[art] + '"></div>', iconSize: [30, 30], iconAnchor: [15, ay] });
   }
 
   function drawData(ctx) {
@@ -231,7 +271,7 @@ var Karta = (function () {
       var g = L.layerGroup();
       Store.objekti().forEach(function (o) {
         if (!(Number(o.lat) && Number(o.lon))) return;
-        var m = L.marker([o.lat, o.lon], { icon: objIcon(o), keyboard: true, title: I18n.objekt(o.art) + (o.broj ? ' ' + o.broj : '') });
+        var m = L.marker([o.lat, o.lon], { icon: objIcon(o, map.getZoom()), keyboard: true, title: I18n.objekt(o.art) + (o.broj ? ' ' + o.broj : '') });
         m.on('click', function () { Objekti.openDetail(o.id); });
         g.addLayer(m);
       });
@@ -251,7 +291,10 @@ var Karta = (function () {
       var k = L.layerGroup();
       Stats.inJJ(Store.strecke()).forEach(function (r) {
         if (!(Number(r.lat) && Number(r.lon))) return;
-        var m = L.marker([r.lat, r.lon], { icon: L.divIcon({ className: '', html: '<div class="kill-dot"></div>', iconSize: [14, 14], iconAnchor: [7, 7] }), title: Strecke.title(r) });
+        // Strecke: kupferne Runde mit Wildart-Symbol (deutlich anders als die dunklen Einrichtungen); weit weg nur ein kupferner Punkt
+        var nah = map.getZoom() > PUNKT_BIS;
+        var m = L.marker([r.lat, r.lon], { icon: L.divIcon({ className: '', html: nah ? '<div class="kill-mark">' + ICONS.forSpecies(r.vrsta) + '</div>' : '<div class="kill-dot"></div>',
+          iconSize: nah ? [30, 30] : [14, 14], iconAnchor: nah ? [15, 15] : [7, 7] }), title: Strecke.title(r), zIndexOffset: 500 });
         m.on('click', function () { Strecke.openDetail(r.id); });
         k.addLayer(m);
       });
@@ -272,13 +315,28 @@ var Karta = (function () {
             fillColor: v === 'pomladak' ? '#dd985f' : v === 'oplodna' ? '#d9b400' : '#2d6a2d',
             fillOpacity: v ? .28 : .02 };
         },
-        onEachFeature: function (f, layer) { layer.on('click', function () { openOdjel(f.properties); }); }
+        onEachFeature: function (f, layer) { layer.on('click', function () { markOdjel(layer); openOdjel(f.properties, layer); }); }
       }).addTo(map);
       if (layers.reviere) layers.reviere.bringToFront();
     } catch (e) { UI.toast(t('mapDataMissing')); }
   }
 
-  function openOdjel(p) {
+  // Angetippte Abteilung hervorheben, bis das Infofeld wieder zu ist
+  var odjelSel = null;
+  function unmarkOdjel(layer) {
+    if (!layer || odjelSel !== layer) return;
+    if (layers.odjeli) layers.odjeli.resetStyle(layer);
+    odjelSel = null;
+  }
+  function markOdjel(layer) {
+    if (odjelSel && odjelSel !== layer) unmarkOdjel(odjelSel);
+    odjelSel = layer;
+    layer.setStyle({ color: '#dd985f', weight: 4, opacity: 1, dashArray: null, fillColor: '#dd985f', fillOpacity: .3 });
+    layer.bringToFront();
+    if (layers.reviere) layers.reviere.bringToFront();
+  }
+
+  function openOdjel(p, layer) {
     var verj = p.verj === 'pomladak' ? t('verjPomladak') : p.verj === 'oplodna' ? t('verjOplodna') : '';
     var kv = [[t('odGj'), p.gj], [t('odOdjel'), (p.odjel || '') + (p.odsjek ? ' ' + p.odsjek : '')], [t('odHa'), p.ha != null ? p.ha + ' ha' : ''],
       [t('odRazred'), p.razred], [t('odStarost'), p.starost ? p.starost + ' ' + t('years') : ''], [t('odDobni'), p.dr ? p.dr + '.' : ''],
@@ -287,18 +345,37 @@ var Karta = (function () {
       '<p class="sheet-sub">' + esc(p.gj || '') + '</p>' +
       (verj ? '<p><span class="badge warn">' + esc(verj) + '</span></p>' : '') +
       '<dl class="kv">' + kv.map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') + '</dl>' +
-      '<p class="source">' + esc(t('odSource')) + '</p>', null, { noFocus: true });
+      '<p class="source">' + esc(t('odSource')) + '</p>', null, { noFocus: true, onClose: function () { unmarkOdjel(layer); } });
+    // Markierte Abteilung in den freien Teil über dem Infofeld schieben (nicht heranzoomen)
+    if (layer && map) setTimeout(function () {
+      var sh = document.querySelector('.sheet'); if (!sh || !map) return;
+      // Endlage des Infofelds (es fährt gerade noch hoch): unten bündig, also Fensterhöhe minus eigene Höhe
+      var mr = map.getContainer().getBoundingClientRect(), top = window.innerHeight - sh.offsetHeight;
+      var unten = Math.max(0, mr.bottom - top) + 16;
+      if (mr.height - unten < 120) return;
+      map.fitBounds(layer.getBounds(), { paddingTopLeft: [16, 64], paddingBottomRight: [16, unten], maxZoom: map.getZoom(), animate: true });
+    }, 60);
   }
 
   /**
    * Ortung wie bei Navigations-Apps: Knopf antippen → Karte folgt dem Standort (bleibt zentriert).
    * Verschiebt man die Karte von Hand, hört das Folgen auf (Punkt bleibt sichtbar); erneut antippen → folgt wieder.
    */
-  var follow = false;
+  var follow = false, grenzen = null;
   function setFollow(on) {
     follow = on;
     var f = document.getElementById('fab-locate');
     if (f) { f.classList.toggle('active', watchId !== null); f.classList.toggle('follow', on); }
+    if (!map) return;
+    // Beim Folgen zoomen Finger, Doppeltipp und Mausrad um die Bildmitte (= Standort), nicht um die Fingerposition —
+    // sonst rutscht der Punkt beim Zoomen aus der Mitte, bis das GPS die nächste Position liefert.
+    var mitte = on ? 'center' : true;
+    map.options.touchZoom = mitte; map.options.doubleClickZoom = mitte; map.options.scrollWheelZoom = mitte;
+    // Solange die Ortung läuft, keine Randbegrenzung: die Mitte darf überall liegen, auch am Kartenrand.
+    map.setMaxBounds(watchId !== null ? null : grenzen);
+  }
+  function zentrieren() {
+    if (follow && meMarker && map) map.setView(meMarker.getLatLng(), map.getZoom(), { animate: false });
   }
   function locate() {
     startHeading();
@@ -318,6 +395,7 @@ var Karta = (function () {
         meCircle = L.circle(ll, { radius: p.coords.accuracy, color: '#2f6fc0', weight: 1, fillOpacity: .08, interactive: false }).addTo(map);
       } else { meMarker.setLatLng(ll); meCircle.setLatLng(ll).setRadius(p.coords.accuracy); }
       if (!follow) return;
+      map.invalidateSize({ pan: false });
       if (first) { map.setView(ll, Math.max(map.getZoom(), 16), { animate: false }); first = false; }
       else map.panTo(ll, { animate: true, duration: 0.5 });
     }, function (err) {
@@ -380,7 +458,9 @@ var Karta = (function () {
     try { meta = await (await fetch('map/meta.json')).json(); }
     catch (e) { el.querySelector('#map').innerHTML = UI.emptyState('map', t('mapDataMissing'), t('mapDataMissingText')); return; }
     if (!document.getElementById('map')) return; // inzwischen weiter navigiert
-    map = L.map('map', { zoomControl: false, attributionControl: true, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(0.15), preferCanvas: true });
+    grenzen = L.latLngBounds(meta.bounds).pad(KARTE_RAND);
+    map = L.map('map', { zoomControl: false, attributionControl: true, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
+    kartenGrenzen(map, meta, zentrieren);
     rahmenMaske(map, meta);
     L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', {
       minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds,
@@ -418,6 +498,13 @@ var Karta = (function () {
     Wetter.refresh();
     el.querySelector('#fab-locate').onclick = function () { locate(); };
     map.on('dragstart', function () { if (follow) setFollow(false); });
+    map.on('zoomend', function () {
+      zentrieren();
+      // Symbole ↔ Punkte nur neu zeichnen, wenn die Schwelle überschritten wird
+      var punkte = map.getZoom() <= PUNKT_BIS;
+      if (punkte !== map._punkte) { map._punkte = punkte; if (mode !== 'place') drawData({ query: {} }); }
+    });
+    map._punkte = map.getZoom() <= PUNKT_BIS;
     el.querySelector('#fab-full').onclick = function () { setFull(!isFull()); };
     var add = el.querySelector('#fab-add');
     if (add) add.onclick = function () { startAdd(); };
@@ -465,7 +552,7 @@ var Karta = (function () {
     stopLocate();
     stopHeading();
     if (map) { map.remove(); map = null; }
-    layers = {}; meMarker = null; meCircle = null; mode = null; focusMarker = null; follow = false;
+    layers = {}; meMarker = null; meCircle = null; mode = null; focusMarker = null; follow = false; grenzen = null;
   }
 
   App.route('karta', {
@@ -497,14 +584,15 @@ var MapPicker = (function () {
         '<button type="button" class="btn small primary" data-ok>' + esc(t('placeHere')) + '</button></div></div>';
       document.body.appendChild(ov);
       document.body.classList.add('picker-open');
-      var map = L.map('picker-map', { zoomControl: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(0.15), attributionControl: false });
+      var map = L.map('picker-map', { zoomControl: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
+      kartenGrenzen(map, meta);
       L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', { minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds }).addTo(map);
       rahmenMaske(map, meta);
       L.control.zoom({ position: 'topright' }).addTo(map);
       // Hochsitze & Co. zur Orientierung (nicht antippbar — getippt wird nur mit dem Fadenkreuz)
       if (!App.isGost()) Store.objekti().forEach(function (o) {
         if (o.stanje === 'uklonjen' || !(Number(o.lat) && Number(o.lon))) return;
-        L.marker([o.lat, o.lon], { icon: Karta.objIcon(o), interactive: false, keyboard: false }).addTo(map);
+        L.marker([o.lat, o.lon], { icon: Karta.objIcon(o, 15), interactive: false, keyboard: false }).addTo(map);
       });
       if (start && Number(start.lat) && Number(start.lon)) map.setView([start.lat, start.lon], 16);
       else map.fitBounds(meta.reviere, { padding: [20, 20] });

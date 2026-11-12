@@ -14,12 +14,14 @@
     return { n: list.length, old: old, pos: pos, notSent: notSent, sent: sent };
   }
 
+  /** Je Wildart: was heute offen ist (alle Klassen → „alles“). Wildarten ohne offene Klasse fallen weg. */
   function openToday() {
     var today = UI.todayISO();
     var out = [];
     LOVOSTAJ.groups.forEach(function (g) {
       if (g.vrsta === 'Ostalo') return;
-      g.rows.forEach(function (r) { if (Lovostaj.isOpen(r, today)) out.push(r); });
+      var rows = g.rows.filter(function (r) { return Lovostaj.isOpen(r, today); });
+      if (rows.length) out.push({ g: g, rows: rows, all: rows.length === g.rows.length });
     });
     return out;
   }
@@ -90,9 +92,10 @@
         '</div>' +
 
         '<div class="section-title"><h2>' + esc(t('openToday')) + '</h2><a href="#/lovostaj">' + esc(t('allSeasons')) + '</a></div>' +
-        '<div class="panel"><div class="chips" style="flex-wrap:wrap">' +
-        (open.length ? open.map(function (r) { return '<span class="badge ok">' + esc(t(r.key)) + '</span>'; }).join('') : '<span class="hint">' + esc(t('nothingOpen')) + '</span>') +
-        '</div></div>' +
+        (open.length ? '<div class="panel flush"><ul class="list open-list">' + open.map(function (o) {
+          return '<li><div class="row"><span class="r-icon">' + ICONS.forSpecies(o.g.vrsta) + '</span><span class="r-main"><span class="r-title">' + esc(t(o.g.key)) + '</span></span>' +
+            '<span class="open-what">' + esc(o.all ? t('openAll') : o.rows.map(function (r) { return t(r.key); }).join(' · ')) + '</span></div></li>';
+        }).join('') + '</ul></div>' : '<div class="panel"><span class="hint">' + esc(t('nothingOpen')) + '</span></div>') +
 
         // Nächste Drückjagd und nächster Gast — nur, wenn etwas ansteht
         (next ? '<div class="section-title"><h2>' + esc(t('nextLov')) + '</h2><a href="#/lovovi">' + esc(t('all')) + '</a></div>' +

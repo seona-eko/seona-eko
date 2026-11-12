@@ -40,6 +40,7 @@
   --font-display:'Oswald','Arial Narrow',sans-serif;
   --font-body:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   --nav-h:64px;
+  --map-out:#d6dbcc;
   --top-h:58px;
   color-scheme:light;
 }
@@ -50,7 +51,7 @@
     --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
     --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
     --ok:#a9c28a; --ok-soft:#2c3827; --warn:#e79468; --warn-soft:#3c2519; --muted-soft:#2b322d;
-    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6);
+    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;
     color-scheme:dark;
   }
 }
@@ -60,7 +61,7 @@
     --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
     --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
     --ok:#a9c28a; --ok-soft:#2c3827; --warn:#e79468; --warn-soft:#3c2519; --muted-soft:#2b322d;
-    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6);
+    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;
     color-scheme:dark;
 }
 
@@ -351,7 +352,7 @@ details.more[open] summary::before{content:"–";}
 
 /* ---------------- Karte ---------------- */
 .map-wrap{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + var(--top-h));bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));}
-.map-wrap #map{position:absolute;inset:0;background:#efe9d8;}
+.map-wrap #map{position:absolute;inset:0;background:var(--map-out);}
 .map-top{position:absolute;left:12px;right:12px;top:12px;z-index:500;display:flex;gap:8px;align-items:flex-start;}
 .map-top .chips{flex:1;}
 .map-top .chip{box-shadow:0 1px 4px rgba(0,0,0,.18);}
@@ -366,13 +367,25 @@ details.more[open] summary::before{content:"–";}
 .crosshair{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;z-index:450;pointer-events:none;color:var(--accent);}
 .place-bar{position:absolute;left:12px;right:12px;bottom:18px;z-index:500;background:var(--paper);border-radius:var(--radius);padding:12px;box-shadow:0 4px 16px rgba(0,0,0,.25);}
 .place-bar p{margin:0 0 10px;font-size:.88rem;}
-.leaflet-container{font-family:var(--font-body);}
-.leaflet-control-attribution{font-size:10px;}
-.obj-marker{width:34px;height:34px;display:flex;align-items:center;justify-content:center;}
-.obj-marker img{width:30px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));}
+.leaflet-container{font-family:var(--font-body);background:var(--map-out);}
+.lovci-chips{flex-wrap:wrap;margin-top:8px;}
+.leaflet-container .leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--cream) 78%,transparent);color:var(--ink-faint);border-top-left-radius:8px;}
+.leaflet-container .leaflet-control-attribution a{color:var(--ink-soft);}
+/* Zoom-Knöpfe im Stil der übrigen Kartenknöpfe (hell/dunkel wie die App) */
+.leaflet-container .leaflet-bar{border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.18);}
+.leaflet-container .leaflet-bar a{width:40px;height:40px;line-height:40px;background:var(--paper);color:var(--ink);border-bottom:1px solid var(--line);font-size:20px;}
+.leaflet-container .leaflet-bar a:last-child{border-bottom:none;}
+.leaflet-container .leaflet-bar a:hover{background:var(--cream-2);color:var(--ink);}
+.leaflet-container .leaflet-bar a.leaflet-disabled{background:var(--paper);color:var(--ink-faint);opacity:.6;}
+.obj-marker{width:30px;height:30px;display:flex;align-items:center;justify-content:center;}
+.obj-marker img{width:26px;height:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));}
 .obj-marker.removed img{opacity:.45;filter:grayscale(1);}
 .obj-marker.bad::after{content:"";position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;background:#dd985f;border:2px solid #fff;}
-.kill-dot{width:14px;height:14px;border-radius:50%;background:#471b28;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.4);}
+.obj-dot{width:12px;height:12px;border-radius:50%;background:#1a1a1a;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.35);}
+.obj-dot.removed{opacity:.45;}
+.kill-dot{width:14px;height:14px;border-radius:50%;background:#dd985f;border:2px solid #2a0f17;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.4);}
+.kill-mark{width:30px;height:30px;border-radius:50%;background:#dd985f;color:#2a0f17;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;}
+.kill-mark svg{width:18px;height:18px;}
 .me-dot{width:18px;height:18px;border-radius:50%;background:#2f6fc0;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,111,192,.25);}
 .map-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--ink-soft);margin-top:8px;}
 .map-legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
@@ -552,7 +565,7 @@ details.orig p{margin:4px 0 0;white-space:pre-wrap;}
 
 /* ---------------- Kartenauswahl (Formulare) ---------------- */
 .picker{position:fixed;inset:0;z-index:88;background:#efe9d8;}
-.picker-map{position:absolute;inset:0;}
+.picker-map{position:absolute;inset:0;background:var(--map-out);}
 .picker .crosshair{z-index:450;}
 .picker .place-bar{bottom:calc(env(safe-area-inset-bottom,0px) + 16px);}
 body.picker-open{overflow:hidden;}
@@ -647,3 +660,7 @@ body.picker-open{overflow:hidden;}
 /* SLE-Liste: Markennummer antippen = kopieren */
 .sle-copy{border:0;background:var(--muted-soft);color:inherit;font:inherit;font-weight:700;padding:1px 6px;border-radius:6px;cursor:pointer;}
 .sle-row .r-end{display:flex;flex-direction:column;align-items:flex-end;}
+
+/* Startseite „Heute offen“: eine Zeile je Wildart */
+.open-list .row{min-height:52px;padding-top:8px;padding-bottom:8px;}
+.open-what{color:var(--ok);font-weight:600;font-size:.88rem;text-align:right;max-width:55%;}

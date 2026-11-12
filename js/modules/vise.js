@@ -67,7 +67,8 @@
             (e.status === 'error' ? '<span class="r-sub" style="color:var(--warn);white-space:normal">' + esc(e.error) + '</span>' : '<span class="r-sub">' + esc(UI.fmtStamp(e.createdAt)) + '</span>') + '</span>' +
             '<button type="button" class="btn small ghost" data-discard="' + esc(e.key) + '" aria-label="' + esc(t('discard')) + '">' + ICONS.trash + '</button></div></li>';
         }).join('') + '</ul>' : '') +
-        '<button type="button" class="btn dark block" id="sync-now">' + ICONS.sync + esc(t('syncNow')) + '</button>' +
+        // Senden läuft von selbst; der Knopf erscheint nur, solange etwas wartet
+        (ob.length ? '<button type="button" class="btn dark block" id="sync-now">' + ICONS.sync + esc(t('syncNow')) + '</button>' : '') +
         (role === 'uprava' ? '<button type="button" class="btn block" id="backup" style="margin-top:10px">' + esc(t('backupBtn')) + '</button>' : '') + '</div>' +
 
         '<div class="section-title"><h2>' + esc(t('offlineMap')) + '</h2></div>' +
@@ -91,7 +92,8 @@
     },
     mount: async function (el, ctx) {
       if (ctx.query.sync) { var s = el.querySelector('#sync'); if (s) s.scrollIntoView(); }
-      el.querySelector('#sync-now').onclick = async function () {
+      var syncBtn = el.querySelector('#sync-now');
+      if (syncBtn) syncBtn.onclick = async function () {
         this.disabled = true;
         if (!navigator.onLine) { UI.toast(t('pillOffline')); this.disabled = false; return; }
         var res = await App.syncNow({ pull: true });

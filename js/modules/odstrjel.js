@@ -56,16 +56,17 @@ var Odstrjel = (function () {
       '<div id="trofej-wrap"></div>' +
       '<div class="grid-2"><div class="field"><label class="field-label req" for="tezina">' + esc(t('lblTezinaShort')) + '</label><div class="unit-wrap"><input type="number" id="tezina" inputmode="decimal" min="1" step="0.5" value="' + esc(d.tezina || '') + '"><span>kg</span></div></div>' +
       '<div class="field"><label class="field-label req" for="brojMarkice">' + esc(t('lblMarkica')) + '</label><input type="text" id="brojMarkice" inputmode="numeric" value="' + esc(d.brojMarkice || '') + '"></div></div>' +
-      '<div class="field"><label class="field-label req" for="lokacija">' + esc(t('lblLoviste')) + '</label><select id="lokacija">' +
-      Store.lovista().map(function (l) { return '<option' + (d.lokacija === l ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('') + '</select></div>' +
+      // Erst der Ort (das Revier ergibt sich daraus), dann das Revier zur Kontrolle.
       // Ort des Abschusses: aktueller Standort ODER auf der Karte wählen (Meldung oft erst an der Kühlzelle)
       '<div class="field loc-block"><span class="field-label">' + esc(t('lblMjesto')) + '</span>' +
       '<div class="loc-buttons"><button type="button" class="btn" id="loc-gps">' + ICONS.locate + esc(t('myLocation')) + '</button>' +
       '<button type="button" class="btn" id="loc-map">' + ICONS.map + esc(t('pickOnMap')) + '</button></div>' +
       '<div id="loc-result"></div></div>' +
+      '<div class="field"><label class="field-label req" for="lokacija">' + esc(t('lblLoviste')) + '</label><select id="lokacija">' +
+      Store.lovista().map(function (l) { return '<option' + (d.lokacija === l ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('') + '</select></div>' +
       '<div class="grid-2"><div class="field"><label class="field-label req" for="datum">' + esc(t('lblDatum')) + '</label><input type="date" id="datum" value="' + esc(d.datum || '') + '"></div>' +
       '<div class="field"><label class="field-label" for="vrijemeOdstrjela">' + esc(t('lblVrijeme')) + '</label><input type="time" id="vrijemeOdstrjela" value="' + esc(d.vrijemeOdstrjela || '') + '"></div></div>' +
-      '<div class="field"><label class="field-label req" for="lovac">' + esc(t('lblLovac')) + '</label><input type="text" id="lovac" list="lovci-list" autocomplete="off" value="' + esc(d.lovac || '') + '" placeholder="' + esc(t('phLovac')) + '"><datalist id="lovci-list"></datalist></div>' +
+      '<div class="field"><label class="field-label req" for="lovac">' + esc(t('lblLovac')) + '</label><input type="text" id="lovac" list="lovci-list" autocomplete="off" value="' + esc(d.lovac || '') + '" placeholder="' + esc(t('phLovac')) + '"><datalist id="lovci-list"></datalist><div class="chips lovci-chips" id="lovci-chips"></div></div>' +
       '<div class="field"><label class="field-label" id="napomena-label" for="napomena">' + esc(t('lblNapomena')) + '</label><textarea id="napomena">' + esc(d.napomena || '') + '</textarea>' +
       '<button type="button" class="btn small" id="napomena-ok" style="margin-top:8px"' + (sp === 'Divlja svinja' ? '' : ' hidden') + '>' + ICONS.check + esc(t('btnNoAnomalies')) + '</button></div>' +
       '</div>' +
@@ -210,10 +211,19 @@ var Odstrjel = (function () {
     var list = el.querySelector('#lovci-list');
     var local = (await DB.get('lovciLocal')) || [];
     var seen = {};
-    Store.lovci().concat(local).forEach(function (n) {
-      var k = String(n).trim().toLowerCase(); if (!k || seen[k]) return; seen[k] = 1;
+    var lastLovac = edit ? '' : (((await DB.get('last')) || {}).lovac || '');
+    var namen = [];
+    [lastLovac].concat(local.slice().reverse(), Store.lovci()).forEach(function (n) {
+      var k = String(n || '').trim().toLowerCase(); if (!k || seen[k]) return; seen[k] = 1;
+      namen.push(String(n).trim());
       var o = document.createElement('option'); o.value = n; list.appendChild(o);
     });
+    // Erleger mit einem Tipp: zuletzt gewählte zuerst, dann die Jäger aus der Liste (Freitext bleibt möglich)
+    var chips = el.querySelector('#lovci-chips'), lovacIn = el.querySelector('#lovac');
+    function markChips() { UI.$$('.chip', chips).forEach(function (c) { c.setAttribute('aria-pressed', String(c.textContent === lovacIn.value.trim())); }); }
+    chips.innerHTML = namen.slice(0, 8).map(function (n) { return '<button type="button" class="chip">' + esc(n) + '</button>'; }).join('');
+    UI.$$('.chip', chips).forEach(function (c) { c.onclick = function () { lovacIn.value = c.textContent; markChips(); }; });
+    lovacIn.addEventListener('input', markChips);
 
     if (edit) {
       setSpecies(el, SPECIES.indexOf(edit.vrsta) === -1 ? 'Ostalo' : edit.vrsta);
@@ -223,7 +233,7 @@ var Odstrjel = (function () {
       var last = (await DB.get('last')) || {};
       var q = ctx.query || {};
       if (last.lokacija) el.querySelector('#lokacija').value = last.lokacija;
-      if (last.lovac) el.querySelector('#lovac').value = last.lovac;
+      if (last.lovac) { el.querySelector('#lovac').value = last.lovac; markChips(); }
       if (last.nacinLova) el.querySelector('#nacinLova').value = last.nacinLova;
       var recent = last.at && Date.now() - last.at < 12 * 3600e3;
       el.querySelector('#datum').value = (recent && last.datum) || UI.todayISO();

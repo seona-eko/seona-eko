@@ -7,37 +7,17 @@
 var Tutorial = (function () {
   var esc = UI.esc, t = I18n.t;
   // [Seite, Element (leer = ohne Markierung), Text-Schlüssel]
+  // Kurz halten: eine Karte je Hauptsache (früher 31 Schritte, zu lang für eine kurze Einführung)
   var STEPS = [
     ['#/home', '', 'start'],
-    ['#/home', '#bottomnav [data-nav="home"]', 'home'],
     ['#/home', '.quick a.primary', 'homeNew'],
-    ['#/home', '.quick a.secondary', 'homeQuick'],
-    ['#/home', '#sync-pill', 'sync'],
-    ['#/odstrjel/novi', '.species-grid', 'formArt'],
-    ['#/odstrjel/novi', '.klasa-group', 'formKlasa'],
     ['#/odstrjel/novi', '.loc-buttons', 'formOrt'],
-    ['#/odstrjel/novi', '#cold-panel', 'formCold'],
-    ['#/odstrjel/novi', '#submit-btn', 'formSave'],
     ['#/karta', '#bottomnav [data-nav="karta"]', 'karta'],
     ['#/karta', '#fab-locate', 'kartaGps'],
-    ['#/karta', '#map-wind', 'kartaWind'],
     ['#/karta', '#fab-add', 'kartaAdd'],
-    ['#/karta', '#layer-chips', 'kartaLayer'],
-    ['#/karta', '#fab-full', 'kartaFull'],
     ['#/odstrjel?tab=popis', '#bottomnav [data-nav="odstrjel"]', 'strecke'],
-    ['#/odstrjel?tab=popis', '#lok-chips', 'streckeFilter'],
-    ['#/odstrjel?tab=popis', '.row[data-id]', 'streckeRow'],
-    ['#/odstrjel?tab=plan', '.plan-table', 'plan'],
     ['#/hladnjaca', '#cold-tabs', 'cold'],
-    ['#/hladnjaca', '.row[data-wb]', 'coldRow'],
     ['#/lovovi', '#bottomnav [data-nav="lovovi"]', 'jagden'],
-    ['#/lovovi', '#new-lov', 'lovNew'],
-    ['#/lovovi', '.list a.row', 'lovOpen'],
-    ['#/gosti', '#new-gost', 'gostNew'],
-    ['#/vise', '#bottomnav [data-nav="vise"]', 'vise'],
-    ['#/vise', '#map-dl', 'viseMap'],
-    ['#/vise', '#team-qr', 'viseTeam'],
-    ['#/vise', '#tut-replay', 'viseTour'],
     ['#/home', '', 'ende']
   ];
   // Bereich über dem Text (welche Seite gerade gezeigt wird)
