@@ -479,24 +479,39 @@ var App = (function () {
   if (!ios) return;
   var nav = document.getElementById('bottomnav');
   if (!nav) return;
+  // Die Schalter liegen NICHT im Link (Safari behandelt ein Eingabefeld in einem Link anders), sondern in einer eigenen,
+  // gleich aufgeteilten Ebene über der Leiste. Seitenwechsel beim Umspringen des Schalters ('change'), 'click' als Reserve.
+  var zuletzt = 0;
+  function oeffne(a) {
+    if (Date.now() - zuletzt < 400) return; // change + click desselben Tippens nur einmal
+    zuletzt = Date.now();
+    var ziel = a.getAttribute('href');
+    setTimeout(function () {
+      if (location.hash === ziel) window.scrollTo({ top: 0, behavior: 'smooth' }); else location.hash = ziel;
+    }, 0);
+  }
   function ausstatten() {
-    [].forEach.call(nav.querySelectorAll('a[href]'), function (a) {
-      if (a.querySelector('.nav-hap')) return;
+    var alt = nav.querySelector('.nav-hap-row');
+    var links = [].slice.call(nav.querySelectorAll('a[href]'));
+    if (alt && alt.childElementCount === links.length) return;
+    if (alt) alt.remove();
+    var row = document.createElement('div');
+    row.className = 'nav-hap-row'; row.setAttribute('aria-hidden', 'true');
+    row.style.gridTemplateColumns = 'repeat(' + links.length + ',1fr)';
+    links.forEach(function (a) {
       var l = document.createElement('label');
-      l.className = 'nav-hap'; l.setAttribute('aria-hidden', 'true');
+      l.className = 'nav-hap';
       var i = document.createElement('input');
       i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
-      i.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var ziel = a.getAttribute('href');
-        if (location.hash === ziel) window.scrollTo({ top: 0, behavior: 'smooth' }); else location.hash = ziel;
-      });
-      l.appendChild(i); a.appendChild(l);
+      i.addEventListener('change', function () { oeffne(a); });
+      i.addEventListener('click', function (e) { e.stopPropagation(); oeffne(a); });
+      l.appendChild(i); row.appendChild(l);
     });
+    nav.appendChild(row);
   }
   ausstatten();
   // Die Menüleiste wird bei Rollenwechsel (Team ↔ Gast) neu aufgebaut → Schalter wieder anbringen
-  new MutationObserver(ausstatten).observe(nav, { childList: true });
+  new MutationObserver(function () { ausstatten(); }).observe(nav, { childList: true });
 })();
 
 /**
