@@ -36,7 +36,7 @@ var Odstrjel = (function () {
     var isOther = edit && SPECIES.indexOf(edit.vrsta) === -1;
     var sp = isOther ? 'Ostalo' : d.vrsta;
     var canPhoto = !edit || edit._pending;
-    return '<div class="page-head"><div class="eyebrow"><a href="#/odstrjel" style="color:inherit">' + esc(t('navOdstrjel')) + '</a></div>' +
+    return UI.back('#/odstrjel', t('navOdstrjel')) + '<div class="page-head">' +
       '<h1>' + esc(edit ? t('editOdstrjel') : t('newOdstrjel')) + '</h1>' +
       (edit && !edit._pending ? '<p>' + esc(t('editSentHint')) + '</p>' : '') + '</div>' +
       '<form id="unos-form" novalidate class="stack">' +
@@ -71,15 +71,16 @@ var Odstrjel = (function () {
       '<button type="button" class="btn small" id="napomena-ok" style="margin-top:8px"' + (sp === 'Divlja svinja' ? '' : ' hidden') + '>' + ICONS.check + esc(t('btnNoAnomalies')) + '</button></div>' +
       '</div>' +
 
-      (edit ? '' : '<div class="panel" id="cold-panel"><label style="display:flex;gap:12px;align-items:center;font-weight:600;cursor:pointer;min-height:44px"><input type="checkbox" id="cold" checked style="width:22px;height:22px">' +
-        '<span>' + esc(t('coldCheck')) + '</span></label>' +
+      (edit ? '' : '<div class="panel" id="cold-panel"><label class="switch-row"><span>' + esc(t('coldCheck')) + '</span><input type="checkbox" class="switch" id="cold" checked></label>' +
         '<div class="field" id="asp-wrap" style="margin-top:12px" hidden><label class="field-label" for="aspUzorak">' + esc(t('lblAspUzorak')) + '</label><input type="text" id="aspUzorak" placeholder="' + esc(t('phAspUzorak')) + '"></div></div>') +
 
       // Drückjagd-Strecke wird auf der Drückjagdseite erfasst — hier nur Jagdart und Foto
       '<div class="panel">' +
-      '<div class="field"><label class="field-label" for="nacinLova">' + esc(t('lblNacinLova')) + '</label><select id="nacinLova"><option value=""></option>' +
-      NACINI.map(function (n) { return '<option value="' + esc(n) + '"' + (d.nacinLova === n ? ' selected' : '') + '>' + esc(I18n.nacin(n)) + '</option>'; }).join('') + '</select></div>' +
-      (canPhoto ? '<div class="field"><label class="field-label" for="foto">' + esc(t('lblFoto')) + '</label><input type="file" id="foto" accept="image/*" capture="environment"><div class="photo-preview" id="foto-preview"></div></div>' : '') +
+      // Jagdart als antippbare Chips; das (versteckte) Auswahlfeld bleibt die Quelle des Werts
+      '<div class="field"><span class="field-label">' + esc(t('lblNacinLova')) + '</span><select id="nacinLova" hidden><option value=""></option>' +
+      NACINI.map(function (n) { return '<option value="' + esc(n) + '"' + (d.nacinLova === n ? ' selected' : '') + '>' + esc(I18n.nacin(n)) + '</option>'; }).join('') + '</select>' +
+      '<div class="chips wrap" id="nacin-chips">' + NACINI.map(function (n) { return '<button type="button" class="chip" data-nacin="' + esc(n) + '">' + esc(I18n.nacin(n)) + '</button>'; }).join('') + '</div></div>' +
+      (canPhoto ? '<div class="field"><label class="btn photo-btn" for="foto">' + ICONS.camera + esc(t('lblFoto')) + '</label><input type="file" class="file-hidden" id="foto" accept="image/*" capture="environment"><div class="photo-preview" id="foto-preview"></div></div>' : '') +
       '</div>' +
       '<div class="error-msg" id="error-msg" hidden></div>' +
       '<button type="submit" class="btn primary block" id="submit-btn" style="min-height:56px;font-size:1.05rem">' + esc(edit ? t('btnSaveChanges') : t('btnSaveOdstrjel')) + '</button>' +
@@ -257,7 +258,7 @@ var Odstrjel = (function () {
     async function setLoc(pos, acc) {
       st.lat = pos.lat; st.lon = pos.lon; st.acc = acc || null;
       var box = el.querySelector('#loc-result');
-      box.innerHTML = '<p class="hint">' + esc(t('loading')) + '</p>';
+      box.innerHTML = UI.skel(2);
       var lov = await Geo.lovisteAt(pos.lat, pos.lon);
       if (lov) el.querySelector('#lokacija').value = lov;
       st.zona = await Geo.ortLabel(pos.lat, pos.lon);
@@ -296,6 +297,13 @@ var Odstrjel = (function () {
       if (fb) fb.innerHTML = ICONS.camera + (st.foto ? '✓ ' : '') + esc(t('lblFoto'));
     };
 
+    // Jagdart-Chips mit dem versteckten Auswahlfeld abgleichen (erneut antippen = abwählen)
+    var nacinSel = el.querySelector('#nacinLova');
+    function nacinChips() { UI.$$('#nacin-chips .chip', el).forEach(function (c) { c.setAttribute('aria-pressed', String(c.getAttribute('data-nacin') === nacinSel.value)); }); }
+    UI.$$('#nacin-chips .chip', el).forEach(function (c) {
+      c.onclick = function () { var v = c.getAttribute('data-nacin'); nacinSel.value = nacinSel.value === v ? '' : v; nacinChips(); };
+    });
+    nacinChips();
     el.querySelector('#unos-form').addEventListener('submit', function (ev) { ev.preventDefault(); save(el); });
   }
 

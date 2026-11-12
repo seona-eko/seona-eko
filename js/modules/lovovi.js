@@ -68,7 +68,7 @@
       var kg = s.reduce(function (a, r) { return a + (Number(r.tezina) || 0); }, 0);
       var sudionici = String(l.sudionici || '').split(/\n|,/).map(function (x) { return x.trim(); }).filter(Boolean);
       var isPast = String(l.datum).slice(0, 10) <= UI.todayISO();
-      return '<div class="page-head"><div class="eyebrow"><a href="#/lovovi" style="color:inherit">' + esc(t('lovoviTitle')) + '</a> · ' + esc(Strecke.shortLov(l.lokacija)) + '</div>' +
+      return UI.back('#/lovovi', t('lovoviTitle')) + '<div class="page-head"><div class="eyebrow">' + esc(Strecke.shortLov(l.lokacija)) + '</div>' +
         '<h1>' + esc(l.naziv || t('lovDefaultName')) + '</h1>' +
         '<p>' + esc(UI.fmtDate(String(l.datum).slice(0, 10), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + (l.vodja ? ' · ' + esc(t('lblVodja')) + ': ' + esc(l.vodja) : '') + '</p></div>' +
         (isPast || s.length ? '<button type="button" class="btn primary block" id="lov-add" style="margin-bottom:12px">' + ICONS.plus + esc(t('addToLov')) + '</button>' : '') +

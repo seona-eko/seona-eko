@@ -29,7 +29,7 @@ var WetterUI = (function () {
     var c = Wetter.current();
     if (!c) {
       return '<a class="panel weather-tile" href="#/wetter"><div class="w-main"><span class="w-icon">' + ICONS.wCloudy + '</span>' +
-        '<span class="hint">' + esc(navigator.onLine ? t('loading') : t('weatherOffline')) + '</span></div>' + '<div class="w-sub">' + moonLine() + '</div></a>';
+        (navigator.onLine ? UI.skel(1) : '<span class="hint">' + esc(t('weatherOffline')) + '</span>') + '</div>' + '<div class="w-sub">' + moonLine() + '</div></a>';
     }
     var k = Wetter.kind(c.weather_code);
     var old = Date.now() - Wetter.at() > 60 * 60 * 1000;
@@ -42,14 +42,14 @@ var WetterUI = (function () {
   }
 
   App.route('wetter', {
-    nav: 'home',
+    nav: 'vise', // erreichbar über Mehr (und die Wetterkachel); „Mehr“ leuchtet
     render: function () {
       var hrs = Wetter.hours(24);
       var today = new Date(), tomorrow = new Date(Date.now() + 864e5);
       var s1 = Geo.sunTimes(today, CENTER[0], CENTER[1]), s2 = Geo.sunTimes(tomorrow, CENTER[0], CENTER[1]);
       var suns = [s1.rise, s1.set, s2.rise, s2.set].filter(Boolean);
       function nearSun(d) { return suns.some(function (x) { return Math.abs(d - x) <= 90 * 60 * 1000; }); }
-      return '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(today)) + '</div><h1>' + esc(t('weatherTitle')) + '</h1>' +
+      return UI.back('#/vise', t('navVise')) + '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(today)) + '</div><h1>' + esc(t('weatherTitle')) + '</h1>' +
         '<p>' + sun(today) + '</p></div>' + tile() +
         '<div class="section-title"><h2>' + esc(t('next24h')) + '</h2><span class="hint">' + esc(t('huntHoursHint')) + '</span></div>' +
         (hrs.length ? '<div class="panel flush"><ul class="list hours">' + hrs.map(function (h) {

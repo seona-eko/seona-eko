@@ -10,7 +10,7 @@ var Gosti = (function () {
   function gosti() { return Store.gosti(); }
   function ansitziOf(id) { return Store.ansitzi().filter(function (a) { return a.gostId === id; }).sort(function (a, b) { return String(a.datum).localeCompare(String(b.datum)); }); }
   function byId(id) { return gosti().filter(function (g) { return g.id === id; })[0]; }
-  function stay(g) { return (g.od ? UI.fmtDate(String(g.od).slice(0, 10)) : '') + (g.do ? ' – ' + UI.fmtDate(String(g.do).slice(0, 10)) : ''); }
+  function stay(g) { return UI.fmtRange(g.od ? String(g.od).slice(0, 10) : '', g.do ? String(g.do).slice(0, 10) : ''); }
 
   /** Persönlicher Code: gut lesbar, ohne verwechselbare Zeichen (0/O, 1/I/L); der Server prüft ihn bei jedem Abruf. */
   function noviKod() {
@@ -49,7 +49,7 @@ var Gosti = (function () {
           '<span class="r-main"><span class="r-title">' + esc(g.ime) + '</span><span class="r-sub">' + esc(stay(g) + (g.oruzje ? ' · ' + oruzjeTxt(g) : '') + (next ? ' · ' + t('gNextAnsitz') + ': ' + UI.fmtDay(String(next.datum).slice(0, 10)) : '')) + '</span></span>' +
           (g._pending ? '<span class="badge muted">' + esc(t('stPending')) + '</span>' : '') + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</a></li>';
       }
-      return JagdTabs('gosti') + '<div class="page-head"><h1>' + esc(t('guestsTitle')) + '</h1><p>' + esc(t('guestsSub')) + '</p></div>' +
+      return JagdTabs('gosti') + '<div class="page-head"><p>' + esc(t('guestsSub')) + '</p></div>' + // Reiter „Gäste“ ist die Überschrift
         '<button type="button" class="btn primary block" id="new-gost" style="margin-bottom:14px">' + ICONS.plus + esc(t('newGuest')) + '</button>' +
         (aktuell.length ? '<div class="section-title"><h2>' + esc(t('guestsCurrent')) + '</h2></div><div class="panel flush"><ul class="list">' + aktuell.map(row).join('') + '</ul></div>'
           : '<div class="panel">' + UI.emptyState('group', t('guestsEmpty'), t('guestsEmptyText')) + '</div>') +
@@ -98,7 +98,7 @@ var Gosti = (function () {
     if (!g) return '<div class="page-head"><h1>' + esc(t('notFound')) + '</h1></div><a class="btn" href="#/gosti">' + esc(t('back')) + '</a>';
     var list = ansitziOf(g.id);
     var url = g.kod ? startUrl(g) : '';
-    return '<div class="page-head"><div class="eyebrow"><a href="#/gosti" style="color:inherit">' + esc(t('guestsTitle')) + '</a></div>' +
+    return UI.back('#/gosti', t('tabGuests')) + '<div class="page-head">' +
       '<h1>' + esc(g.ime) + '</h1><p>' + esc([stay(g), g.jezik ? g.jezik.toUpperCase() : '', oruzjeTxt(g)].filter(Boolean).join(' · ')) + '</p></div>' +
       '<div class="section-title" style="margin-top:4px"><h2>' + esc(t('qrTitle')) + '</h2></div>' +
       '<div class="panel qr-panel">' +
@@ -107,7 +107,7 @@ var Gosti = (function () {
         '<input type="text" id="link-text" readonly value="' + esc(url) + '" aria-label="Link" style="font-size:.8rem">' +
         '<div class="btn-row" style="margin-top:10px"><button type="button" class="btn small" id="copy-link">' + esc(t('copyLink')) + '</button>' +
         '<a class="btn small" id="send-wa" target="_blank" rel="noopener" href="#">' + ICONS.chat + esc(t('sendWhatsApp')) + '</a></div>'
-        : '<p class="hint" style="margin:0">' + esc(t('loading')) + '</p>') + '</div>' +
+        : UI.skel(2)) + '</div>' +
       '<div class="section-title"><h2>' + esc(t('ansitzTitle')) + '</h2></div>' +
       '<button type="button" class="btn primary block" id="new-ansitz" style="margin-bottom:10px">' + ICONS.plus + esc(t('newAnsitz')) + '</button>' +
       (list.length ? '<div class="panel flush"><ul class="list">' + list.map(function (a) {

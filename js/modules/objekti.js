@@ -37,7 +37,7 @@ var Objekti = (function () {
       else if (o.foto) {
         box.innerHTML = '<button type="button" class="btn small">' + ICONS.photo + esc(t('showPhoto')) + '</button>';
         box.querySelector('button').onclick = async function () {
-          box.innerHTML = '<p class="hint">' + esc(t('loading')) + '</p>';
+          box.innerHTML = UI.skel(3);
           try { var src = await UI.loadPhoto(o.foto); box.innerHTML = '<div class="photo-preview"><img alt="" src="' + src + '" style="max-width:100%;max-height:none"></div>'; }
           catch (e) { box.innerHTML = '<p class="hint">' + esc(t('photoOffline')) + '</p>'; }
         };
@@ -82,7 +82,7 @@ var Objekti = (function () {
       stanja.map(function (s) { return '<button type="button" data-st="' + s + '" aria-pressed="' + (st.stanje === s) + '">' + esc(I18n.stanje(s)) + '</button>'; }).join('') + '</div>' +
       '</div>' +
       '<div class="field"><label class="field-label" for="obj-nap">' + esc(t('lblNapomena')) + '</label><textarea id="obj-nap" placeholder="' + esc(t('phObjNapomena')) + '">' + esc(o ? o.napomena : '') + '</textarea></div>' +
-      '<div class="field"><label class="field-label" for="obj-foto">' + esc(t('lblFoto')) + '</label><input type="file" id="obj-foto" accept="image/*" capture="environment"><div class="photo-preview" id="obj-prev"></div></div>' +
+      '<div class="field"><label class="btn photo-btn" for="obj-foto">' + ICONS.camera + esc(t('lblFoto')) + '</label><input type="file" class="file-hidden" id="obj-foto" accept="image/*" capture="environment"><div class="photo-preview" id="obj-prev"></div></div>' +
       '<div class="error-msg" id="obj-err" hidden></div>' +
       '<button type="submit" class="btn primary block" style="margin-top:6px">' + esc(t('btnSave')) + '</button></form>';
 

@@ -477,13 +477,28 @@ var App = (function () {
 })();
 
 /**
+ * Zurück-Links (UI.back): kam man innerhalb der App hierher, geht es in der Verlaufsliste zurück (gleiche Scrollposition
+ * wie vorher, wie bei nativen Apps); sonst — z. B. direkt geöffnet — zur angegebenen Seite.
+ */
+(function () {
+  var innen = false;
+  window.addEventListener('hashchange', function () { innen = true; });
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-back]');
+    if (!a) return;
+    e.preventDefault();
+    if (innen && history.length > 1) history.back(); else location.hash = a.getAttribute('href');
+  });
+})();
+
+/**
  * Wischen zwischen den Reitern einer Seite (z. B. Jagden: Drückjagden ↔ Gäste; Strecke: Liste ↔ Plan ↔ Kühlzelle).
  * Der Inhalt folgt dem Finger (gedämpft); beim Loslassen gleitet er hinaus und der neue Reiter ruhig herein.
  * Reicht die Bewegung nicht (oder gibt es keinen Nachbar-Reiter), federt er weich zurück.
  * Nur waagrechte Bewegungen; nicht auf Bereichen, die selbst seitlich scrollen, Eingabefeldern, Karten, offenen Feldern.
  */
 (function () {
-  var sx = 0, sy = 0, st = 0, aktiv = false, modus = null, dx = 0, teile = [], nachbar = null, richtung = 0;
+  var sx = 0, sy = 0, st = 0, aktiv = false, modus = null, dx = 0, teile = [], nachbar = null, richtung = 0, wechselt = false, token = 0;
   var AUS = 'cubic-bezier(.4,0,.2,1)';
   function scrolltSeitlich(el) {
     for (; el && el !== document.body; el = el.parentElement) {
@@ -509,8 +524,10 @@ var App = (function () {
   }
   document.addEventListener('touchstart', function (e) {
     aktiv = false; modus = null; dx = 0;
-    if (e.touches.length !== 1) return;
+    if (e.touches.length !== 1 || wechselt) return; // während ein Reiter wechselt, keinen zweiten Wisch annehmen
     var view = document.getElementById('view');
+    // Gleitet der vorige Reiter noch herein: Animation sofort beenden, sonst kämpft sie gegen den Finger (Springen)
+    if (view) view.classList.remove('wisch-l', 'wisch-r');
     if (!view || !view.contains(e.target) || !view.querySelector('.section-tabs')) return;
     if (UI.isSheetOpen() || e.target.closest('input, textarea, select, .leaflet-container, [data-noswipe]')) return;
     if (scrolltSeitlich(e.target)) return;
@@ -539,16 +556,19 @@ var App = (function () {
     var weit = Math.abs(dx) > 80 || (schnell && Math.abs(dx) > 40);
     if (!nachbar || !weit || (dx < 0) !== (richtung > 0)) { setze(0, 1, 'transform .45s ' + AUS + ', opacity .45s ' + AUS); return; }
     // hinausgleiten, dann Reiter wechseln; der neue Inhalt gleitet aus der Gegenrichtung herein
-    var ziel = nachbar.getAttribute('href'), cls = richtung > 0 ? 'wisch-l' : 'wisch-r';
+    var ziel = nachbar.getAttribute('href'), cls = richtung > 0 ? 'wisch-l' : 'wisch-r', mein = ++token;
+    wechselt = true;
+    setTimeout(function () { wechselt = false; }, 700); // Sicherheitsnetz
     setze(richtung > 0 ? -90 : 90, 0, 'transform .22s ' + AUS + ', opacity .22s ' + AUS);
     setTimeout(function () {
       window.addEventListener('hashchange', function einmal() {
         window.removeEventListener('hashchange', einmal);
         requestAnimationFrame(function () {
+          wechselt = false;
           var v = document.getElementById('view');
           if (!v) return;
           v.classList.add(cls);
-          setTimeout(function () { v.classList.remove(cls); }, 600);
+          setTimeout(function () { if (mein === token) v.classList.remove(cls); }, 600);
         });
       });
       document.documentElement.setAttribute('data-wisch', '');

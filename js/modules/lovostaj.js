@@ -46,12 +46,13 @@
           }).join('') + '</div>' : '');
       }).join('');
 
-      return '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(new Date())) + '</div>' +
+      return UI.back('#/vise', t('navVise')) + '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(new Date())) + '</div>' +
         '<h1>' + esc(t('lovostajTitle', { n: openN })) + '</h1></div>' +
         '<div class="panel flush open-list"><ul class="list">' + ordered.map(function (x) {
           return '<li><div class="row' + (x.open ? '' : ' closed') + '"><span class="r-icon">' + ICONS.forSpecies(x.g.vrsta) + '</span>' +
             '<span class="r-main"><span class="r-title">' + esc(t(x.r.key)) + '</span><span class="r-sub">' + esc(t(x.g.key)) + (x.r.note ? ' · ' + esc(t('withLimits')) : '') + '</span></span>' +
-            '<span class="r-end"><span class="badge ' + (x.open ? 'ok' : 'muted') + '">' + esc(x.open ? t('open') : t('closed')) + '</span><span style="display:block;margin-top:4px">' + esc(changeText(x.r, today)) + '</span></span></div></li>';
+            // „offen“ steht schon in der Überschrift — Kennzeichen nur noch bei Schonzeit
+            '<span class="r-end">' + (x.open ? '' : '<span class="badge muted">' + esc(t('closed')) + '</span>') + '<span style="display:block;margin-top:4px">' + esc(changeText(x.r, today)) + '</span></span></div></li>';
         }).join('') + '</ul></div>' +
         '<div class="section-title"><h2>' + esc(t('yearBand')) + '</h2><span class="hint">' + esc(t('huntYear')) + ' ' + esc(jj.label) + '</span></div>' +
         '<div class="panel">' + bands +

@@ -172,24 +172,35 @@ var Strecke = (function () {
     var wb = Store.wildbret()[r.id];
     var lov = r.lovId ? Store.lovovi().filter(function (l) { return l.id === r.lovId; })[0] : null;
     var canEdit = r._pending || App.isUprava();
-    var kv = [
-      [t('lblDatum'), UI.fmtDate(r.datum) + (r.vrijemeOdstrjela ? ' · ' + r.vrijemeOdstrjela : '')], [t('lblLoviste'), r.lokacija], [t('lblMjesto'), r.zona],
+    // Drei Gruppen statt 14 gleich gewichteter Zeilen: Stück · Ort und Zeit · Verwaltung
+    var stueck = [
       [t('lblVrsta'), I18n.species(r.vrsta)], [t('lblSpol'), r.spol === 'ž' ? t('spolZ') : t('spolM')],
       [t('klasa'), I18n.klasaFor(r.vrsta, r.dobnaKlasa)],
       // Geweih (nur wenn erfasst): Enden als Zahl bzw. Schaufelstufe; Bewertung erst nach dem Nachtrag
       [/^\d+$/.test(String(r.rogovlje || '')) ? t('lblVrhovi') : t('lblLopata'), /^\d+$/.test(String(r.rogovlje || '')) ? String(r.rogovlje) : I18n.lopata(r.rogovlje)],
       [t('lblTrofejMasa'), r.trofejMasa !== '' && r.trofejMasa != null ? String(r.trofejMasa).replace('.', ',') : ''], [t('lblCic'), r.trofejCic !== '' && r.trofejCic != null ? String(r.trofejCic).replace('.', ',') : ''],
-      [t('lblTezina'), r.tezina + ' kg'], [t('lblMarkica'), r.brojMarkice],
+      [t('lblTezina'), r.tezina + ' kg']
+    ];
+    var ortZeit = [
+      [t('lblDatum'), UI.fmtDate(r.datum) + (r.vrijemeOdstrjela ? ' · ' + r.vrijemeOdstrjela : '')], [t('lblLoviste'), r.lokacija], [t('lblMjesto'), r.zona],
       [t('lblLovac'), r.lovac], [t('lblNacinLova'), I18n.nacin(r.nacinLova)], [t('lblLov'), lov ? lov.naziv || UI.fmtDate(lov.datum) : ''],
       [t('lblNapomena'), r.napomena],
-      [t('lblGps'), r.lat ? (r.lat + ', ' + r.lon) : ''],
+      [t('lblGps'), r.lat ? (r.lat + ', ' + r.lon) : '']
+    ];
+    var verwaltung = [
+      [t('lblMarkica'), r.brojMarkice],
       [t('sleLabel'), (function () { var i = sleInfo(r); return !i ? '' : i.done ? t('sleDoneOn', { d: UI.fmtDate(r.sle) }) : t('sleOpenTxt'); })()],
       [t('inCold'), wb && wb.hladnjacaOd ? UI.fmtDate(wb.hladnjacaOd.slice(0, 10)) + (wb.predanoDatum ? ' → ' + t('predano') + ' ' + UI.fmtDate(wb.predanoDatum) : '') : '']
-    ].filter(function (x) { return x[1]; });
-    var html = '<h2>' + esc(title(r)) + '</h2><p class="sheet-sub">' + esc(UI.fmtDay(r.datum)) + ' · #' + esc(r.brojMarkice) +
-      (r._pending ? ' · ' + esc(t('stPending')) : '') + '</p>' +
+    ];
+    function gruppe(titel, rows) {
+      rows = rows.filter(function (x) { return x[1]; });
+      return rows.length ? '<div class="kv-group"><div class="kv-title">' + esc(titel) + '</div><dl class="kv">' +
+        rows.map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') + '</dl></div>' : '';
+    }
+    var html = '<div class="sheet-head"><span class="r-icon big">' + ICONS.forSpecies(r.vrsta) + '</span><div><h2>' + esc(title(r)) + '</h2><p class="sheet-sub">' + esc(UI.fmtDay(r.datum)) + ' · #' + esc(r.brojMarkice) +
+      (r._pending ? ' · ' + esc(t('stPending')) : '') + '</p></div></div>' +
       (r._error ? '<p class="error-msg">' + esc(r._error) + '</p>' : '') +
-      '<dl class="kv">' + kv.map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') + '</dl>' +
+      gruppe(t('grpStueck'), stueck) + gruppe(t('grpOrtZeit'), ortZeit) + gruppe(t('grpVerwaltung'), verwaltung) +
       '<div id="photo-box"></div>' +
       '<div class="btn-row" style="margin-top:14px">' +
       (r.lat ? '<a class="btn" href="#/karta?lat=' + r.lat + '&lon=' + r.lon + '">' + ICONS.map + esc(t('onMap')) + '</a>' : '') +
@@ -205,7 +216,7 @@ var Strecke = (function () {
       else if (r.imaFoto && r.foto) {
         box.innerHTML = '<button type="button" class="btn small" data-photo>' + ICONS.photo + esc(t('showPhoto')) + '</button>';
         box.querySelector('[data-photo]').onclick = async function () {
-          box.innerHTML = '<p class="hint">' + esc(t('loading')) + '</p>';
+          box.innerHTML = UI.skel(3);
           try { var src = await UI.loadPhoto(r.foto); box.innerHTML = '<div class="photo-preview"><img alt="" src="' + src + '" style="max-width:100%;max-height:none"></div>'; }
           catch (e) { box.innerHTML = '<p class="hint">' + esc(t('photoOffline')) + '</p>'; }
         };
@@ -279,7 +290,8 @@ var Strecke = (function () {
       return tabs(state.tab) + '<div class="page-head"><div class="eyebrow">' + esc(t('huntYear')) + ' ' + esc(jj.label) + '</div>' +
         '<h1>' + esc(t('streckeTitle', { n: s.list.length })) + '</h1>' +
         '<p>' + esc(t('streckeSub', { ist: s.ist, soll: s.soll })) + (s.pending ? ' · ' + esc(t('pendingN', { n: s.pending })) : '') + '</p></div>' +
-        '<a class="btn primary block" href="#/odstrjel/novi" style="margin-bottom:14px">' + ICONS.plus + esc(t('newOdstrjel')) + '</a>' +
+        // „Neuer Abschuss“ nur in der Liste (im Plan wäre er Wiederholung)
+        (state.tab === 'popis' ? '<a class="btn primary block" href="#/odstrjel/novi" style="margin-bottom:14px">' + ICONS.plus + esc(t('newOdstrjel')) + '</a>' : '') +
         lovChips() +
         (state.tab === 'popis' ? '<div class="chips" id="vrsta-chips" style="margin:6px 0 10px">' + speciesChips + '</div>' + renderList(s.list) : '<div style="margin-top:8px" class="stack">' + renderPlan() + '</div>');
     },

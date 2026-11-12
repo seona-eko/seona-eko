@@ -21,15 +21,32 @@ var UI = (function () {
     return todayISO(d) + 'T' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   }
   function parseISO(iso) { return iso ? new Date(String(iso).length <= 10 ? iso + 'T12:00:00' : iso) : null; }
+  /** Datum; ohne eigene Optionen: im laufenden Jahr ohne Jahreszahl („8.10.“), sonst mit („8.10.2025“). */
   function fmtDate(iso, opts) {
     var d = parseISO(iso);
     if (!d || isNaN(d)) return '';
-    return d.toLocaleDateString(locale(), opts || { day: 'numeric', month: 'numeric', year: 'numeric' });
+    if (!opts) opts = d.getFullYear() === new Date().getFullYear() ? { day: 'numeric', month: 'numeric' } : { day: 'numeric', month: 'numeric', year: 'numeric' };
+    return d.toLocaleDateString(locale(), opts);
+  }
+  /** Zeitraum kurz: „11.–14.10.“, „30.9.–2.10.“; über den Jahreswechsel mit Jahreszahlen. */
+  function fmtRange(a, b) {
+    var da = parseISO(a), db = parseISO(b);
+    if (!da || isNaN(da)) return b ? fmtDate(b) : '';
+    if (!db || isNaN(db)) return fmtDate(a);
+    if (da.getFullYear() !== db.getFullYear() || da.getFullYear() !== new Date().getFullYear()) return fmtDate(a) + ' – ' + fmtDate(b);
+    if (da.getMonth() === db.getMonth()) return (da.getDate() === db.getDate() ? '' : da.getDate() + '.–') + fmtDate(b);
+    return fmtDate(a) + '–' + fmtDate(b);
   }
   function fmtDay(iso) { return fmtDate(iso, { weekday: 'short', day: 'numeric', month: 'numeric' }); }
   function fmtLong(d) { return (d || new Date()).toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' }); }
   function fmtTime(d) { return d ? String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') : '—'; }
-  function fmtStamp(ms) { if (!ms) return '—'; var d = new Date(ms); return fmtDate(todayISO(d)) + ' ' + fmtTime(d); }
+  /** Zeitstempel: „heute 18:19“, „gestern 7:05“, sonst „8.10. 18:19“. */
+  function fmtStamp(ms) {
+    if (!ms) return '—';
+    var d = new Date(ms), tage = daysSince(todayISO(d));
+    var tag = tage === 0 ? I18n.t('today').toLowerCase() : tage === 1 ? I18n.t('yesterday').toLowerCase() : fmtDate(todayISO(d));
+    return tag + ' ' + fmtTime(d);
+  }
   /** Ganze Kalendertage zwischen dem Datum (YYYY-MM-DD…) und heute (lokal); heute = 0. */
   function daysSince(iso) {
     if (!iso) return null;
@@ -186,6 +203,20 @@ var UI = (function () {
     }).join('') + '</nav>';
   }
 
+  /** Zurück-Link oben links („‹ Mehr“). Geht in der Verlaufsliste zurück, wenn man von innerhalb der App kam, sonst zu href. */
+  function back(href, label) {
+    return '<a class="back-link" href="' + esc(href) + '" data-back>' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>' + esc(label) + '</a>';
+  }
+
+  /** Lade-Platzhalter: sanft aufleuchtende Balken statt „Laden …“ (Text bleibt für Screenreader). */
+  function skel(lines) {
+    var w = [92, 68, 80, 56];
+    var out = '<div class="skel-wrap" role="status"><span class="sr-only">' + esc(I18n.t('loading')) + '</span>';
+    for (var i = 0; i < (lines || 2); i++) out += '<span class="skel" style="width:' + w[i % w.length] + '%"></span>';
+    return out + '</div>';
+  }
+
   function emptyState(icon, title, text, actionHtml) {
     return '<div class="empty">' + (ICONS[icon] || '') + '<b>' + esc(title) + '</b><p>' + esc(text) + '</p>' + (actionHtml || '') + '</div>';
   }
@@ -195,10 +226,10 @@ var UI = (function () {
 
   return {
     esc: esc, $: $, $$: $$, todayISO: todayISO, nowLocalISO: nowLocalISO, parseISO: parseISO,
-    fmtDate: fmtDate, fmtDay: fmtDay, fmtLong: fmtLong, fmtTime: fmtTime, fmtStamp: fmtStamp, daysSince: daysSince,
+    fmtDate: fmtDate, fmtRange: fmtRange, fmtDay: fmtDay, fmtLong: fmtLong, fmtTime: fmtTime, fmtStamp: fmtStamp, daysSince: daysSince,
     toast: toast, hideToast: hideToast, openSheet: openSheet, closeSheet: closeSheet,
     isSheetOpen: function () { return !!current; }, onSheetClosed: function (fn) { closedListeners.push(fn); }, confirm: confirmSheet,
-    readPhoto: readPhoto, loadPhoto: loadPhoto, emptyState: emptyState, sectionTabs: sectionTabs,
+    readPhoto: readPhoto, loadPhoto: loadPhoto, emptyState: emptyState, sectionTabs: sectionTabs, back: back, skel: skel,
     // Kurzer Impuls als Bestätigung. ms: 25 = gespeichert, 10 = großer Knopf angetippt
     haptic: haptic
   };
