@@ -469,52 +469,6 @@ var App = (function () {
 })();
 
 /**
- * iPhone (iOS 26.5+): Impuls gibt es nur, wenn der Finger selbst einen System-Schalter umlegt. Deshalb liegt über jedem
- * Menüpunkt unten ein unsichtbarer Schalter; sein Antippen löst den Impuls aus, die App wechselt dann die Seite.
- * Nur Menüleiste (Nutzerwunsch) — bei Speichern & Co. wäre ein verschlucktes Tippen zu riskant.
- */
-(function () {
-  var ua = navigator.userAgent || '';
-  var ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  if (!ios) return;
-  var nav = document.getElementById('bottomnav');
-  if (!nav) return;
-  // Die Schalter liegen NICHT im Link (Safari behandelt ein Eingabefeld in einem Link anders), sondern in einer eigenen,
-  // gleich aufgeteilten Ebene über der Leiste. Seitenwechsel beim Umspringen des Schalters ('change'), 'click' als Reserve.
-  var zuletzt = 0;
-  function oeffne(a) {
-    if (Date.now() - zuletzt < 400) return; // change + click desselben Tippens nur einmal
-    zuletzt = Date.now();
-    var ziel = a.getAttribute('href');
-    setTimeout(function () {
-      if (location.hash === ziel) window.scrollTo({ top: 0, behavior: 'smooth' }); else location.hash = ziel;
-    }, 0);
-  }
-  function ausstatten() {
-    var alt = nav.querySelector('.nav-hap-row');
-    var links = [].slice.call(nav.querySelectorAll('a[href]'));
-    if (alt && alt.childElementCount === links.length) return;
-    if (alt) alt.remove();
-    var row = document.createElement('div');
-    row.className = 'nav-hap-row'; row.setAttribute('aria-hidden', 'true');
-    row.style.gridTemplateColumns = 'repeat(' + links.length + ',1fr)';
-    links.forEach(function (a) {
-      var l = document.createElement('label');
-      l.className = 'nav-hap';
-      var i = document.createElement('input');
-      i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
-      i.addEventListener('change', function () { oeffne(a); });
-      i.addEventListener('click', function (e) { e.stopPropagation(); oeffne(a); });
-      l.appendChild(i); row.appendChild(l);
-    });
-    nav.appendChild(row);
-  }
-  ausstatten();
-  // Die Menüleiste wird bei Rollenwechsel (Team ↔ Gast) neu aufgebaut → Schalter wieder anbringen
-  new MutationObserver(function () { ausstatten(); }).observe(nav, { childList: true });
-})();
-
-/**
  * Systemfarbe (Statusleiste/Adresszeile) = Farbe der Kopfzeile, auch beim Wechsel hell/dunkel.
  */
 (function () {

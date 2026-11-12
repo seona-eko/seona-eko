@@ -190,27 +190,8 @@ var UI = (function () {
     return '<div class="empty">' + (ICONS[icon] || '') + '<b>' + esc(title) + '</b><p>' + esc(text) + '</p>' + (actionHtml || '') + '</div>';
   }
 
-  /**
-   * Spürbarer Impuls. Android: Vibration. iPhone (iOS 18+): Safari kennt keine Vibration, gibt aber beim Umschalten
-   * eines System-Schalters (<input type=checkbox switch>) den üblichen kurzen Impuls — dafür liegt ein unsichtbarer
-   * Schalter bereit, der angetippt wird. Muss aus einem Fingertipp heraus aufgerufen werden; sonst passiert einfach nichts.
-   */
-  var iosSchalter = null;
-  function haptic(ms) {
-    try {
-      if (navigator.vibrate) { navigator.vibrate(ms || 25); return; }
-      if (!iosSchalter) {
-        iosSchalter = document.createElement('label');
-        iosSchalter.setAttribute('aria-hidden', 'true');
-        iosSchalter.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;';
-        var inp = document.createElement('input');
-        inp.type = 'checkbox'; inp.setAttribute('switch', ''); inp.tabIndex = -1;
-        iosSchalter.appendChild(inp);
-        document.body.appendChild(iosSchalter);
-      }
-      iosSchalter.click();
-    } catch (e) {}
-  }
+  /** Spürbarer Impuls — nur Android (Safari auf dem iPhone kennt keine Vibration für Web-Apps). */
+  function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 25); } catch (e) {} }
 
   return {
     esc: esc, $: $, $$: $$, todayISO: todayISO, nowLocalISO: nowLocalISO, parseISO: parseISO,
