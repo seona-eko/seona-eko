@@ -131,8 +131,11 @@ html.ios main#view{min-height:calc(100vh + env(safe-area-inset-top,0px) + 1px);}
 }
 .bottomnav a{
   height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  color:var(--ink-soft);text-decoration:none;font-size:.68rem;font-weight:600;letter-spacing:.02em;
+  color:var(--ink-soft);text-decoration:none;font-size:.68rem;font-weight:600;letter-spacing:.02em;position:relative;
 }
+/* iPhone: unsichtbarer System-Schalter über dem Menüpunkt — der Finger trifft ihn direkt, iOS gibt dann den kurzen Impuls */
+.bottomnav .nav-hap{position:absolute;inset:0;z-index:2;margin:0;}
+.bottomnav .nav-hap input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:.011;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .bottomnav a svg{width:24px;height:24px;}
 .bottomnav a[aria-current="page"]{color:var(--forest-1);}
 :root[data-theme="dark"] .bottomnav a[aria-current="page"]{color:var(--ok);}

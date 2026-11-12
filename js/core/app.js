@@ -469,6 +469,37 @@ var App = (function () {
 })();
 
 /**
+ * iPhone (iOS 26.5+): Impuls gibt es nur, wenn der Finger selbst einen System-Schalter umlegt. Deshalb liegt über jedem
+ * Menüpunkt unten ein unsichtbarer Schalter; sein Antippen löst den Impuls aus, die App wechselt dann die Seite.
+ * Nur Menüleiste (Nutzerwunsch) — bei Speichern & Co. wäre ein verschlucktes Tippen zu riskant.
+ */
+(function () {
+  var ua = navigator.userAgent || '';
+  var ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (!ios) return;
+  var nav = document.getElementById('bottomnav');
+  if (!nav) return;
+  function ausstatten() {
+    [].forEach.call(nav.querySelectorAll('a[href]'), function (a) {
+      if (a.querySelector('.nav-hap')) return;
+      var l = document.createElement('label');
+      l.className = 'nav-hap'; l.setAttribute('aria-hidden', 'true');
+      var i = document.createElement('input');
+      i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
+      i.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var ziel = a.getAttribute('href');
+        if (location.hash === ziel) window.scrollTo({ top: 0, behavior: 'smooth' }); else location.hash = ziel;
+      });
+      l.appendChild(i); a.appendChild(l);
+    });
+  }
+  ausstatten();
+  // Die Menüleiste wird bei Rollenwechsel (Team ↔ Gast) neu aufgebaut → Schalter wieder anbringen
+  new MutationObserver(ausstatten).observe(nav, { childList: true });
+})();
+
+/**
  * Systemfarbe (Statusleiste/Adresszeile) = Farbe der Kopfzeile, auch beim Wechsel hell/dunkel.
  */
 (function () {
