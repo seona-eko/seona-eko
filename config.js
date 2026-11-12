@@ -7,5 +7,5 @@
  */
 var APP_CONFIG = {
   API_URL: 'https://seona-eko.seona.workers.dev/',
-  VERSION: '2.9.1'
+  VERSION: '2.9.2'
 };

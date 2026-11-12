@@ -253,7 +253,7 @@ var Karta = (function () {
   // Werte = unterster Punkt der Grafik im 24er-Raster der SVG (icons/objekti/); Bild 30 px, 2 px Rand.
   var FUSS = { kanzel: 21, leiter: 21, drueckjagdbock: 20, bodensitz: 18, fuetterung: 20 };
   // Unterhalb dieser Zoomstufe nur ruhige Punkte statt Symbole — sonst stapeln sich die Hochsitze zu einem Klumpen
-  var PUNKT_BIS = 14;
+  var PUNKT_BIS = 13; // ab Zoom > 13 Symbole (Nutzerwunsch: früher als bei 15)
   function objIcon(o, zoom) {
     var cls = 'obj-marker' + (o.stanje === 'uklonjen' ? ' removed' : '') + (o.stanje === 'popravak' || o.stanje === 'neupotrebljivo' ? ' bad' : '');
     if (zoom != null && zoom <= PUNKT_BIS) return L.divIcon({ className: '', html: '<div class="obj-dot' + (o.art === 'biljeska' ? ' note' : '') + (o.stanje === 'uklonjen' ? ' removed' : '') + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
