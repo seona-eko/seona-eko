@@ -682,23 +682,35 @@ body.picker-open{overflow:hidden;}
    Schwebende, abgerundete Leiste mit Weichzeichner; Inhalt und Karte laufen darunter durch.
    Nur iPhone im Hochformat — im Breitformat steht die Leiste links (siehe oben). */
 @media (max-width: 719px) and (orientation: portrait){
-  html.ios{--nav-h:60px;--nav-unten:max(10px, calc(env(safe-area-inset-bottom,0px) - 8px));}  html.ios .bottomnav{
+  html.ios{--nav-h:60px;--nav-unten:max(10px, calc(env(safe-area-inset-bottom,0px) - 8px));}
+  /* Gummiband an Anfang und Ende erlaubt (wirkt natürlicher als ein hartes Ende) */
+  html.ios, html.ios body{overscroll-behavior-y:auto;}
+  /* Sehr durchsichtiges Glas: kaum Tönung, starker Weichzeichner — Inhalt scheint deutlich durch */
+  html.ios .bottomnav{
     left:14px;right:14px;bottom:var(--nav-unten);padding:0 5px;
-    border:1px solid color-mix(in srgb, var(--ink) 12%, transparent);border-radius:30px;
-    background:color-mix(in srgb, var(--paper) 58%, transparent);
-    -webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);
-    box-shadow:0 10px 30px rgba(0,0,0,.28),inset 0 1px 0 color-mix(in srgb, #fff 14%, transparent);
+    border:1px solid color-mix(in srgb, #fff 16%, transparent);border-radius:30px;
+    background:color-mix(in srgb, var(--paper) 26%, transparent);
+    -webkit-backdrop-filter:blur(26px) saturate(190%);backdrop-filter:blur(26px) saturate(190%);
+    box-shadow:0 10px 30px rgba(0,0,0,.22),inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
+    transform-origin:50% 100%;
+    transition:transform .5s cubic-bezier(.22,1,.36,1),background-color .5s,box-shadow .5s;
   }
-  html.ios .bottomnav a{height:calc(var(--nav-h) - 10px);margin:5px 0;border-radius:24px;gap:2px;font-size:.64rem;transition:background .2s;}
-  html.ios .bottomnav a[aria-current="page"]{background:color-mix(in srgb, var(--ink) 11%, transparent);}
+  html.ios .bottomnav a{height:calc(var(--nav-h) - 10px);margin:5px 0;border-radius:24px;gap:2px;font-size:.64rem;transition:background .25s;}
+  html.ios .bottomnav a[aria-current="page"]{background:color-mix(in srgb, var(--ink) 13%, transparent);}
   html.ios .bottomnav a .ind{display:none;}
-  /* Beim Scrollen: kleinere, durchsichtigere Pille nur mit Symbolen (wie iOS 26); im Stillstand weich zurück */
-  html.ios .bottomnav{transform-origin:50% 100%;transition:transform .32s cubic-bezier(.2,.8,.2,1),background-color .32s,box-shadow .32s;}
-  html.ios .bottomnav a svg{transition:transform .32s cubic-bezier(.2,.8,.2,1);}
-  html.ios .bottomnav a > span[data-i18n]{transition:opacity .2s;}
-  html.ios.scrollt .bottomnav{transform:scale(.86) translateY(4px);background:color-mix(in srgb, var(--paper) 38%, transparent);box-shadow:0 6px 18px rgba(0,0,0,.2),inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent);}
+  html.ios .bottomnav a svg{transition:transform .5s cubic-bezier(.22,1,.36,1);}
+  html.ios .bottomnav a > span[data-i18n]{transition:opacity .3s;}
+  /* Beim Runterscrollen: kleinere Pille nur mit Symbolen; groß nach kurzer Pause oder beim Hochscrollen */
+  html.ios.scrollt .bottomnav{transform:scale(.88) translateY(4px);background:color-mix(in srgb, var(--paper) 16%, transparent);box-shadow:0 6px 18px rgba(0,0,0,.16),inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);}
   html.ios.scrollt .bottomnav a svg{transform:translateY(7px) scale(1.06);}
   html.ios.scrollt .bottomnav a > span[data-i18n]{opacity:0;}
+  /* Kopfzeile verschwindet beim Runterscrollen (nur der Streifen unter der Uhr bleibt), kommt beim Hochscrollen zurück */
+  html.ios .topbar{transition:transform .4s cubic-bezier(.22,1,.36,1);will-change:transform;}
+  html.ios.kopf-weg .topbar{transform:translateY(calc(-100% + env(safe-area-inset-top,0px)));}
+  html.ios .topbar > *{transition:opacity .25s;}
+  html.ios.kopf-weg .topbar > *{opacity:0;}
+  html.ios .section-tabs{transition:top .4s cubic-bezier(.22,1,.36,1);}
+  html.ios.kopf-weg .section-tabs{top:env(safe-area-inset-top,0px);}
   /* Platz unter dem Inhalt = Leiste + Abstand zum Rand */
   html.ios main#view{padding-bottom:calc(var(--nav-h) + var(--nav-unten) + 24px);}
   /* Karte bis ganz nach unten (unters Glas), Knöpfe und Hinweise darüber */

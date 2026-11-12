@@ -469,24 +469,36 @@ var App = (function () {
 })();
 
 /**
- * iPhone-Glasleiste: während man scrollt, wird sie kleiner und durchsichtiger (Klasse „scrollt“ an <html>);
- * 0,25 s nach dem letzten Scrollen kehrt sie weich zurück. Kleine Bewegungen (Seitenaufbau) lösen nichts aus.
+ * iPhone wie iOS 26 / Instagram (Klassen an <html>):
+ *  - „kopf-weg“: Kopfzeile verschwindet beim Runterscrollen, kommt beim Hochscrollen oder ganz oben zurück.
+ *  - „scrollt“: Glasleiste wird beim Runterscrollen klein; groß nach 0,7 s Pause, beim Hochscrollen oder unten am Ende.
+ * Richtungswechsel zählen erst nach 12 px am Stück — kleine Ruckler lösen nichts aus (ruhig statt hektisch).
+ * Nachfedern (Gummiband) an den Enden wird ignoriert.
  */
 (function () {
-  var html = document.documentElement, timer = null, y = window.scrollY;
+  var html = document.documentElement, timer = null, y = window.scrollY, weg = 0, richtung = 0;
+  function gross() { clearTimeout(timer); html.classList.remove('scrollt'); }
+  function zeigeKopf() { html.classList.remove('kopf-weg'); }
   window.addEventListener('scroll', function () {
-    var neu = window.scrollY, d = Math.abs(neu - y);
-    y = neu;
     if (!html.classList.contains('ios')) return;
-    // Oben oder unten angekommen (auch Nachfedern): Leiste sofort wieder groß, nicht mehr zucken lassen
+    var neu = window.scrollY, d = neu - y;
+    y = neu;
     var max = Math.max(0, html.scrollHeight - window.innerHeight);
-    if (neu <= 2 || neu >= max - 2) { clearTimeout(timer); html.classList.remove('scrollt'); return; }
-    if (d < 3) return;
-    html.classList.add('scrollt');
-    clearTimeout(timer);
-    timer = setTimeout(function () { html.classList.remove('scrollt'); }, 250);
+    if (neu <= 4) { gross(); zeigeKopf(); weg = 0; return; }       // ganz oben (auch Gummiband oben)
+    if (neu >= max - 2) { gross(); return; }                         // unten angekommen: Leiste groß, Kopf bleibt weg
+    var r = d > 0 ? 1 : d < 0 ? -1 : 0;
+    if (!r) return;
+    if (r !== richtung) { richtung = r; weg = 0; }
+    weg += Math.abs(d);
+    if (weg < 12) return;
+    if (r > 0) {
+      if (neu > 60) html.classList.add('kopf-weg');
+      html.classList.add('scrollt');
+      clearTimeout(timer);
+      timer = setTimeout(gross, 700);
+    } else { zeigeKopf(); gross(); }
   }, { passive: true });
-  window.addEventListener('hashchange', function () { clearTimeout(timer); html.classList.remove('scrollt'); });
+  window.addEventListener('hashchange', function () { gross(); zeigeKopf(); weg = 0; richtung = 0; });
 })();
 
 /**
