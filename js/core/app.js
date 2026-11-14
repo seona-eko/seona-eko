@@ -46,8 +46,9 @@ var App = (function () {
     I18n.apply(view);
     if (def.mount) def.mount(view, ctx);
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
+    var navKey = typeof def.nav === 'function' ? def.nav() : (def.nav || r.name);
     UI.$$('#bottomnav a').forEach(function (a) {
-      if (a.getAttribute('data-nav') === (def.nav || r.name)) a.setAttribute('aria-current', 'page');
+      if (a.getAttribute('data-nav') === navKey) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
   }
@@ -229,9 +230,10 @@ var App = (function () {
       nav.setAttribute('data-mode', want);
       nav.innerHTML = want === 'gost'
         ? '<a href="#/gost" data-nav="gost"><span data-icon="home"></span><span data-i18n="navGost"></span><i class="ind"></i></a>' +
-          '<a href="#/karta" data-nav="karta"><span data-icon="map"></span><span data-i18n="navKarta"></span><i class="ind"></i></a>'
+          '<a href="#/karta" data-nav="karta"><span data-icon="map"></span><span data-i18n="navKarta"></span><i class="ind"></i></a>' +
+          '<a href="#/lovostaj" data-nav="lovostaj"><span data-icon="calendar"></span><span data-i18n="navSeasons"></span><i class="ind"></i></a>'
         : teamNav;
-      nav.style.gridTemplateColumns = want === 'gost' ? 'repeat(2,1fr)' : '';
+      nav.style.gridTemplateColumns = want === 'gost' ? 'repeat(3,1fr)' : '';
       injectIcons(nav);
     }
     I18n.apply(nav);

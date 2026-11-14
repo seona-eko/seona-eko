@@ -42,14 +42,14 @@ var WetterUI = (function () {
   }
 
   App.route('wetter', {
-    nav: 'vise', // erreichbar über Mehr (und die Wetterkachel); „Mehr“ leuchtet
+    nav: function () { return App.isGost() ? 'gost' : 'vise'; }, // Team: über Mehr; Gäste: über die Windkarte der Übersicht
     render: function () {
       var hrs = Wetter.hours(24);
       var today = new Date(), tomorrow = new Date(Date.now() + 864e5);
       var s1 = Geo.sunTimes(today, CENTER[0], CENTER[1]), s2 = Geo.sunTimes(tomorrow, CENTER[0], CENTER[1]);
       var suns = [s1.rise, s1.set, s2.rise, s2.set].filter(Boolean);
       function nearSun(d) { return suns.some(function (x) { return Math.abs(d - x) <= 90 * 60 * 1000; }); }
-      return UI.back('#/vise', t('navVise')) + '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(today)) + '</div><h1>' + esc(t('weatherTitle')) + '</h1>' +
+      return (App.isGost() ? UI.back('#/gost', t('navGost')) : UI.back('#/vise', t('navVise'))) + '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(today)) + '</div><h1>' + esc(t('weatherTitle')) + '</h1>' +
         '<p>' + sun(today) + '</p></div>' + tile() +
         '<div class="section-title"><h2>' + esc(t('next24h')) + '</h2><span class="hint">' + esc(t('huntHoursHint')) + '</span></div>' +
         (hrs.length ? '<div class="panel flush"><ul class="list hours">' + hrs.map(function (h) {
