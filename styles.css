@@ -851,3 +851,7 @@ body.map-full .map-tools,body.map-full .map-wind{top:calc(env(safe-area-inset-to
   html.ios body.auf-karte .bottomnav{background:color-mix(in srgb, var(--cream) 72%, transparent);}
   html.ios body.auf-karte .map-wrap .leaflet-bottom{bottom:calc(var(--nav-h) + var(--nav-unten) + 2px);}
 }
+
+/* Quellenzeile: links unten, rechts Platz für den Plus-Knopf, im Vollbild über dem Home-Balken */
+.map-wrap .leaflet-bottom.leaflet-left .leaflet-control-attribution{max-width:calc(100vw - 100px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:0 8px 0 0;}
+body.map-full .map-wrap .leaflet-bottom{bottom:env(safe-area-inset-bottom,0px);}

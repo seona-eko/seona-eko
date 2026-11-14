@@ -505,6 +505,8 @@ var Karta = (function () {
       attribution: 'Seona Eko · QField-karta (DGU, OSM, HŠ)'
     }).addTo(map);
     // keine +/−-Knöpfe: Zoomen mit zwei Fingern (wie in Karten-Apps)
+    // Quellenzeile links unten, damit sie nie den Plus-Knopf (rechts unten) verdeckt
+    if (map.attributionControl) map.attributionControl.setPosition('bottomleft');
 
     var view = null;
     try { view = JSON.parse(sessionStorage.getItem('seona_map_view') || 'null'); } catch (e) {}
