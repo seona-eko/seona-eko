@@ -17,7 +17,7 @@
   }
 
   App.route('lovostaj', {
-    nav: function () { return App.isGost() ? 'lovostaj' : 'vise'; },
+    nav: function () { return App.isGost() ? 'gostinfo' : 'vise'; },
     render: function () {
       var today = UI.todayISO();
       var jj = Store.jagdjahr();
@@ -46,7 +46,7 @@
           }).join('') + '</div>' : '');
       }).join('');
 
-      return (App.isGost() ? '' : UI.back('#/vise', t('navVise'))) + '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(new Date())) + '</div>' +
+      return (App.isGost() ? UI.back('#/gostinfo', t('navInfos')) : UI.back('#/vise', t('navVise'))) + '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(new Date())) + '</div>' +
         '<h1>' + esc(t('lovostajTitle', { n: openN })) + '</h1></div>' +
         '<div class="panel flush open-list"><ul class="list">' + ordered.map(function (x) {
           return '<li><div class="row' + (x.open ? '' : ' closed') + '"><span class="r-icon">' + ICONS.forSpecies(x.g.vrsta) + '</span>' +

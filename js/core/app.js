@@ -7,7 +7,7 @@ var App = (function () {
   var active = null;      // { name, def, ctx }
   var role = null;        // 'uprava' (Team) | 'gost' (Jagdgast)
   var teamNav = null;     // ursprüngliche Navigation (Team)
-  var GOST_ROUTES = ['gost', 'karta', 'lovostaj', 'wetter'];
+  var GOST_ROUTES = ['gost', 'gostinfo', 'karta', 'lovostaj', 'wetter'];
   var syncState = 'ok';   // ok | pending | offline | unavailable | error | auth
 
   function route(name, def) { routes[name] = def; }
@@ -229,9 +229,9 @@ var App = (function () {
     if (nav.getAttribute('data-mode') !== want) {
       nav.setAttribute('data-mode', want);
       nav.innerHTML = want === 'gost'
-        ? '<a href="#/gost" data-nav="gost"><span data-icon="home"></span><span data-i18n="navGost"></span><i class="ind"></i></a>' +
+        ? '<a href="#/gost" data-nav="gost"><span data-icon="calendar"></span><span data-i18n="navProgram"></span><i class="ind"></i></a>' +
           '<a href="#/karta" data-nav="karta"><span data-icon="map"></span><span data-i18n="navKarta"></span><i class="ind"></i></a>' +
-          '<a href="#/lovostaj" data-nav="lovostaj"><span data-icon="calendar"></span><span data-i18n="navSeasons"></span><i class="ind"></i></a>'
+          '<a href="#/gostinfo" data-nav="gostinfo"><span data-icon="info"></span><span data-i18n="navInfos"></span><i class="ind"></i></a>'
         : teamNav;
       nav.style.gridTemplateColumns = want === 'gost' ? 'repeat(3,1fr)' : '';
       injectIcons(nav);
