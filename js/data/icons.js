@@ -20,6 +20,7 @@ var ICONS = (function () {
     locate: '<circle cx="24" cy="24" r="9"/><path d="M24 6v8"/><path d="M24 34v8"/><path d="M6 24h8"/><path d="M34 24h8"/><circle cx="24" cy="24" r="2" fill="currentColor"/>',
     layers: '<path d="M24 8 6 17l18 9 18-9z"/><path d="M6 25l18 9 18-9"/><path d="M6 33l18 9 18-9"/>',
     chevron: '<path d="M18 12l12 12-12 12"/>',
+    ruler: '<path d="M7 33 33 7l8 8-26 26z"/><path d="M14 26l3 3M19 21l4 4M24 16l3 3M29 11l4 4"/>',
     seat: '<path d="M14 6h20v16H14z"/><path d="M17 22 12 42"/><path d="M31 22 36 42"/><path d="M14.6 32h18.8"/>',
     car: '<path d="M8 34h32"/><path d="M10 34l3.5-10h21L38 34"/><path d="M14 34v5"/><path d="M34 34v5"/><path d="M15 24l3-8h12l3 8"/>',
     homeward: '<path d="M8 24a16 16 0 1 0 16-16"/><path d="M8 8v8h8"/><path d="M24 16v8l6 4"/>',

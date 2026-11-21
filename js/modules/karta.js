@@ -139,6 +139,7 @@ var Karta = (function () {
       '<div class="map-tools">' +
       (g ? '' : '<button type="button" class="fab glass" id="fab-layers" aria-label="' + esc(t('mapLayers')) + '">' + EBENEN_ICON + '</button>') +
       '<button type="button" class="fab glass" id="fab-locate" aria-label="' + esc(t('myLocation')) + '">' + ICONS.locate + '</button>' +
+      '<button type="button" class="fab glass" id="fab-measure" aria-label="' + esc(t('measure')) + '">' + ICONS.ruler + '</button>' +
       '<button type="button" class="fab glass map-full-btn" id="fab-full" aria-label="' + esc(t('fullscreen')) + '">' + ICONS.expand + '</button></div>' +
       '<div class="map-fab" id="map-fab">' +
       (g ? '' : '<button type="button" class="fab primary" id="fab-add" aria-label="' + esc(t('addObjekt')) + '">' + ICONS.plus + '</button>') + '</div>' +
@@ -267,7 +268,7 @@ var Karta = (function () {
       if (!(Number(l.sastanakLat) && Number(l.sastanakLon))) return;
       if (String(l.datum).slice(0, 10) < today && l.id !== focusId) return;
       var m = L.marker([l.sastanakLat, l.sastanakLon], { icon: L.divIcon({ className: '', html: '<div class="meet-marker"></div>', iconSize: [30, 30], iconAnchor: [15, 30] }), zIndexOffset: 900, title: t('gMeeting') });
-      m.on('click', function () { openMeet(l); });
+      m.on('click', function () { if (mode === 'messen') return messPunkt(m.getLatLng()); openMeet(l); });
       g.addLayer(m);
     });
     layers.meet = g.addTo(map);
@@ -309,7 +310,7 @@ var Karta = (function () {
         var notiz = o.art === 'biljeska';
         if (notiz ? !zeigeNotiz : !zeigeObj) return;
         var m = L.marker([o.lat, o.lon], { icon: objIcon(o, map.getZoom()), keyboard: true, title: notiz ? (o.naziv || I18n.objekt(o.art)) : I18n.objekt(o.art) + (o.broj ? ' ' + o.broj : '') });
-        m.on('click', function () { Objekti.openDetail(o.id); });
+        m.on('click', function () { if (mode === 'messen') return messPunkt(m.getLatLng()); Objekti.openDetail(o.id); });
         (notiz ? n : g).addLayer(m);
       });
       if (zeigeObj) layers.objekti = g.addTo(map);
@@ -333,7 +334,7 @@ var Karta = (function () {
         var nah = map.getZoom() > PUNKT_BIS;
         var m = L.marker([r.lat, r.lon], { icon: L.divIcon({ className: '', html: nah ? '<div class="kill-mark">' + ICONS.forSpecies(r.vrsta) + '</div>' : '<div class="kill-dot"></div>',
           iconSize: nah ? [30, 30] : [14, 14], iconAnchor: nah ? [15, 15] : [7, 7] }), title: Strecke.title(r), zIndexOffset: 500 });
-        m.on('click', function () { Strecke.openDetail(r.id); });
+        m.on('click', function () { if (mode === 'messen') return messPunkt(m.getLatLng()); Strecke.openDetail(r.id); });
         k.addLayer(m);
       });
       layers.odstrjel = k.addTo(map);
@@ -353,7 +354,7 @@ var Karta = (function () {
             fillColor: v === 'pomladak' ? '#dd985f' : v === 'oplodna' ? '#d9b400' : '#2d6a2d',
             fillOpacity: v ? .28 : .02 };
         },
-        onEachFeature: function (f, layer) { layer.on('click', function () { markOdjel(layer); openOdjel(f.properties, layer); }); }
+        onEachFeature: function (f, layer) { layer.on('click', function () { if (mode === 'messen') return; markOdjel(layer); openOdjel(f.properties, layer); }); }
       }).addTo(map);
       if (layers.reviere) layers.reviere.bringToFront();
     } catch (e) { UI.toast(t('mapDataMissing')); }
@@ -471,6 +472,88 @@ var Karta = (function () {
     var fab = document.getElementById('map-fab'); if (fab) fab.hidden = false;
   }
 
+  /**
+   * Entfernung messen: Fadenkreuz in der Mitte, eine gestrichelte Linie folgt vom letzten Punkt zum Fadenkreuz
+   * (Entfernung live beim Verschieben). „Punkt setzen“, Antippen der Karte oder einer Einrichtung setzt einen Punkt;
+   * mehrere Punkte ergeben einen Weg. Läuft die Ortung, beginnt die Messung am eigenen Standort.
+   */
+  var mess = null;
+  function fmtDist(m) {
+    if (m < 1000) return Math.round(m) + ' m';
+    return (m / 1000).toFixed(m < 10000 ? 2 : 1).replace('.', I18n.lang() === 'en' ? '.' : ',') + ' km';
+  }
+  function fadenLL() {
+    var ov = document.getElementById('map-overlay');
+    var p = punktUnterFadenkreuz(map, ov);
+    return L.latLng(p.lat, p.lon);
+  }
+  function messZeichnen() {
+    if (!mess || !map) return;
+    var pts = mess.punkte, ziel = fadenLL();
+    var summe = 0;
+    for (var i = 1; i < pts.length; i++) summe += map.distance(pts[i - 1], pts[i]);
+    mess.linie.setLatLngs(pts);
+    var letzter = pts[pts.length - 1];
+    var live = letzter ? map.distance(letzter, ziel) : 0;
+    mess.gummi.setLatLngs(letzter ? [letzter, ziel] : []);
+    var gross = document.getElementById('mess-gross'), klein = document.getElementById('mess-klein');
+    if (!gross) return;
+    if (!pts.length) { gross.textContent = '—'; klein.textContent = t('measureStart'); }
+    else {
+      gross.textContent = fmtDist(summe + live);
+      klein.textContent = pts.length > 1 ? t('measureLeg', { d: fmtDist(live), n: pts.length - 1 }) : t('measureFrom', { w: mess.vonMir ? t('measureMe') : t('measurePoint') });
+    }
+    var u = document.querySelector('[data-mess-undo]'); if (u) u.disabled = !pts.length;
+  }
+  function messPunkt(ll) {
+    if (!mess) return;
+    mess.punkte.push(L.latLng(ll));
+    mess.kreise.addLayer(L.circleMarker(ll, { radius: 5, color: '#fff', weight: 2, fillColor: '#dd985f', fillOpacity: 1, interactive: false }));
+    UI.haptic && UI.haptic(8);
+    messZeichnen();
+  }
+  function startMessen() {
+    if (!map || mode) return;
+    mode = 'messen';
+    document.body.classList.add('messen');
+    var ov = document.getElementById('map-overlay');
+    document.getElementById('map-fab').hidden = true;
+    var mb = document.getElementById('fab-measure'); if (mb) mb.classList.add('active');
+    mess = {
+      punkte: [], vonMir: false,
+      linie: L.polyline([], { color: '#dd985f', weight: 3, opacity: 1, interactive: false }).addTo(map),
+      gummi: L.polyline([], { color: '#dd985f', weight: 2, opacity: .9, dashArray: '6 7', interactive: false }).addTo(map),
+      kreise: L.layerGroup().addTo(map)
+    };
+    ov.innerHTML = '<svg class="crosshair" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="24" cy="24" r="10"/><path d="M24 2v12M24 34v12M2 24h12M34 24h12"/></svg>' +
+      '<div class="mess-bar glass" role="status" aria-live="polite"><div class="mess-wert"><b id="mess-gross">—</b><span id="mess-klein"></span></div>' +
+      '<div class="mess-knoepfe">' +
+      '<button type="button" class="mess-k" data-mess-undo aria-label="' + esc(t('measureUndo')) + '">' + ICONS.back + '</button>' +
+      '<button type="button" class="mess-k haupt" data-mess-add>' + ICONS.plus + '<span>' + esc(t('measureAdd')) + '</span></button>' +
+      '<button type="button" class="mess-k" data-mess-end aria-label="' + esc(t('close')) + '">' + ICONS.close + '</button></div></div>';
+    ov.querySelector('[data-mess-add]').onclick = function () { messPunkt(fadenLL()); };
+    ov.querySelector('[data-mess-undo]').onclick = function () {
+      if (!mess.punkte.length) return;
+      mess.punkte.pop();
+      var ls = mess.kreise.getLayers(); if (ls.length) mess.kreise.removeLayer(ls[ls.length - 1]);
+      if (!mess.punkte.length) mess.vonMir = false;
+      messZeichnen();
+    };
+    ov.querySelector('[data-mess-end]').onclick = endeMessen;
+    map.on('move', messZeichnen);
+    map.on('click', messKlick);
+    if (meMarker) { mess.vonMir = true; messPunkt(meMarker.getLatLng()); }
+    messZeichnen();
+  }
+  function messKlick(e) { if (mode === 'messen') messPunkt(e.latlng); }
+  function endeMessen() {
+    if (map && mess) { map.off('move', messZeichnen); map.off('click', messKlick); map.removeLayer(mess.linie); map.removeLayer(mess.gummi); map.removeLayer(mess.kreise); }
+    mess = null;
+    document.body.classList.remove('messen');
+    var mb = document.getElementById('fab-measure'); if (mb) mb.classList.remove('active');
+    endPlace();
+  }
+
   async function offlineBanner() {
     var st = await MapOffline.status();
     if (st || !map) return;
@@ -534,6 +617,7 @@ var Karta = (function () {
     drawWind();
     Wetter.refresh();
     el.querySelector('#fab-locate').onclick = function () { locate(); };
+    el.querySelector('#fab-measure').onclick = function () { if (mode === 'messen') endeMessen(); else startMessen(); };
     map.on('dragstart', function () { if (follow) setFollow(false); });
     map.on('zoomend', function () {
       zentrieren();
@@ -590,6 +674,7 @@ var Karta = (function () {
 
   function unmount() {
     document.body.classList.remove('auf-karte');
+    if (mode === 'messen') endeMessen();
     if (isFull()) setFull(false);
     stopLocate();
     stopHeading();
