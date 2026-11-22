@@ -77,6 +77,23 @@ function kartenRandFarbe() {
  */
 // Quellenzeile ohne „Leaflet“-Link: ein Tipp darauf öffnete in der Home-Bildschirm-App Safari
 if (window.L && L.Control && L.Control.Attribution) L.Control.Attribution.prototype.options.prefix = false;
+/**
+ * Safari am Mac meldet das Zusammenziehen auf dem Touchpad als „gesture“-Ereignisse statt als Mausrad mit Strg —
+ * die kennt Leaflet nicht (Chrome/Firefox gehen über das Mausrad). Nur auf Geräten ohne Touchscreen,
+ * sonst würde am iPhone/iPad doppelt gezoomt.
+ */
+function touchpadPinch(map) {
+  if (navigator.maxTouchPoints > 0 || !('ongesturestart' in window)) return;
+  var box = map.getContainer(), z0 = null, punkt = null;
+  box.addEventListener('gesturestart', function (e) { e.preventDefault(); z0 = map.getZoom(); punkt = map.mouseEventToContainerPoint(e); });
+  box.addEventListener('gesturechange', function (e) {
+    e.preventDefault();
+    if (z0 == null) return;
+    var z = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z0 + Math.log2(e.scale)));
+    map.setZoomAround(punkt, z, { animate: false });
+  });
+  box.addEventListener('gestureend', function (e) { e.preventDefault(); z0 = null; });
+}
 var KARTE_RAND = 0.6;
 function kartenGrenzen(map, meta, onResize) {
   function minZoom() {
@@ -644,6 +661,7 @@ var Karta = (function () {
     // keine +/−-Knöpfe: Zoomen mit zwei Fingern (wie in Karten-Apps)
     // Quellenzeile links unten, damit sie nie den Plus-Knopf (rechts unten) verdeckt
     if (map.attributionControl) map.attributionControl.setPosition('bottomleft');
+    touchpadPinch(map);
 
     var view = null;
     try { view = JSON.parse(sessionStorage.getItem('seona_map_view') || 'null'); } catch (e) {}
@@ -766,6 +784,7 @@ var MapPicker = (function () {
       document.body.appendChild(ov);
       document.body.classList.add('picker-open');
       var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0, wheelPxPerZoomLevel: 70, wheelDebounceTime: 16, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
+      touchpadPinch(map);
       kartenGrenzen(map, meta);
       L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', { minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds }).addTo(map);
       rahmenMaske(map, meta);
