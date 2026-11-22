@@ -49,10 +49,11 @@ var Gosti = (function () {
           '<span class="r-main"><span class="r-title">' + esc(g.ime) + '</span><span class="r-sub">' + esc(stay(g) + (g.oruzje ? ' · ' + oruzjeTxt(g) : '') + (next ? ' · ' + t('gNextAnsitz') + ': ' + UI.fmtDay(String(next.datum).slice(0, 10)) : '')) + '</span></span>' +
           (g._pending ? '<span class="badge muted">' + esc(t('stPending')) + '</span>' : '') + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</a></li>';
       }
-      return JagdTabs('gosti') + '<div class="page-head"><p>' + esc(t('guestsSub')) + '</p></div>' + // Reiter „Gäste“ ist die Überschrift
-        '<button type="button" class="btn primary block" id="new-gost" style="margin-bottom:14px">' + ICONS.plus + esc(t('newGuest')) + '</button>' +
+      return JagdTabs('gosti') + '<div class="page-head"><div class="eyebrow">' + esc(t('huntYear')) + ' ' + esc(Store.jagdjahr().label) + '</div>' +
+        '<h1>' + esc(aktuell.length ? t('guestsCount', { n: aktuell.length }) : t('guestsNone')) + '</h1><p>' + esc(t('guestsSub')) + '</p></div>' +
+        '<button type="button" class="btn block" id="new-gost" style="margin-bottom:14px">' + ICONS.plus + esc(t('newGuest')) + '</button>' +
         (aktuell.length ? '<div class="section-title"><h2>' + esc(t('guestsCurrent')) + '</h2></div><div class="panel flush"><ul class="list">' + aktuell.map(row).join('') + '</ul></div>'
-          : '<div class="panel">' + UI.emptyState('group', t('guestsEmpty'), t('guestsEmptyText')) + '</div>') +
+          : frueher.length ? '' : '<div class="panel">' + UI.emptyState('group', t('guestsEmpty'), t('guestsEmptyText')) + '</div>') +
         (frueher.length ? '<div class="section-title"><h2>' + esc(t('guestsPast')) + '</h2></div><div class="panel flush"><ul class="list">' + frueher.map(row).join('') + '</ul></div>' : '') +
         '<a class="btn ghost block" href="#/gost" style="margin-top:14px">' + ICONS.group + esc(t('guestView')) + '</a>';
     },

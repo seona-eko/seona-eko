@@ -82,16 +82,16 @@
         (s.pending ? '<div class="t-sub">' + esc(t('pendingN', { n: s.pending })) + '</div>' : '') + '</a>' +
         '<a class="tile" href="#/hladnjaca"><div class="t-label">' + esc(t('tileCold')) + '</div>' +
         '<div class="t-value">' + c.n + '</div>' +
-        (c.old ? '<div class="t-sub warn-text">' + esc(t('coldOld', { n: c.old })) + '</div>' : '') + '</a>' +
+        (c.old ? '<div class="t-sub warn-text">' + esc(t('coldOldShort', { n: c.old })) + '</div>' : '') + '</a>' +
         '</div>' +
 
         '<a class="home-cta" href="#/odstrjel/novi">' + ICONS.plus + '<span>' + esc(t('newOdstrjel')) + '</span></a>' +
 
         '<div class="section-title"><h2>' + esc(t('openToday')) + '</h2><a href="#/lovostaj">' + esc(t('allSeasons')) + '</a></div>' +
-        (open.length ? '<div class="panel flush"><ul class="list open-list">' + open.map(function (o) {
-          return '<li><div class="row"><span class="r-icon">' + ICONS.forSpecies(o.g.vrsta) + '</span><span class="r-main"><span class="r-title">' + esc(t(o.g.key)) + '</span></span>' +
-            '<span class="open-what">' + esc(o.all ? t('openAll') : o.rows.map(function (r) { return t(r.key); }).join(' · ')) + '</span></div></li>';
-        }).join('') + '</ul></div>' : '<div class="panel"><span class="hint">' + esc(t('nothingOpen')) + '</span></div>') +
+        (open.length ? '<a class="panel open-kurz" href="#/lovostaj">' + open.map(function (o) {
+          return '<span class="open-art"><span class="r-icon">' + ICONS.forSpecies(o.g.vrsta) + '</span><span><b>' + esc(t(o.g.key)) + '</b>' +
+            (o.all ? '' : '<small>' + esc(o.rows.map(function (r) { return t(r.key); }).join(' · ')) + '</small>') + '</span></span>';
+        }).join('') + '</a>' : '<div class="panel"><span class="hint">' + esc(t('nothingOpen')) + '</span></div>') +
 
         (demnaechst.length ? '<div class="section-title"><h2>' + esc(t('homeSoon')) + '</h2></div><div class="panel flush"><ul class="list">' + demnaechst.join('') + '</ul></div>' : '') +
 

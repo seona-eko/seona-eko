@@ -55,7 +55,7 @@
     nav: 'odstrjel',
     render: function () {
       var D = data();
-      return Strecke.tabs('cold') + '<div class="page-head"><div class="eyebrow">' + esc(t('wildbret')) + '</div><h1>' + esc(t('coldTitle', { n: D.inCold.length })) + '</h1></div>' +
+      return Strecke.tabs('cold') + '<div class="page-head"><div class="eyebrow">' + esc(t('huntYear')) + ' ' + esc(Store.jagdjahr().label) + '</div><h1>' + esc(t('coldTitle', { n: D.inCold.length })) + '</h1></div>' +
         renderZelle(D) +
         '<p class="source">' + esc(t('coldSource')) + '</p>';
     },

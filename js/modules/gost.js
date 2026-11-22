@@ -130,7 +130,7 @@ var Gost = (function () {
   }
 
   function programm(liste, me, now) {
-    if (!liste.length) return '';
+    if (!liste.length) return '<section class="g-prog"><h2>' + esc(t('gProgram')) + '</h2><p class="g-leer">' + esc(t('gProgramSoon')) + '</p></section>';
     var zeilen = liste.map(function (x) { return programmZeile(x, now); }).join('');
     if (me && me.do && me.do >= tagIso(0)) {
       zeilen += '<li class="ende"><span class="g-tag-d"><b>' + esc(wochentag(me.do)) + '</b><span>' + esc(UI.fmtDate(me.do, { day: 'numeric', month: 'short' })) + '</span></span>' +

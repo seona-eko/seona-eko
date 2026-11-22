@@ -64,7 +64,7 @@ var Strecke = (function () {
     var wb = Store.wildbret()[r.id];
     var end = r._error ? '<span class="badge warn">' + esc(t('stError')) + '</span>'
       : r._pending ? '<span class="badge muted">' + esc(t('stPending')) + '</span>'
-      : (wb && wb.hladnjacaOd && !wb.predanoDatum ? '<span class="badge plain muted">' + esc(t('inCold')) + '</span>' : '');
+      : (wb && wb.hladnjacaOd && !wb.predanoDatum ? '<span class="r-kalt" title="' + esc(t('inCold')) + '" aria-label="' + esc(t('inCold')) + '">' + ICONS.cold + '</span>' : '');
     return '<li><button type="button" class="row" data-id="' + esc(r.id) + '">' +
       '<span class="r-icon">' + ICONS.forSpecies(r.vrsta) + '</span>' +
       '<span class="r-main"><span class="r-title">' + esc(title(r)) + ' · <span class="num">' + esc(r.tezina) + ' kg</span></span>' +
@@ -74,11 +74,12 @@ var Strecke = (function () {
 
   function shortLov(l) { return String(l || '').replace(/^XIV\/\d+\s*/, ''); }
 
+  /** Revier-Auswahl als kleines Auswahlfeld (statt einer eigenen Chip-Reihe). */
   function lovChips() {
     var opts = [['all', t('allGrounds')]].concat(Store.lovista().map(function (l) { return [l, shortLov(l)]; }));
-    return '<div class="chips" id="lok-chips">' + opts.map(function (o) {
-      return '<button type="button" class="chip" data-lok="' + esc(o[0]) + '" aria-pressed="' + (state.lok === o[0]) + '">' + esc(o[1]) + '</button>';
-    }).join('') + '</div>';
+    return '<label class="chip chip-select' + (state.lok !== 'all' ? ' an' : '') + '"><select id="lok-select" aria-label="' + esc(t('lblLoviste')) + '">' + opts.map(function (o) {
+      return '<option value="' + esc(o[0]) + '"' + (state.lok === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+    }).join('') + '</select></label>';
   }
 
   function renderList(list) {
@@ -234,12 +235,12 @@ var Strecke = (function () {
         '<p>' + esc(t('streckeSub', { ist: s.ist, soll: s.soll })) + (s.pending ? ' · ' + esc(t('pendingN', { n: s.pending })) : '') + '</p></div>' +
         // „Neuer Abschuss“ nur in der Liste (im Plan wäre er Wiederholung)
         (state.tab === 'popis' ? '<a class="btn primary block" href="#/odstrjel/novi" style="margin-bottom:14px">' + ICONS.plus + esc(t('newOdstrjel')) + '</a>' : '') +
-        lovChips() +
-        (state.tab === 'popis' ? '<div class="chips" id="vrsta-chips" style="margin:6px 0 10px">' + speciesChips + '</div>' + renderList(s.list) : '<div style="margin-top:8px" class="stack">' + renderPlan() + '</div>');
+        (state.tab === 'popis' ? '<div class="chips" id="vrsta-chips" style="margin:0 0 10px">' + lovChips() + speciesChips + '</div>' + renderList(s.list)
+          : '<div class="chips" style="margin:0 0 4px">' + lovChips() + '</div><div style="margin-top:8px" class="stack">' + renderPlan() + '</div>');
     },
     mount: function (el, ctx) {
       if (ctx.params[0] === 'novi' || ctx.params[0] === 'uredi') return Odstrjel.mount(el, ctx);
-      UI.$$('#lok-chips .chip', el).forEach(function (b) { b.onclick = function () { state.lok = b.getAttribute('data-lok'); App.render(true); }; });
+      var ls = el.querySelector('#lok-select'); if (ls) ls.onchange = function () { state.lok = ls.value; App.render(true); };
       UI.$$('#vrsta-chips .chip', el).forEach(function (b) { b.onclick = function () { state.vrsta = b.getAttribute('data-vrsta'); App.render(true); }; });
       UI.$$('.row[data-id]', el).forEach(function (b) { b.onclick = function () { openDetail(b.getAttribute('data-id')); }; });
     },

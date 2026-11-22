@@ -519,7 +519,7 @@ ol.safety li{margin:0 0 6px;}
 /* ---------------- Sonnenzeiten, Wetter, Mond ---------------- */
 .sunline{display:inline-flex;gap:14px;align-items:center;}
 .sunline > span{display:inline-flex;align-items:center;gap:4px;}
-.sunline svg{width:22px;height:22px;color:var(--accent-text);}
+.sunline svg{width:22px;height:22px;color:var(--ink-soft);}
 .sunline b{font-weight:600;color:var(--ink);}
 .weather-tile{display:block;text-decoration:none;color:inherit;margin-top:12px;}
 .weather-tile .w-main{display:flex;align-items:center;gap:12px;}
@@ -530,9 +530,7 @@ ol.safety li{margin:0 0 6px;}
 .weather-tile .w-wind{display:flex;align-items:center;gap:8px;font-size:.85rem;text-align:left;}
 .weather-tile .w-wind small{color:var(--ink-soft);}
 .weather-tile .w-sub{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:.8rem;}
-.wind-arrow{display:inline-flex;flex:none;color:var(--wine);transition:transform .3s;}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .wind-arrow{color:var(--copper);}}
-:root[data-theme="dark"] .wind-arrow{color:var(--copper);}
+.wind-arrow{display:inline-flex;flex:none;color:var(--ink);transition:transform .3s;}
 .wind-arrow svg{width:100%;height:100%;stroke-width:3;}
 .moonline{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);}
 .moonline svg{width:20px;height:20px;color:var(--bark);}
@@ -1059,3 +1057,22 @@ img,svg{-webkit-user-drag:none;}
 .q-schuetze .link{background:none;border:0;color:var(--accent-text);font:inherit;font-weight:600;padding:0;cursor:pointer;}
 .q-save{margin-top:14px;min-height:54px;font-family:var(--font-display);font-size:1.15rem;}
 .g-karte{color:var(--accent-text);font-weight:600;text-decoration:none;}
+
+/* ---------- Ruhigere Gestaltung (Durchsicht 22.11.) ---------- */
+/* Abschnittstitel überall wie auf der Startseite: normale Schreibweise statt Großbuchstaben */
+.section-title h2{text-transform:none;letter-spacing:.01em;font-size:1.15rem;}
+/* Kühlzelle in Listen nur als kleines Symbol */
+.r-kalt{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;color:var(--ink-soft);}
+.r-kalt svg{width:16px;height:16px;}
+/* Revier als Auswahl im Chip */
+.chip-select{position:relative;padding:0;display:inline-flex;align-items:center;flex:none;}
+.chip-select select{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit;font:inherit;font-weight:600;padding:7px 28px 7px 13px;cursor:pointer;}
+.chip-select::after{content:"";position:absolute;right:11px;top:50%;width:6px;height:6px;margin-top:-5px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);pointer-events:none;opacity:.7;}
+.chip-select.an{background:var(--ink);color:var(--paper);}
+/* Startseite: „Heute offen“ als eine ruhige Fläche */
+.open-kurz{display:flex;flex-wrap:wrap;gap:14px 18px;text-decoration:none;color:inherit;padding:16px;}
+.open-art{display:flex;align-items:center;gap:10px;min-width:calc(50% - 9px);}
+.open-art .r-icon{width:34px;height:34px;}
+.open-art b{display:block;font-size:.95rem;}
+.open-art small{display:block;font-size:.78rem;color:var(--ok);font-weight:600;}
+.g-leer{color:var(--ink-soft);margin:6px 0 0;line-height:1.5;}
