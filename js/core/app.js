@@ -219,6 +219,7 @@ var App = (function () {
   function updateBrand() {
     document.getElementById('brand-sub').textContent = role === 'uprava' ? I18n.t('roleUprava') : role === 'gost' ? I18n.t('roleGost') : I18n.t('brandSub');
     applyRoleNav();
+    Hinweis.glocke();
   }
 
   /** Gäste: nur „Übersicht“ und „Karte“ in der unteren Navigation. */
@@ -405,6 +406,7 @@ var App = (function () {
     injectIcons(document.getElementById('setup'));
     injectIcons(document.getElementById('bottomnav'));
     document.getElementById('sync-pill').onclick = function () { go('#/vise?sync=1'); };
+    Hinweis.start();
     // Seitenwechsel weich überblenden (wo der Browser es kann; „Bewegung reduzieren“ wird beachtet)
     window.addEventListener('hashchange', function () {
       var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;

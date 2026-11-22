@@ -53,7 +53,7 @@
 
       var pct = function (a, b) { return b ? Math.min(100, Math.round(a / b * 100)) : 0; };
 
-      return '<div class="page-head"><div class="eyebrow">' + esc(UI.fmtLong(today)) + ' · ' + esc(t('huntYear')) + ' ' + esc(jj.label) + '</div>' +
+      return '<div class="page-head home-head"><button type="button" class="hw-glocke home-glocke" hidden>' + ICONS.bell + '<i aria-hidden="true"></i></button><div class="eyebrow">' + esc(UI.fmtLong(today)) + ' · ' + esc(t('huntYear')) + ' ' + esc(jj.label) + '</div>' +
         '<h1>' + esc(t('homeTitle')) + '</h1>' +
         '<p>' + WetterUI.sun(today) + '</p></div>' +
 
@@ -98,6 +98,7 @@
           '<div class="panel flush"><ul class="list">' + recent.map(Strecke.rowHtml).join('') + '</ul></div>' : '');
     },
     mount: function (el) {
+      Hinweis.glocke();
       UI.$$('.row[data-id]', el).forEach(function (b) { b.onclick = function () { Strecke.openDetail(b.getAttribute('data-id')); }; });
       Wetter.refresh();
     }
