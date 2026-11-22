@@ -71,10 +71,6 @@
         (ob.length ? '<button type="button" class="btn dark block" id="sync-now">' + ICONS.sync + esc(t('syncNow')) + '</button>' : '') +
         (role === 'uprava' ? '<button type="button" class="btn block" id="backup" style="margin-top:10px">' + esc(t('backupBtn')) + '</button>' : '') + '</div>' +
 
-        '<div class="section-title"><h2>' + esc(t('offlineMap')) + '</h2></div>' +
-        '<div class="panel" id="map-panel"><p class="hint" style="margin:0 0 12px" id="map-status">' + esc(t('loading')) + '</p>' +
-        '<button type="button" class="btn block" id="map-dl">' + ICONS.map + esc(t('saveMap')) + '</button></div>' +
-
         '<div class="section-title"><h2>' + esc(t('settings')) + '</h2></div>' +
         '<div class="panel stack">' +
         '<div><span class="field-label">' + esc(t('lblLang')) + '</span><div class="seg" id="lang-seg">' +
@@ -114,21 +110,6 @@
       var tr = el.querySelector('#tut-replay');
       if (tr) tr.onclick = function () { App.go('#/home'); Tutorial.open(); };
 
-      var st = await MapOffline.status();
-      var status = el.querySelector('#map-status');
-      if (status) status.textContent = st ? t('mapSavedAt', { t: UI.fmtStamp(st.at), n: st.tiles }) : t('mapNotSaved');
-      var dl = el.querySelector('#map-dl');
-      if (dl) {
-        if (st) dl.innerHTML = ICONS.sync + esc(t('updateMap'));
-        dl.onclick = async function () {
-          dl.disabled = true;
-          try {
-            var res = await MapOffline.download(function (d, n) { status.textContent = t('savingMap', { p: Math.round(d / n * 100) }); });
-            status.textContent = res.failed ? t('saveMapPartial', { n: res.failed }) : t('mapSaved');
-          } catch (e) { status.textContent = t('saveMapFailed'); }
-          dl.disabled = false;
-        };
-      }
     }
   });
 })();
