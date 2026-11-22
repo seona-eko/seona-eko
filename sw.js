@@ -7,13 +7,13 @@
  * Bei jeder Änderung an App-Dateien CACHE_VERSION hochzählen — sonst sehen installierte Handys
  * die neue Version nicht. Die App zeigt dann „Dostupna je nova verzija — Osvježi".
  */
-var CACHE_VERSION = 'seona-v96';
+var CACHE_VERSION = 'seona-v97';
 var MAP_CACHE = 'seona-karta-v4';
 var SHELL = [
   './', 'index.html', 'styles.css', 'config.js', 'manifest.webmanifest',
   'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'vendor/qrcode/qrcode.min.js',
   'fonts/oswald-latin.woff2', 'fonts/oswald-latin-ext.woff2', 'fonts/worksans-latin.woff2', 'fonts/worksans-latin-ext.woff2',
-  'js/core/i18n.js', 'js/core/db.js', 'js/core/api.js', 'js/core/sync.js', 'js/core/store.js', 'js/core/ui.js', 'js/core/geo.js', 'js/core/wetter.js', 'js/core/qrscan.js', 'js/core/app.js', 'vendor/jsqr/jsQR.min.js',
+  'js/core/i18n.js', 'js/core/db.js', 'js/core/api.js', 'js/core/sync.js', 'js/core/store.js', 'js/core/ui.js', 'js/core/hinweis.js', 'js/core/geo.js', 'js/core/wetter.js', 'js/core/qrscan.js', 'js/core/app.js', 'vendor/jsqr/jsQR.min.js',
   'js/data/icons.js', 'js/data/lovostaj.js', 'js/data/plan.js',
   'js/modules/home.js', 'js/modules/odstrjel.js', 'js/modules/strecke.js', 'js/modules/karta.js', 'js/modules/objekti.js',
   'js/modules/lovovi.js', 'js/modules/hladnjaca.js', 'js/modules/lovostaj.js', 'js/modules/vise.js', 'js/modules/gost.js', 'js/modules/gosti.js', 'js/modules/wetter.js', 'js/modules/tutorial.js',

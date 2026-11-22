@@ -93,6 +93,7 @@ var Store = (function () {
     res = Object.assign({}, res);
     delete res.ok;
     res.at = Date.now();
+    var prev = snap;
     snap = res;
     Object.keys(confirmed).forEach(function (k) {
       var c = confirmed[k];
@@ -102,6 +103,7 @@ var Store = (function () {
     await DB.set('pull', snap);
     if (res.role) await DB.set('role', res.role);
     emit();
+    if (typeof Hinweis !== 'undefined') Hinweis.vergleich(prev, snap);
   }
 
   async function persist() { if (snap) await DB.set('pull', snap); }

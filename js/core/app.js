@@ -278,7 +278,7 @@ var App = (function () {
       function busy() { return !!document.querySelector('.sheet') || (active && active.def.live === false) || /#\/odstrjel\/(novi|uredi)/.test(location.hash) || document.getElementById('setup').classList.contains('show'); }
       function offer(worker) {
         if (!busy()) { worker.postMessage('skipWaiting'); return; }
-        UI.toast(I18n.t('updateText'), { kind: 'update', sticky: true, action: I18n.t('btnUpdate'), onAction: function () { worker.postMessage('skipWaiting'); } });
+        Hinweis.update(function () { worker.postMessage('skipWaiting'); });
       }
       if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
       swReg = reg;

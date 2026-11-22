@@ -953,3 +953,25 @@ body.map-full .mess-bar{bottom:calc(env(safe-area-inset-bottom,0px) + 18px);}
   html.ios body:not(.map-full) .mess-bar{bottom:calc(var(--nav-h) + var(--nav-unten) + 14px);}
 }
 body.messen .map-wrap .leaflet-bottom{visibility:hidden;}
+
+/* ---------- Hinweis-Banner (Änderungen anderer, neue Version) ---------- */
+.hw-banner{
+  position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:120;max-width:520px;margin:0 auto;
+  display:flex;gap:12px;align-items:center;text-align:left;padding:12px 14px 12px 12px;border-radius:22px;
+  font:inherit;color:var(--ink);cursor:pointer;
+  background:color-mix(in srgb, var(--paper) 78%, transparent);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid color-mix(in srgb, var(--ink) 8%, transparent);box-shadow:0 10px 30px rgba(0,0,0,.16);
+  transform:translateY(calc(-100% - 40px));opacity:0;transition:transform .48s cubic-bezier(.22,1,.36,1), opacity .3s ease;
+}
+.hw-banner.an{transform:none;opacity:1;}
+.hw-banner.sticky .hw-icon{color:var(--accent-text);}
+.hw-icon{width:44px;height:44px;flex:none;border-radius:13px;background:var(--cream-2);color:var(--bark);display:flex;align-items:center;justify-content:center;}
+.hw-icon svg{width:30px;height:30px;}
+.hw-text{flex:1;min-width:0;display:block;}
+.hw-kopf{display:flex;justify-content:space-between;gap:8px;font-size:.75rem;font-weight:600;color:var(--ink-soft);}
+.hw-text b{display:block;font-size:.95rem;margin-top:2px;}
+.hw-sub{display:block;font-size:.82rem;color:var(--ink-soft);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hw-row{gap:12px;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hw-banner{background:color-mix(in srgb, #262d28 74%, transparent);box-shadow:0 10px 30px rgba(0,0,0,.45);}}
+:root[data-theme="dark"] .hw-banner{background:color-mix(in srgb, #262d28 74%, transparent);box-shadow:0 10px 30px rgba(0,0,0,.45);}
+@media (prefers-reduced-motion: reduce){.hw-banner{transition:opacity .2s ease;transform:none;}}
