@@ -313,15 +313,15 @@ var Karta = (function () {
     var cls = 'obj-marker' + (o.stanje === 'uklonjen' ? ' removed' : '') + (o.stanje === 'popravak' || o.stanje === 'neupotrebljivo' ? ' bad' : '');
     if (zoom != null && zoom <= PUNKT_BIS) return L.divIcon({ className: '', html: '<div class="obj-dot' + (o.art === 'biljeska' ? ' note' : '') + (o.stanje === 'uklonjen' ? ' removed' : '') + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
     var art = ICONS.objekt[o.art] ? o.art : 'kanzel';
-    var ay = FUSS[art] ? Math.round(2 + FUSS[art] * 26 / 24) : 15;
-    var fussProz = Math.round((ay - 2) / 26 * 100); // Symbol schrumpft zum Standpunkt hin, nicht zur Mitte
-    return L.divIcon({ className: '', html: '<div class="' + cls + '" style="position:relative"><img alt="" src="' + ICONS.objekt[art] + '" style="transform-origin:50% ' + fussProz + '%"></div>', iconSize: [30, 30], iconAnchor: [15, ay] });
+    var ay = FUSS[art] ? Math.round(2 + FUSS[art] * 30 / 24) : 17;
+    var fussProz = Math.round((ay - 2) / 30 * 100); // Symbol schrumpft zum Standpunkt hin, nicht zur Mitte
+    return L.divIcon({ className: '', html: '<div class="' + cls + '" style="position:relative"><img alt="" src="' + ICONS.objekt[art] + '" style="transform-origin:50% ' + fussProz + '%"></div>', iconSize: [34, 34], iconAnchor: [17, ay] });
   }
-  /** Symbole werden beim Herauszoomen kleiner statt gleich groß zu bleiben (Zoom 16 → volle Größe, Zoom 13 → 60 %). */
+  /** Symbole werden beim Herauszoomen kleiner statt gleich groß zu bleiben (Zoom 16 → volle Größe, Zoom 13 → 70 %). */
   function symbolGroesse() {
     if (!map) return;
     var z = map.getZoom(), f = Math.max(0, Math.min(1, (z - PUNKT_BIS) / 3));
-    map.getContainer().style.setProperty('--obj-s', (0.6 + 0.4 * f).toFixed(3));
+    map.getContainer().style.setProperty('--obj-s', (0.7 + 0.3 * f).toFixed(3));
   }
 
   function drawData(ctx) {
