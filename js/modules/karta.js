@@ -78,7 +78,7 @@ function kartenRandFarbe() {
 var KARTE_RAND = 0.6;
 function kartenGrenzen(map, meta, onResize) {
   function minZoom() {
-    // Zwischenstufen (zoomSnap 0.25): sonst rundet Leaflet auf ganze Stufen ab und die Reviere füllen nur die halbe Breite
+    // Zwischenstufen (zoomSnap 0, stufenlos): sonst rundet Leaflet auf ganze Stufen ab und die Reviere füllen nur die halbe Breite
     var z = map.getBoundsZoom(meta.reviere, false, L.point(0, 0));
     map.setMinZoom(Math.max(meta.minZoom, Math.min(z, meta.maxNativeZoom)));
   }
@@ -121,10 +121,11 @@ var EBENEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 var Karta = (function () {
   var esc = UI.esc, t = I18n.t;
   var map = null, layers = {}, watchId = null, meMarker = null, meCircle = null, mode = null, focusMarker = null;
-  var show = { objekti: true, biljeske: true, odstrjel: false, odjeli: false };
-  try { var saved = JSON.parse(localStorage.getItem('seona_map_layers') || 'null'); if (saved) show = Object.assign(show, saved); } catch (e) {}
+  // Beim Öffnen der Karte immer nur die Einrichtungen; Notizen, Strecke und Abteilungen schaltet man bei Bedarf dazu
+  var SHOW_START = { objekti: true, biljeske: false, odstrjel: false, odjeli: false };
+  var show = Object.assign({}, SHOW_START);
 
-  function saveLayers() { try { localStorage.setItem('seona_map_layers', JSON.stringify(show)); } catch (e) {} }
+  function saveLayers() {}
 
   // Gäste: nur Kartenbild (Namen, Wege, Gewässer, Relief) und eigener Standort.
   // Keine Reviergrenzen, Einrichtungen, Abschussorte, Abteilungen, Treffpunkte, kein Eintragen.
@@ -196,7 +197,7 @@ var Karta = (function () {
   /** Ebenen-Knopf zeigt einen Punkt, wenn etwas außer den Einrichtungen eingeblendet ist. */
   function ebenenMarke() {
     var b = document.getElementById('fab-layers');
-    if (b) b.classList.toggle('marked', !!(show.odstrjel || show.odjeli || !show.objekti || !show.biljeske));
+    if (b) b.classList.toggle('marked', !!(show.odstrjel || show.odjeli || !show.objekti || show.biljeske));
   }
 
   /* ---------- Blickrichtung: Kegel am Standortpunkt und mitdrehender Wind-Kompass ---------- */
@@ -616,12 +617,14 @@ var Karta = (function () {
   }
 
   async function mount(el, ctx) {
+    show = Object.assign({}, SHOW_START);
+    if (ctx && ctx.query && ctx.query.lat) show.biljeske = true; // Sprung zu einem Ort (z. B. aus einer Mitteilung): Notizen dort nicht verstecken
     var meta;
     try { meta = await (await fetch('map/meta.json')).json(); }
     catch (e) { el.querySelector('#map').innerHTML = UI.emptyState('map', t('mapDataMissing'), t('mapDataMissingText')); return; }
     if (!document.getElementById('map')) return; // inzwischen weiter navigiert
     grenzen = L.latLngBounds(meta.bounds).pad(KARTE_RAND);
-    map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: 0.25, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
+    map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: 0, wheelPxPerZoomLevel: 70, wheelDebounceTime: 16, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
     kartenGrenzen(map, meta, zentrieren);
     rahmenMaske(map, meta);
     L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', {
@@ -752,7 +755,7 @@ var MapPicker = (function () {
         '<button type="button" class="btn small primary" data-ok>' + esc(t('placeHere')) + '</button></div></div>';
       document.body.appendChild(ov);
       document.body.classList.add('picker-open');
-      var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0.25, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
+      var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0, wheelPxPerZoomLevel: 70, wheelDebounceTime: 16, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
       kartenGrenzen(map, meta);
       L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', { minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds }).addTo(map);
       rahmenMaske(map, meta);

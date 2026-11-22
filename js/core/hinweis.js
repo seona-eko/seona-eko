@@ -230,6 +230,8 @@ var Hinweis = (function () {
   /** Beim Start: Glocke verdrahten, Stand laden. */
   function start() {
     document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.hw-glocke')) center(); });
+    var kopf = document.getElementById('hw-glocke');
+    if (kopf) kopf.innerHTML = ICONS.bell + '<i aria-hidden="true"></i>';
     laden().then(glocke);
   }
 
