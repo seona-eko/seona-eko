@@ -83,8 +83,18 @@ if (window.L && L.Control && L.Control.Attribution) L.Control.Attribution.protot
  * sonst würde am iPhone/iPad doppelt gezoomt.
  */
 function touchpadPinch(map) {
-  if (navigator.maxTouchPoints > 0 || !('ongesturestart' in window)) return;
+  if (navigator.maxTouchPoints > 0) return;
   var box = map.getContainer(), z0 = null, punkt = null;
+  // Chrome/Firefox/Edge: Zusammenziehen kommt als Mausrad mit Strg in vielen kleinen Schritten. Leaflet bremst die stark
+  // (wirkt schwergängig) — direkt und stufenlos zoomen, um den Punkt unter dem Zeiger. Normales Mausrad bleibt bei Leaflet.
+  box.addEventListener('wheel', function (e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault(); e.stopPropagation();
+    var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    var z = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), map.getZoom() - dy * 0.02));
+    map.setZoomAround(map.mouseEventToContainerPoint(e), z, { animate: false });
+  }, { capture: true, passive: false });
+  if (!('ongesturestart' in window)) return;
   box.addEventListener('gesturestart', function (e) { e.preventDefault(); z0 = map.getZoom(); punkt = map.mouseEventToContainerPoint(e); });
   box.addEventListener('gesturechange', function (e) {
     e.preventDefault();
@@ -672,7 +682,7 @@ var Karta = (function () {
     catch (e) { el.querySelector('#map').innerHTML = UI.emptyState('map', t('mapDataMissing'), t('mapDataMissingText')); return; }
     if (!document.getElementById('map')) return; // inzwischen weiter navigiert
     grenzen = L.latLngBounds(meta.bounds).pad(KARTE_RAND);
-    map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: 0, wheelPxPerZoomLevel: 70, wheelDebounceTime: 16, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
+    map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: 0, wheelPxPerZoomLevel: 45, wheelDebounceTime: 10, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: grenzen, maxBoundsViscosity: 0.6, preferCanvas: true });
     kartenGrenzen(map, meta, zentrieren);
     rahmenMaske(map, meta);
     L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', {
@@ -806,7 +816,7 @@ var MapPicker = (function () {
         '<button type="button" class="btn small primary" data-ok>' + esc(t('placeHere')) + '</button></div></div>';
       document.body.appendChild(ov);
       document.body.classList.add('picker-open');
-      var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0, wheelPxPerZoomLevel: 70, wheelDebounceTime: 16, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
+      var map = L.map('picker-map', { zoomControl: false, zoomSnap: 0, wheelPxPerZoomLevel: 45, wheelDebounceTime: 10, bounceAtZoomLimits: false, minZoom: meta.minZoom, maxZoom: 18, maxBounds: L.latLngBounds(meta.bounds).pad(KARTE_RAND), maxBoundsViscosity: 0.6, attributionControl: false });
       touchpadPinch(map);
       kartenGrenzen(map, meta);
       L.tileLayer(MapOffline.prefix() + '/{z}/{x}/{y}.jpg', { minZoom: meta.minZoom, maxZoom: 18, maxNativeZoom: meta.maxNativeZoom, bounds: meta.bounds }).addTo(map);
