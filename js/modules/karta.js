@@ -94,6 +94,8 @@ function touchpadPinch(map) {
   });
   box.addEventListener('gestureend', function (e) { e.preventDefault(); z0 = null; });
 }
+/** Markierungsfarbe auf der Karte = Hauptaktion: hell Weinrot, dunkel Kupfer. */
+function akzentFarbe() { return (getComputedStyle(document.documentElement).getPropertyValue('--primary') || '').trim() || '#dd985f'; }
 var KARTE_RAND = 0.6;
 function kartenGrenzen(map, meta, onResize) {
   function minZoom() {
@@ -341,7 +343,7 @@ var Karta = (function () {
       Store.objekti().forEach(function (o) {
         if (lovFocus.stajalista.indexOf(o.id) === -1) return;
         pts.push([o.lat, o.lon]);
-        ring.addLayer(L.circleMarker([o.lat, o.lon], { radius: 20, color: '#dd985f', weight: 3, fill: false, interactive: false }));
+        ring.addLayer(L.circleMarker([o.lat, o.lon], { radius: 20, color: akzentFarbe(), weight: 3, fill: false, interactive: false }));
       });
       layers.lovFocus = ring.addTo(map);
       if (pts.length && !ctx._fitted) { map.fitBounds(pts, { padding: [60, 60], maxZoom: 16 }); ctx._fitted = true; }
@@ -390,7 +392,7 @@ var Karta = (function () {
   function markOdjel(layer) {
     if (odjelSel && odjelSel !== layer) unmarkOdjel(odjelSel);
     odjelSel = layer;
-    layer.setStyle({ color: '#dd985f', weight: 4, opacity: 1, dashArray: null, fillColor: '#dd985f', fillOpacity: .3 });
+    layer.setStyle({ color: akzentFarbe(), weight: 4, opacity: 1, dashArray: null, fillColor: akzentFarbe(), fillOpacity: .3 });
     layer.bringToFront();
     if (layers.reviere) layers.reviere.bringToFront();
   }
@@ -570,7 +572,7 @@ var Karta = (function () {
     // Erster Punkt wird ab drei Punkten größer — Hinweis: hier schließen
     var erster = mess.kreise.getLayers()[0];
     if (erster && mess.punkte.length >= 3) erster.setRadius(9);
-    mess.kreise.addLayer(L.circleMarker(ll, { renderer: mess.renderer, radius: 5, color: '#fff', weight: 2, fillColor: '#dd985f', fillOpacity: 1, interactive: false }));
+    mess.kreise.addLayer(L.circleMarker(ll, { renderer: mess.renderer, radius: 5, color: '#fff', weight: 2, fillColor: mess.farbe, fillOpacity: 1, interactive: false }));
     UI.haptic && UI.haptic(8);
     messZeichnen();
   }
@@ -582,12 +584,14 @@ var Karta = (function () {
     document.getElementById('map-fab').hidden = true;
     var mb = document.getElementById('fab-measure'); if (mb) mb.classList.add('active');
     var messRenderer = L.svg({ padding: 0.5 });
+    // Farbe wie die Hauptaktion: hell Weinrot, dunkel Kupfer
+    var farbe = akzentFarbe();
     mess = {
-      punkte: [], vonMir: false, zoomt: false, renderer: messRenderer,
-      linie: L.polyline([], { renderer: messRenderer, color: '#dd985f', weight: 3, opacity: 1, interactive: false }).addTo(map),
-      gummi: L.polyline([], { renderer: messRenderer, color: '#dd985f', weight: 2, opacity: .9, dashArray: '6 7', interactive: false }).addTo(map),
+      punkte: [], vonMir: false, zoomt: false, renderer: messRenderer, farbe: farbe,
+      linie: L.polyline([], { renderer: messRenderer, color: farbe, weight: 3, opacity: 1, interactive: false }).addTo(map),
+      gummi: L.polyline([], { renderer: messRenderer, color: farbe, weight: 2, opacity: .9, dashArray: '6 7', interactive: false }).addTo(map),
       kreise: L.layerGroup().addTo(map),
-      flaeche: L.polygon([], { renderer: messRenderer, stroke: false, fillColor: '#dd985f', fillOpacity: .2, interactive: false }).addTo(map),
+      flaeche: L.polygon([], { renderer: messRenderer, stroke: false, fillColor: farbe, fillOpacity: .2, interactive: false }).addTo(map),
       zu: false
     };
     ov.innerHTML = '<svg class="crosshair" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="24" cy="24" r="10"/><path d="M24 2v12M24 34v12M2 24h12M34 24h12"/></svg>' +
@@ -668,7 +672,7 @@ var Karta = (function () {
     if (ctx.query.lat && ctx.query.lon) {
       var ll = [Number(ctx.query.lat), Number(ctx.query.lon)];
       map.setView(ll, 16);
-      focusMarker = L.circleMarker(ll, { radius: 16, color: '#dd985f', weight: 3, fill: false }).addTo(map);
+      focusMarker = L.circleMarker(ll, { radius: 16, color: akzentFarbe(), weight: 3, fill: false }).addTo(map);
     } else if (view) map.setView(view.c, view.z);
     else map.fitBounds(meta.reviere, { padding: [0, 0] });
     map.on('moveend', function () { try { sessionStorage.setItem('seona_map_view', JSON.stringify({ c: map.getCenter(), z: map.getZoom() })); } catch (e) {} });

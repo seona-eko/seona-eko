@@ -45,6 +45,7 @@ var App = (function () {
     injectIcons(view);
     I18n.apply(view);
     if (def.mount) def.mount(view, ctx);
+    tabStrich(view);
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     var navKey = typeof def.nav === 'function' ? def.nav() : (def.nav || r.name);
     UI.$$('#bottomnav a').forEach(function (a) {
@@ -215,6 +216,28 @@ var App = (function () {
     syncNow({ pull: true }).then(function () { Tutorial.maybeShow(); autoSaveMap(); });
     render(true);
   });
+
+  /** Strich unter den Reitern (Strecke · Plan · Kühlzelle, Drückjagd · Gäste …) gleitet beim Wechsel zum neuen Reiter. */
+  var letzterStrich = null;
+  function tabStrich(view) {
+    var nav = view.querySelector('.section-tabs');
+    var cur = nav && nav.querySelector('a[aria-current="page"]');
+    if (!nav || !cur || !nav.appendChild) { letzterStrich = null; return; }
+    var key = [].map.call(nav.querySelectorAll('a'), function (a) { return a.getAttribute('href'); }).join('|');
+    var bar = document.createElement('span');
+    bar.className = 'tab-strich';
+    nav.appendChild(bar);
+    var neu = { key: key, x: cur.offsetLeft, w: cur.offsetWidth };
+    var setz = function (p) { bar.style.width = p.w + 'px'; bar.style.transform = 'translateX(' + p.x + 'px)'; };
+    var alt = letzterStrich;
+    letzterStrich = neu;
+    if (alt && alt.key === key && (alt.x !== neu.x || alt.w !== neu.w) && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setz(alt);
+      void bar.offsetWidth; // Startstellung übernehmen, dann gleiten
+      bar.classList.add('gleitet');
+      setz(neu);
+    } else setz(neu);
+  }
 
   function updateBrand() {
     document.getElementById('brand-sub').textContent = role === 'uprava' ? I18n.t('roleUprava') : role === 'gost' ? I18n.t('roleGost') : I18n.t('brandSub');

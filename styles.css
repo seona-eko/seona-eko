@@ -143,12 +143,12 @@ html.ios main#view{min-height:calc(100vh + env(safe-area-inset-top,0px) + 1px);}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bottomnav a[aria-current="page"]{color:var(--ink);}}
 .bottomnav a[aria-current="page"] svg{stroke-width:2.4;}
 .bottomnav a .ind{width:22px;height:3px;border-radius:2px;background:transparent;margin-top:1px;}
-.bottomnav a[aria-current="page"] .ind{background:var(--accent);}
+.bottomnav a[aria-current="page"] .ind{background:var(--primary);}
 
 /* Reiter eines Menübereichs (Strecke · Plan · Kühlzelle / Drückjagden · Gäste) */
 .section-tabs{display:flex;gap:4px;margin:0 -16px 4px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--cream);position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--top-h));z-index:5;}
 .section-tabs a{flex:1;text-align:center;padding:12px 6px 10px;font-weight:600;font-size:.88rem;color:var(--ink-soft);text-decoration:none;border-bottom:3px solid transparent;}
-.section-tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent);}
+.section-tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--primary);}
 
 /* ---------------- Seitenkopf ---------------- */
 .page-head{padding:22px 0 14px;}
@@ -385,7 +385,7 @@ details.more[open] summary::before{content:"–";}
 .fab.active.follow{background:#2f6fc0;color:#fff;}
 .map-banner{position:absolute;left:12px;right:80px;bottom:18px;z-index:500;background:var(--paper);border-radius:var(--radius-sm);padding:10px 12px;font-size:.82rem;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;gap:10px;align-items:center;}
 .map-banner span{flex:1;}
-.crosshair{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;z-index:450;pointer-events:none;color:var(--accent);}
+.crosshair{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;z-index:450;pointer-events:none;color:var(--primary);}
 .place-bar{position:absolute;left:12px;right:12px;bottom:18px;z-index:500;background:var(--paper);border-radius:var(--radius);padding:12px;box-shadow:0 4px 16px rgba(0,0,0,.25);}
 .place-bar p{margin:0 0 10px;font-size:.88rem;}
 .leaflet-container{font-family:var(--font-body);background:var(--map-out);}
@@ -937,7 +937,7 @@ body.map-full .map-wrap .leaflet-bottom{bottom:env(safe-area-inset-bottom,0px);}
 .g-info .legal{margin-top:26px;}
 
 /* Entfernung messen: Glasleiste unten mit großer Zahl, Fadenkreuz in Kupfer, Einrichtungen tippen = Punkt dort */
-#fab-measure.active{background:var(--copper);color:#2a0f17;border-color:transparent;}
+#fab-measure.active{background:var(--primary);color:var(--primary-ink);border-color:transparent;}
 .mess-bar{position:absolute;left:12px;right:12px;bottom:18px;z-index:500;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 18px;border-radius:26px;
   background:color-mix(in srgb, var(--cream) 72%, transparent);color:var(--ink);border:1px solid color-mix(in srgb, #fff 22%, transparent);
   -webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 10px 30px rgba(0,0,0,.28);}
@@ -948,7 +948,7 @@ body.map-full .map-wrap .leaflet-bottom{bottom:env(safe-area-inset-bottom,0px);}
 .mess-k{height:46px;min-width:46px;border-radius:23px;border:none;background:color-mix(in srgb, var(--ink) 9%, transparent);color:var(--ink);
   display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;font:600 15px var(--font-body);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .mess-k svg{width:20px;height:20px;}
-.mess-k.haupt{background:var(--copper);color:#2a0f17;padding:0 16px 0 12px;}
+.mess-k.haupt{background:var(--primary);color:var(--primary-ink);padding:0 16px 0 12px;}
 .mess-k:disabled{opacity:.35;}
 .mess-k:active{transform:scale(.95);}
 body.map-full .mess-bar{bottom:calc(env(safe-area-inset-bottom,0px) + 18px);}
@@ -1028,3 +1028,8 @@ img,svg{-webkit-user-drag:none;}
 .home2 .panel.flush{border-radius:20px;}
 .home2 .list .row{padding-top:14px;padding-bottom:14px;}
 .home2 .home-glocke{top:22px;}
+
+/* Gleitender Strich unter den Reitern (app.js tabStrich) */
+.section-tabs a[aria-current="page"]{border-bottom-color:transparent;}
+.section-tabs .tab-strich{position:absolute;left:0;bottom:-1px;height:3px;border-radius:2px 2px 0 0;background:var(--primary);pointer-events:none;}
+.section-tabs .tab-strich.gleitet{transition:transform .42s cubic-bezier(.22,1,.36,1), width .42s cubic-bezier(.22,1,.36,1);}
