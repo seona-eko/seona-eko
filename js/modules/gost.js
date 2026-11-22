@@ -92,6 +92,7 @@ var Gost = (function () {
     var naechster = liste.filter(function (x) { return x.ende.getTime() > n && (x.datum === heute || x.datum === morgen); })[0];
     if (naechster && naechster.ab) {
       var bis = naechster.ab.getTime() - n, ort = naechster.p.ort ? ' · ' + naechster.p.ort : '';
+      if (naechster.a._lov) return t('gMeeting') + ' ' + (naechster.datum === heute ? '' : UI.fmtDay(naechster.datum) + ' ') + naechster.p.zeit + ort;
       if (bis < 2 * H) return t('gPickupIn', { d: dauer(bis) }) + ort;
       if (naechster.datum === heute) return t('gPickupToday', { t: naechster.p.zeit }) + ort;
       if (now.getHours() >= 14 || n > ts.s.set.getTime() - H) return t('gPickupTomorrow', { t: naechster.p.zeit }) + ort;
@@ -117,13 +118,14 @@ var Gost = (function () {
 
   function programmZeile(x, now) {
     var heute = x.datum === tagIso(0), vorbei = x.ende.getTime() < now.getTime();
-    var art = x.morgen === null ? t('gYourHunt') : t(x.morgen ? 'gMorning' : 'gEvening');
+    var art = x.a._lov ? t('gDrive') : x.morgen === null ? t('gYourHunt') : t(x.morgen ? 'gMorning' : 'gEvening');
     var ort = [x.a.ceka, x.p.ort].filter(Boolean).join(' · ');
     return '<li class="' + (heute && !vorbei ? 'heute' : '') + (vorbei ? ' vorbei' : '') + '">' +
       '<span class="g-tag-d"><b>' + esc(heute ? t('gToday') : wochentag(x.datum)) + '</b><span>' + esc(UI.fmtDate(x.datum, { day: 'numeric', month: 'short' })) + '</span></span>' +
       '<span class="g-tx"><span class="g-zeit"><b>' + esc(x.p.zeit || '—') + '</b><span>' + esc(art) + '</span></span>' +
       (ort ? '<span class="g-ort">' + esc(ort) + '</span>' : '') +
       (x.a.povratak ? '<span class="g-mehr">' + esc(t('gBackAt', { t: x.r.zeit || x.a.povratak })) + '</span>' : '') +
+      (x.a._lov ? '<a class="g-mehr g-karte" href="#/karta?lov=' + encodeURIComponent(x.a._lov.id) + '">' + esc(t('gMap')) + '&nbsp;→</a>' : '') +
       '</span></li>';
   }
 
@@ -178,7 +180,12 @@ var Gost = (function () {
   function daten() {
     var snap = Store.snapshot() || {};
     var me = App.isGost() ? snap.gost : null;
-    var liste = (App.isGost() ? (snap.ansitzi || []) : []).map(termin).sort(function (x, y) {
+    // Drückjagden mit eigenem Stand erscheinen im Programm wie ein Termin (Treffpunkt statt Abholung)
+    var lovs = (App.isGost() ? (snap.lovovi || []) : []).map(function (l) {
+      var mein = (l.staende || []).filter(function (x) { return x.moj; })[0];
+      return { datum: l.datum, polazak: l.sastanak || '', ceka: mein ? t('standN', { n: mein.nr }) : '', napomena: l.napomenaGost || '', pratitelj: '', _lov: l };
+    });
+    var liste = (App.isGost() ? (snap.ansitzi || []) : []).concat(lovs).map(termin).sort(function (x, y) {
       return (x.ab || UI.parseISO(x.datum)) - (y.ab || UI.parseISO(y.datum));
     });
     var contacts = Store.kontakti().filter(function (k) { return App.isGost() || k.zaGoste; });

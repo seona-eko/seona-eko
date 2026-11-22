@@ -1033,3 +1033,29 @@ img,svg{-webkit-user-drag:none;}
 .section-tabs a[aria-current="page"]{border-bottom-color:transparent;}
 .section-tabs .tab-strich{position:absolute;left:0;bottom:-1px;height:3px;border-radius:2px 2px 0 0;background:var(--primary);pointer-events:none;}
 .section-tabs .tab-strich.gleitet{transition:transform .42s cubic-bezier(.22,1,.36,1), width .42s cubic-bezier(.22,1,.36,1);}
+
+/* ---------- Drückjagd-Stände ---------- */
+.stand-pin{position:relative;width:30px;height:30px;border-radius:50%;background:var(--paper);color:var(--ink);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:500;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.stand-pin.frei{border-style:dashed;border-color:var(--ink-soft);}
+.stand-pin.mein{background:var(--primary);color:var(--primary-ink);border:2px solid #fff;box-shadow:0 0 0 5px color-mix(in srgb, var(--primary) 35%, transparent),0 2px 6px rgba(0,0,0,.35);}
+.stand-name{position:absolute;left:34px;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:var(--font-body);font-size:11px;font-weight:600;
+  color:var(--ink);background:color-mix(in srgb, var(--paper) 82%, transparent);padding:2px 7px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.r-icon.stand-nr{font-family:var(--font-display);font-size:1.05rem;color:var(--ink);}
+.stand-wahl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.stand-wahl button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:18px;padding:9px 14px;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer;}
+.stand-wahl button.frei{border-style:dashed;color:var(--ink-soft);}
+.stand-wahl button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-ink);}
+#st-info{font-size:13px;color:var(--ink-soft);white-space:normal;}
+/* Schnelleintrag Drückjagd */
+.q-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.q-stueck{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.q-stueck button,.q-staende button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:14px;min-height:46px;padding:6px 10px;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer;}
+.q-stueck button[aria-pressed="true"],.q-staende button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-ink);}
+.q-staende{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px;}
+.q-staende button{min-width:44px;min-height:44px;padding:0 6px;font-family:var(--font-display);font-weight:500;font-size:1rem;}
+.q-schuetze{margin:8px 0 0;font-size:.92rem;color:var(--ink-soft);}
+.q-schuetze b{color:var(--ink);}
+.q-schuetze .link{background:none;border:0;color:var(--accent-text);font:inherit;font-weight:600;padding:0;cursor:pointer;}
+.q-save{margin-top:14px;min-height:54px;font-family:var(--font-display);font-size:1.15rem;}
+.g-karte{color:var(--accent-text);font-weight:600;text-decoration:none;}

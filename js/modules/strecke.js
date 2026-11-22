@@ -69,7 +69,7 @@ var Strecke = (function () {
       '<span class="r-icon">' + ICONS.forSpecies(r.vrsta) + '</span>' +
       '<span class="r-main"><span class="r-title">' + esc(title(r)) + ' · <span class="num">' + esc(r.tezina) + ' kg</span></span>' +
       '<span class="r-sub">' + esc(UI.fmtDay(r.datum) + (r.vrijemeOdstrjela ? ' ' + r.vrijemeOdstrjela : '')) + ' · ' + esc(r.zona ? r.zona : shortLov(r.lokacija)) + ' · ' + esc(r.lovac) + '</span></span>' +
-      '<span class="r-end">' + end + '<span class="num" style="display:block;margin-top:3px">#' + esc(r.brojMarkice) + '</span></span></button></li>';
+      '<span class="r-end">' + end + (r.brojMarkice ? '<span class="num" style="display:block;margin-top:3px">#' + esc(r.brojMarkice) + '</span>' : '') + '</span></button></li>';
   }
 
   function shortLov(l) { return String(l || '').replace(/^XIV\/\d+\s*/, ''); }
@@ -148,7 +148,7 @@ var Strecke = (function () {
       return rows.length ? '<div class="kv-group"><div class="kv-title">' + esc(titel) + '</div><dl class="kv">' +
         rows.map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') + '</dl></div>' : '';
     }
-    var html = '<div class="sheet-head"><span class="r-icon big">' + ICONS.forSpecies(r.vrsta) + '</span><div><h2>' + esc(title(r)) + '</h2><p class="sheet-sub">' + esc(UI.fmtDay(r.datum)) + ' · #' + esc(r.brojMarkice) +
+    var html = '<div class="sheet-head"><span class="r-icon big">' + ICONS.forSpecies(r.vrsta) + '</span><div><h2>' + esc(title(r)) + '</h2><p class="sheet-sub">' + esc(UI.fmtDay(r.datum)) + (r.brojMarkice ? ' · #' + esc(r.brojMarkice) : '') +
       (r._pending ? ' · ' + esc(t('stPending')) : '') + '</p></div></div>' +
       (r._error ? '<p class="error-msg">' + esc(r._error) + '</p>' : '') +
       gruppe(t('grpStueck'), stueck) + gruppe(t('grpOrtZeit'), ortZeit) + gruppe(t('grpVerwaltung'), verwaltung) +
@@ -187,7 +187,7 @@ var Strecke = (function () {
     // Gründe stehen im Sheet immer auf Kroatisch
     var hr = I18n._dict.hr;
     var reasons = [['stornoR1', hr.stornoR1], ['stornoR2', hr.stornoR2], ['stornoR3', hr.stornoR3]];
-    UI.openSheet('<h2>' + esc(t('stornoTitle')) + '</h2><p class="sheet-sub">' + esc(title(r) + ' · #' + r.brojMarkice + ' · ' + UI.fmtDay(r.datum)) + '</p>' +
+    UI.openSheet('<h2>' + esc(t('stornoTitle')) + '</h2><p class="sheet-sub">' + esc(title(r) + (r.brojMarkice ? ' · #' + r.brojMarkice : '') + ' · ' + UI.fmtDay(r.datum)) + '</p>' +
       '<p>' + esc(t('stornoText')) + '</p><form id="f" novalidate>' +
       '<div class="field"><span class="field-label req">' + esc(t('stornoReason')) + '</span><div class="chips" id="razlozi" style="flex-wrap:wrap">' +
       reasons.map(function (x) { return '<button type="button" class="chip" data-v="' + esc(x[1]) + '" aria-pressed="false">' + esc(t(x[0])) + '</button>'; }).join('') + '</div>' +

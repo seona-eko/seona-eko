@@ -151,6 +151,7 @@ var EBENEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 
 var Karta = (function () {
   var esc = UI.esc, t = I18n.t;
+  var aktCtx = null; // Kontext der geöffneten Karte (z. B. ?lov=… für die Stände einer Drückjagd)
   var map = null, layers = {}, watchId = null, meMarker = null, meCircle = null, mode = null, focusMarker = null;
   // Beim Öffnen der Karte immer nur die Einrichtungen; Notizen, Strecke und Abteilungen schaltet man bei Bedarf dazu
   var SHOW_START = { objekti: true, biljeske: false, odstrjel: false, odjeli: false };
@@ -292,7 +293,6 @@ var Karta = (function () {
   /** Treffpunkte der kommenden Drückjagden (und einer ausdrücklich gewählten). */
   function drawMeet(ctx) {
     if (layers.meet) { map.removeLayer(layers.meet); layers.meet = null; }
-    if (guest()) return; // Treffpunkte für Gäste erst mit der Drückjagd-Fassung (Welle 2)
     var focusId = ctx && ctx.query && ctx.query.meet;
     var today = UI.todayISO();
     var g = L.layerGroup();
@@ -338,7 +338,7 @@ var Karta = (function () {
     if (!map) return;
     ['objekti', 'biljeske', 'odstrjel', 'lovFocus'].forEach(function (k) { if (layers[k]) { map.removeLayer(layers[k]); layers[k] = null; } });
     drawMeet(ctx);
-    if (guest()) return;
+    if (guest()) { drawGastStaende(ctx); return; }
     var lovFocus = ctx && ctx.query && ctx.query.lov ? Store.lovovi().filter(function (l) { return l.id === ctx.query.lov; })[0] : null;
     // Einrichtungen und Notizen sind getrennt ein- und ausblendbar
     var zeigeObj = show.objekti || !!lovFocus, zeigeNotiz = show.biljeske;
@@ -355,16 +355,7 @@ var Karta = (function () {
       if (zeigeObj) layers.objekti = g.addTo(map);
       if (zeigeNotiz) layers.biljeske = n.addTo(map);
     }
-    if (lovFocus && Array.isArray(lovFocus.stajalista)) {
-      var ring = L.layerGroup(), pts = [];
-      Store.objekti().forEach(function (o) {
-        if (lovFocus.stajalista.indexOf(o.id) === -1) return;
-        pts.push([o.lat, o.lon]);
-        ring.addLayer(L.circleMarker([o.lat, o.lon], { radius: 20, color: akzentFarbe(), weight: 3, fill: false, interactive: false }));
-      });
-      layers.lovFocus = ring.addTo(map);
-      if (pts.length && !ctx._fitted) { map.fitBounds(pts, { padding: [60, 60], maxZoom: 16 }); ctx._fitted = true; }
-    }
+    if (lovFocus) drawStaende(lovFocus, ctx);
     if (show.odstrjel) {
       var k = L.layerGroup();
       Stats.inJJ(Store.strecke()).forEach(function (r) {
@@ -675,6 +666,7 @@ var Karta = (function () {
   }
 
   async function mount(el, ctx) {
+    aktCtx = ctx;
     show = Object.assign({}, SHOW_START);
     if (ctx && ctx.query && ctx.query.lat) show.biljeske = true; // Sprung zu einem Ort (z. B. aus einer Mitteilung): Notizen dort nicht verstecken
     var meta;
@@ -726,7 +718,7 @@ var Karta = (function () {
       zentrieren();
       // Symbole ↔ Punkte nur neu zeichnen, wenn die Schwelle überschritten wird
       var punkte = map.getZoom() <= PUNKT_BIS;
-      if (punkte !== map._punkte) { map._punkte = punkte; if (mode !== 'place') drawData({ query: {} }); }
+      if (punkte !== map._punkte) { map._punkte = punkte; if (mode !== 'place') drawData(aktCtx || { query: {} }); }
     });
     map._punkte = map.getZoom() <= PUNKT_BIS;
     map.on('zoom', symbolGroesse);
@@ -736,9 +728,123 @@ var Karta = (function () {
     if (add) add.onclick = function () { startAdd(); };
     if (ctx.query.meet) focusMeet(ctx.query.meet);
     if (guest()) { offlineBanner(); return; }
+    if (ctx.query.lov && App.isUprava()) staendeModus(ctx.query.lov);
     if (ctx.query.add) startAdd();
     if (ctx.query.move) startMove(ctx.query.move);
     offlineBanner();
+  }
+
+  /* ---------------- Drückjagd: Stände ----------------
+   * Stände sind eigene Punkte der Jagd (lov.staende: id, nr, lat, lon, strijelac, gostId) — keine Einrichtungen.
+   * Team sieht Nummer + Namen; die Jagdleitung setzt Stände mit dem Fadenkreuz und weist per Antippen zu.
+   * Gäste bekommen vom Server nur Nummer und Ort (moj = eigener Stand) — keine Namen. */
+  function standIcon(nr, cls, label) {
+    return L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15],
+      html: '<div class="stand-pin' + (cls ? ' ' + cls : '') + '">' + esc(String(nr)) + (label ? '<span class="stand-name">' + esc(label) + '</span>' : '') + '</div>' });
+  }
+  function drawStaende(l, ctx) {
+    var g = L.layerGroup(), pts = [];
+    LovStaende(l).forEach(function (st) {
+      if (!(Number(st.lat) && Number(st.lon))) return;
+      pts.push([st.lat, st.lon]);
+      var m = L.marker([st.lat, st.lon], { icon: standIcon(st.nr, st.strijelac ? '' : 'frei', st.strijelac || ''), zIndexOffset: 800, title: t('standN', { n: st.nr }) });
+      m.on('click', function () { if (mode === 'messen') return; if (App.isUprava()) openStand(l.id, st.id); else if (st.strijelac) UI.toast(t('standN', { n: st.nr }) + ' · ' + st.strijelac); });
+      g.addLayer(m);
+    });
+    layers.lovFocus = g.addTo(map);
+    if (Number(l.sastanakLat)) pts.push([l.sastanakLat, l.sastanakLon]);
+    if (pts.length && !ctx._fitted) { map.fitBounds(pts, { padding: [70, 70], maxZoom: 16 }); ctx._fitted = true; }
+  }
+  function drawGastStaende(ctx) {
+    if (layers.lovFocus) { map.removeLayer(layers.lovFocus); layers.lovFocus = null; }
+    var g = L.layerGroup(), mein = null, heute = UI.todayISO();
+    Store.lovovi().forEach(function (l) {
+      if (String(l.datum).slice(0, 10) < heute && (!ctx.query || ctx.query.lov !== l.id)) return;
+      (l.staende || []).forEach(function (st) {
+        if (!(Number(st.lat) && Number(st.lon))) return;
+        var m = L.marker([st.lat, st.lon], { icon: standIcon(st.nr, st.moj ? 'mein' : 'frei', st.moj ? t('gYourStand', { n: st.nr }) : ''), zIndexOffset: st.moj ? 950 : 700, interactive: false });
+        if (st.moj) mein = [st.lat, st.lon];
+        g.addLayer(m);
+      });
+    });
+    layers.lovFocus = g.addTo(map);
+    if (mein && ctx.query && ctx.query.lov && !ctx._fitted) { map.setView(mein, 16); ctx._fitted = true; }
+  }
+  function lovNow(id) { return Store.lovovi().filter(function (x) { return x.id === id; })[0]; }
+  async function speichereStaende(l, liste) {
+    await Store.queueUpsert('lov', { id: l.id, staende: liste });
+    App.syncNow({ quiet: true });
+  }
+  /** Jagdleitung: Stände mit dem Fadenkreuz setzen (fortlaufend nummeriert). */
+  function staendeModus(id) {
+    var l = lovNow(id);
+    if (!l || !map) return;
+    mode = 'staende';
+    document.body.classList.add('messen');
+    var ov = document.getElementById('map-overlay');
+    document.getElementById('map-fab').hidden = true;
+    function naechsteNr() { return LovStaende(lovNow(id)).reduce(function (a, x) { return Math.max(a, Number(x.nr) || 0); }, 0) + 1; }
+    function leiste() {
+      var akt = lovNow(id), list = LovStaende(akt), besetzt = list.filter(function (x) { return x.strijelac; }).length;
+      ov.querySelector('[data-st-add] span').textContent = t('standN', { n: naechsteNr() });
+      ov.querySelector('#st-info').textContent = (akt.naziv || t('lovDefaultName')) + ' · ' + (list.length ? t('standsSummary', { n: list.length, b: besetzt }) : t('standHint'));
+    }
+    ov.innerHTML = '<svg class="crosshair" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="24" cy="24" r="10"/><path d="M24 2v12M24 34v12M2 24h12M34 24h12"/></svg>' +
+      '<div class="mess-bar glass"><div class="mess-wert"><span id="st-info"></span></div><div class="mess-knoepfe">' +
+      '<button type="button" class="mess-k haupt" data-st-add>' + ICONS.plus + '<span></span></button>' +
+      '<button type="button" class="mess-k" data-st-done>' + esc(t('standDone')) + '</button></div></div>';
+    ov.querySelector('[data-st-add]').onclick = async function () {
+      var p = punktUnterFadenkreuz(map, ov), akt = lovNow(id);
+      var liste = LovStaende(akt).concat([{ id: Store.uuid(), nr: naechsteNr(), lat: Math.round(p.lat * 1e6) / 1e6, lon: Math.round(p.lon * 1e6) / 1e6, strijelac: '', gostId: '' }]);
+      await speichereStaende(akt, liste);
+      UI.haptic && UI.haptic(8);
+      leiste();
+    };
+    ov.querySelector('[data-st-done]').onclick = function () { App.go('#/lov/' + encodeURIComponent(id)); };
+    leiste();
+    Store.onChange && Store.onChange(function () { if (mode === 'staende' && document.getElementById('st-info')) leiste(); });
+  }
+  /** Stand antippen: wer steht hier? Teilnehmer und Gäste des Tages als Knöpfe, sonst freier Name. */
+  function openStand(lovId, standId) {
+    var l = lovNow(lovId); if (!l) return;
+    var st = LovStaende(l).filter(function (x) { return x.id === standId; })[0]; if (!st) return;
+    var datum = String(l.datum).slice(0, 10);
+    var gaeste = Store.gosti().filter(function (g) { return !g.deleted && String(g.od || '').slice(0, 10) <= datum && String(g.do || g.od || '').slice(0, 10) >= datum; });
+    var namen = String(l.sudionici || '').split(/\n|,/).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (l.vodja && namen.indexOf(l.vodja) === -1) namen.unshift(l.vodja);
+    var wahl = { name: st.strijelac || '', gostId: st.gostId || '' };
+    if (wahl.name && !wahl.gostId && namen.indexOf(wahl.name) === -1) namen.push(wahl.name);
+    var html = '<div class="eyebrow-sm">' + esc(l.naziv || t('lovDefaultName')) + '</div><h2>' + esc(t('standN', { n: st.nr })) + '</h2>' +
+      '<div class="field-label">' + esc(t('standWho')) + '</div><div class="stand-wahl" id="st-wahl">' +
+      gaeste.map(function (g) { return '<button type="button" data-g="' + esc(g.id) + '" data-n="' + esc(g.ime) + '">' + esc(g.ime) + ' · ' + esc(t('guestTag')) + '</button>'; }).join('') +
+      namen.map(function (n) { return '<button type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') +
+      '<button type="button" class="frei" data-n="">' + esc(t('standFree')) + '</button></div>' +
+      '<div class="field" style="margin-top:12px"><input type="text" id="st-name" placeholder="' + esc(t('phName')) + '" value=""></div>' +
+      (gaeste.length ? '<p class="hint">' + esc(t('standGuestHint')) + '</p>' : '') +
+      '<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" id="st-save">' + esc(t('btnSave')) + '</button>' +
+      '<button type="button" class="btn danger" id="st-del">' + ICONS.trash + esc(t('standDelete')) + '</button></div>';
+    UI.openSheet(html, function (el, api) {
+      function markiere() {
+        UI.$$('#st-wahl button', el).forEach(function (b) {
+          var an = (b.getAttribute('data-g') || '') === wahl.gostId && b.getAttribute('data-n') === wahl.name;
+          b.setAttribute('aria-pressed', String(an));
+        });
+      }
+      UI.$$('#st-wahl button', el).forEach(function (b) {
+        b.onclick = function () { wahl = { name: b.getAttribute('data-n'), gostId: b.getAttribute('data-g') || '' }; el.querySelector('#st-name').value = ''; markiere(); };
+      });
+      el.querySelector('#st-name').oninput = function () { wahl = { name: this.value.trim(), gostId: '' }; markiere(); };
+      markiere();
+      el.querySelector('#st-save').onclick = async function () {
+        var akt = lovNow(lovId);
+        var liste = LovStaende(akt).map(function (x) { return x.id === standId ? Object.assign({}, x, { strijelac: wahl.name, gostId: wahl.gostId }) : x; });
+        api.close(); await speichereStaende(akt, liste);
+      };
+      el.querySelector('#st-del').onclick = async function () {
+        var akt = lovNow(lovId);
+        api.close(); await speichereStaende(akt, LovStaende(akt).filter(function (x) { return x.id !== standId; }));
+      };
+    }, { noFocus: true });
   }
 
   /** Treffpunkt zeigen; fehlt er und ist das Team angemeldet: per Fadenkreuz setzen. */
@@ -780,6 +886,8 @@ var Karta = (function () {
   function unmount() {
     document.body.classList.remove('auf-karte');
     if (mode === 'messen') endeMessen();
+    if (mode === 'staende') document.body.classList.remove('messen');
+    aktCtx = null;
     if (isFull()) setFull(false);
     stopLocate();
     stopHeading();
@@ -790,7 +898,7 @@ var Karta = (function () {
   App.route('karta', {
     nav: 'karta', full: true, live: false,
     render: render, mount: mount, unmount: unmount,
-    onData: function () { if (map && mode !== 'place') drawData({ query: {} }); }
+    onData: function () { if (map && mode !== 'place') drawData(aktCtx || { query: {} }); }
   });
 
   return { startMove: startMove, isOpen: function () { return !!map; }, objIcon: objIcon };

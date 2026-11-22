@@ -24,7 +24,7 @@
   }
 
   function title(r) { return r ? Strecke.title(r) + ' · ' + r.tezina + ' kg' : t('unknownPiece'); }
-  function sub(w, r) { return (r ? '#' + r.brojMarkice + ' · ' + Strecke.shortLov(r.lokacija) + ' · ' : '') + t('sinceDate', { d: UI.fmtDate(String(w.hladnjacaOd).slice(0, 10)) }); }
+  function sub(w, r) { return (r ? (r.brojMarkice ? '#' + r.brojMarkice + ' · ' : '') + Strecke.shortLov(r.lokacija) + ' · ' : '') + t('sinceDate', { d: UI.fmtDate(String(w.hladnjacaOd).slice(0, 10)) }); }
 
   function rowCold(w, r) {
     var d = days(w.hladnjacaOd);
@@ -41,7 +41,7 @@
       (D.without.length ? '<div class="section-title"><h2>' + esc(t('notInCold')) + '</h2></div><div class="panel flush"><ul class="list">' +
         D.without.map(function (r) {
           return '<li><div class="row"><span class="r-icon">' + ICONS.forSpecies(r.vrsta) + '</span><span class="r-main"><span class="r-title">' + esc(Strecke.title(r) + ' · ' + r.tezina + ' kg') + '</span>' +
-            '<span class="r-sub">' + esc('#' + r.brojMarkice + ' · ' + UI.fmtDay(r.datum)) + '</span></span>' +
+            '<span class="r-sub">' + esc((r.brojMarkice ? '#' + r.brojMarkice + ' · ' : '') + UI.fmtDay(r.datum)) + '</span></span>' +
             '<button type="button" class="btn small" data-put="' + esc(r.id) + '">' + esc(t('putInCold')) + '</button></div></li>';
         }).join('') + '</ul></div>' : '') +
       (D.out.length ? '<div class="section-title"><h2>' + esc(t('outTitle')) + '</h2></div><div class="panel flush"><ul class="list">' +
@@ -106,7 +106,7 @@
       [t('step_out'), w.predanoDatum ? UI.fmtDate(w.predanoDatum) + ' · ' + (w.izlaz ? t('izlaz_' + w.izlaz) : '') + (w.kupac ? ' · ' + w.kupac : '') : ''],
       [t('lastChange'), (w.updatedBy || '') + (w.updatedAt ? ' · ' + UI.fmtStamp(Number(w.updatedAt)) : '')]
     ].filter(function (x) { return x[1]; });
-    UI.openSheet('<h2>' + esc(title(r)) + '</h2><p class="sheet-sub">' + esc(r ? '#' + r.brojMarkice + ' · ' + UI.fmtDay(r.datum) : '') + '</p>' +
+    UI.openSheet('<h2>' + esc(title(r)) + '</h2><p class="sheet-sub">' + esc(r ? (r.brojMarkice ? '#' + r.brojMarkice + ' · ' : '') + UI.fmtDay(r.datum) : '') + '</p>' +
       '<dl class="kv">' + kv.map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') + '</dl>' +
       (st.next ? '<button type="button" class="btn primary block" data-next>' + esc(t('next_out')) + '</button>' : '') +
       '<details class="more"><summary>' + esc(t('editData')) + '</summary>' +

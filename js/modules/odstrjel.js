@@ -54,8 +54,8 @@ var Odstrjel = (function () {
       // Altersklasse als große Knöpfe und Pflichtfeld — die Planerfüllung (Frischlinge, Klassen) hängt daran
       '<div class="field"><span class="field-label req" id="klasa-label">' + esc(t('klasa')) + '</span>' + klasaHtml('dobnaKlasa', sp, d.spol, d.dobnaKlasa) + '</div>' +
       '<div id="trofej-wrap"></div>' +
-      '<div class="grid-2"><div class="field"><label class="field-label req" for="tezina">' + esc(t('lblTezinaShort')) + '</label><div class="unit-wrap"><input type="number" id="tezina" inputmode="decimal" min="1" step="0.5" value="' + esc(d.tezina || '') + '"><span>kg</span></div></div>' +
-      '<div class="field"><label class="field-label req" for="brojMarkice">' + esc(t('lblMarkica')) + '</label><input type="text" id="brojMarkice" inputmode="numeric" value="' + esc(d.brojMarkice || '') + '"></div></div>' +
+      // Wildmarke wird nicht mehr erfasst (markiert wird am Stück); alte Nummern bleiben beim Ändern erhalten
+      '<div class="field"><label class="field-label req" for="tezina">' + esc(t('lblTezinaShort')) + '</label><div class="unit-wrap"><input type="number" id="tezina" inputmode="decimal" min="1" step="0.5" value="' + esc(d.tezina || '') + '"><span>kg</span></div></div>' +
       // Erst der Ort (das Revier ergibt sich daraus), dann das Revier zur Kontrolle.
       // Ort des Abschusses: aktueller Standort ODER auf der Karte wählen (Meldung oft erst an der Kühlzelle)
       '<div class="field loc-block"><span class="field-label">' + esc(t('lblMjesto')) + '</span>' +
@@ -310,13 +310,13 @@ var Odstrjel = (function () {
     var data = {
       vrsta: st.species === 'Ostalo' ? v('vrstaOstalo') : st.species,
       tezina: v('tezina'), spol: spol ? spol.value : '', dobnaKlasa: klasa, klaseV: 2,
-      brojMarkice: v('brojMarkice'), lokacija: v('lokacija'), datum: v('datum'), lovac: v('lovac'),
+      brojMarkice: st.edit ? (st.edit.brojMarkice || '') : '', lokacija: v('lokacija'), datum: v('datum'), lovac: v('lovac'),
       napomena: v('napomena'), nacinLova: v('nacinLova'), zona: st.lat ? (st.zona || '') : (st.edit ? st.edit.zona || '' : ''),
       vrijemeOdstrjela: v('vrijemeOdstrjela'),
       lovId: st.lovId || '', stajaliste: st.stajaliste || '',
       lat: st.lat || '', lon: st.lon || ''
     };
-    if (!data.tezina || !data.spol || !data.lokacija || !data.datum || !data.lovac || !data.brojMarkice) return showError(el, t('errRequired'));
+    if (!data.tezina || !data.spol || !data.lokacija || !data.datum || !data.lovac) return showError(el, t('errRequired'));
     if (!(Number(data.tezina) > 0)) return showError(el, t('errTezina'));
     if (!data.dobnaKlasa && st.species !== 'Ostalo') return showError(el, t('errKlasa'));
     // Geweih: Enden (Rothirsch) bzw. Schaufelstufe (Damhirsch) Pflicht; Gewicht/CIC nur beim Bearbeiten
@@ -372,7 +372,7 @@ var Odstrjel = (function () {
     // Jägerischer Glückwunsch: HR „Čestitam!“, DE „Waidmannsheil!“, EN „Congratulations!“ (dezent, über dem Status)
     var cheer = document.getElementById('done-cheer'); if (cheer) cheer.textContent = t('congrats');
     document.getElementById('done-title').textContent = sent ? t('doneSent') : t('doneLocal');
-    document.getElementById('done-text').textContent = kategorija(data.vrsta, data.spol, data.dobnaKlasa, I18n.lang()) + ' · ' + data.tezina + ' kg · #' + data.brojMarkice + ' — ' + (sent ? t('doneSentText') : t('doneLocalText'));
+    document.getElementById('done-text').textContent = kategorija(data.vrsta, data.spol, data.dobnaKlasa, I18n.lang()) + ' · ' + data.tezina + ' kg — ' + (sent ? t('doneSentText') : t('doneLocalText'));
     var w = document.getElementById('done-warn');
     w.hidden = !(warnings && warnings.length);
     w.textContent = warnings && warnings.length ? warnings.join(' ') : '';
