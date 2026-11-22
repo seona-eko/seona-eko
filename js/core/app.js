@@ -389,6 +389,8 @@ var App = (function () {
   setTimeout(function () { bootWeg(); }, 4000);
 
   async function start() {
+    // iPhone: Seite nicht mit zwei Fingern zoomen (die Karte zoomt selbst über Touch-Ereignisse)
+    document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
     // iPhone/iPad erkennen (für die Seitenlänge, styles.css „html.ios") — andere Geräte bleiben unberührt
     var ua = navigator.userAgent || '';
     if (/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) document.documentElement.classList.add('ios');

@@ -75,6 +75,8 @@ function kartenRandFarbe() {
  *  - ändert sich die Größe des Kartenfelds (Kopfzeile, Vollbild, Drehen, iPhone-Leisten), rechnet Leaflet sofort neu —
  *    sonst zentriert es mit einer veralteten Größe und der Punkt steht neben der Mitte.
  */
+// Quellenzeile ohne „Leaflet“-Link: ein Tipp darauf öffnete in der Home-Bildschirm-App Safari
+if (window.L && L.Control && L.Control.Attribution) L.Control.Attribution.prototype.options.prefix = false;
 var KARTE_RAND = 0.6;
 function kartenGrenzen(map, meta, onResize) {
   function minZoom() {

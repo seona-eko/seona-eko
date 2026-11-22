@@ -992,3 +992,11 @@ body.messen .map-wrap .leaflet-bottom{visibility:hidden;}
 .home-glocke{position:absolute;top:2px;right:0;background:color-mix(in srgb, var(--ink) 7%, transparent);color:var(--ink);}
 .home-glocke i{box-shadow:0 0 0 2px var(--cream);}
 @media (min-width: 720px), (orientation: landscape){.home-glocke{display:none !important;}}
+
+/* Wie eine App, nicht wie eine Webseite: kein Markieren beim langen Drücken, kein Zoomen per Doppeltippen.
+   Eingabefelder bleiben markierbar; die Karte zoomt weiter selbst (Leaflet). */
+html{-webkit-text-size-adjust:100%;touch-action:manipulation;}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
+img,svg{-webkit-user-drag:none;}
+.leaflet-control-attribution{pointer-events:none;}
