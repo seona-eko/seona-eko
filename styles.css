@@ -1000,3 +1000,28 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
 img,svg{-webkit-user-drag:none;}
 .leaflet-control-attribution{pointer-events:none;}
+
+/* ---------- Startseite (A + C): großer Gruß, viel Luft, ruhige Karten ---------- */
+.home2 .page-head{padding:30px 0 8px;}
+.home2 .page-head .eyebrow{font-size:.9rem;font-weight:500;}
+.home2 .page-head h1{font-size:2.6rem;line-height:1.05;margin-top:6px;}
+.home2 .home-sun{margin-top:12px;font-size:.95rem;color:var(--ink-soft);}
+.home2 .home-sun .sunline{gap:18px;}
+.home2 .home-warn{display:flex;gap:10px;align-items:center;border-color:var(--warn);background:var(--warn-soft);text-decoration:none;color:inherit;margin:18px 0 0;}
+.home2 .weather-tile{margin-top:28px;border-radius:20px;padding:18px 18px;}
+.home2 .weather-tile.ruhig .w-temp{font-size:2.4rem;}
+.home2 .weather-tile.ruhig .w-icon svg{width:44px;height:44px;}
+.home2 .home-zahlen{margin-top:14px;gap:14px;}
+.home2 .home-zahlen .tile{border-radius:20px;padding:16px 18px 18px;}
+.home2 .home-zahlen .t-value{font-size:2.3rem;margin-top:8px;}
+.home2 .home-zahlen .bar{margin-top:12px;}
+.home2 .warn-text{color:var(--warn);font-weight:600;margin-top:8px;}
+.home2 .home-cta{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:30px;height:66px;border-radius:22px;
+  background:var(--primary);color:var(--primary-ink);text-decoration:none;font-family:var(--font-display);font-weight:500;font-size:1.35rem;letter-spacing:.02em;}
+.home2 .home-cta svg{width:26px;height:26px;}
+.home2 .home-cta:active{transform:scale(.98);}
+.home2 .section-title{margin:40px 2px 12px;}
+.home2 .section-title h2{text-transform:none;letter-spacing:.01em;font-size:1.2rem;}
+.home2 .panel.flush{border-radius:20px;}
+.home2 .list .row{padding-top:14px;padding-bottom:14px;}
+.home2 .home-glocke{top:22px;}

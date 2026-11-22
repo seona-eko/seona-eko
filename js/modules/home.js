@@ -53,32 +53,39 @@
 
       var pct = function (a, b) { return b ? Math.min(100, Math.round(a / b * 100)) : 0; };
 
-      return '<div class="page-head home-head"><button type="button" class="hw-glocke home-glocke" hidden>' + ICONS.bell + '<i aria-hidden="true"></i></button><div class="eyebrow">' + esc(UI.fmtLong(today)) + ' · ' + esc(t('huntYear')) + ' ' + esc(jj.label) + '</div>' +
-        '<h1>' + esc(t('homeTitle')) + '</h1>' +
-        '<p>' + WetterUI.sun(today) + '</p></div>' +
+      var h = today.getHours();
+      var gruss = h < 4 || h >= 22 ? 'homeHi_nacht' : h < 11 ? 'homeHi_morgen' : h < 18 ? 'homeHi_tag' : 'homeHi_abend';
+      var warn = function (href, icon, titel, hint) {
+        return '<a class="panel home-warn" href="' + href + '">' + icon.replace('<svg', '<svg style="width:24px;height:24px;color:var(--warn);flex:none"') +
+          '<span><b>' + esc(titel) + '</b><br><span class="hint">' + esc(hint) + '</span></span></a>';
+      };
+      var demnaechst = [];
+      if (next) demnaechst.push('<li><a class="row" href="#/lov/' + esc(next.id) + '"><span class="r-icon">' + ICONS.group + '</span>' +
+        '<span class="r-main"><span class="r-title">' + esc(next.naziv || t('lovDefaultName')) + '</span><span class="r-sub">' + esc(UI.fmtDay(next.datum) + ' · ' + Strecke.shortLov(next.lokacija)) + '</span></span>' + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</a></li>');
+      if (gast) demnaechst.push('<li><a class="row" href="#/gosti/' + encodeURIComponent(gast.g.id) + '"><span class="r-icon">' + ICONS.qr + '</span>' +
+        '<span class="r-main"><span class="r-title">' + esc(gast.g.ime) + '</span><span class="r-sub">' + esc(gast.sub) + '</span></span>' + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</a></li>');
 
-        (errors ? '<a class="panel" href="#/vise?sync=1" style="display:flex;gap:10px;align-items:center;border-color:var(--warn);background:var(--warn-soft);text-decoration:none;color:inherit;margin-bottom:12px">' +
-          ICONS.alert.replace('<svg', '<svg style="width:24px;height:24px;color:var(--warn);flex:none"') + '<span><b>' + esc(t('homeErrors', { n: errors })) + '</b><br><span class="hint">' + esc(t('homeErrorsHint')) + '</span></span></a>' : '') +
-        (stale ? '<a class="panel" href="#/vise?sync=1" style="display:flex;gap:10px;align-items:center;border-color:var(--warn);background:var(--warn-soft);text-decoration:none;color:inherit;margin-bottom:12px">' +
-          ICONS.sync.replace('<svg', '<svg style="width:24px;height:24px;color:var(--warn);flex:none"') + '<span><b>' + esc(t('homeStale', { n: stale })) + '</b><br><span class="hint">' + esc(t('homeStaleHint')) + '</span></span></a>' : '') +
+      return '<div class="home2">' +
+        '<div class="page-head home-head"><button type="button" class="hw-glocke home-glocke" hidden>' + ICONS.bell + '<i aria-hidden="true"></i></button>' +
+        '<div class="eyebrow">' + esc(UI.fmtLong(today)) + '</div>' +
+        '<h1>' + esc(t(gruss)) + '</h1>' +
+        '<div class="home-sun">' + WetterUI.sun(today) + '</div></div>' +
 
+        (errors ? warn('#/vise?sync=1', ICONS.alert, t('homeErrors', { n: errors }), t('homeErrorsHint')) : '') +
+        (stale ? warn('#/vise?sync=1', ICONS.sync, t('homeStale', { n: stale }), t('homeStaleHint')) : '') +
 
-        '<div class="quick">' +
-        '<a class="primary" href="#/odstrjel/novi">' + ICONS.plus + '<span><b>' + esc(t('newOdstrjel')) + '</b></span></a>' +
-        '<a class="secondary" href="#/karta?add=1">' + ICONS.pin + '<span>' + esc(t('quickObjekt')) + '</span></a>' +
-        '<a class="secondary" href="#/lovostaj">' + ICONS.calendar + '<span>' + esc(t('quickLovostaj')) + '</span></a>' +
-        '</div>' +
-
-        '<div style="margin-top:12px">' + WetterUI.tile() + '</div>' +
-        '<div class="grid-2" style="margin-top:12px">' +
-        '<a class="tile" href="#/odstrjel"><div class="t-label">' + ICONS.list + esc(t('tileStrecke')) + '</div>' +
+        WetterUI.tile({ ruhig: true }) +
+        '<div class="grid-2 home-zahlen">' +
+        '<a class="tile" href="#/odstrjel"><div class="t-label">' + esc(t('tileStrecke')) + '</div>' +
         '<div class="t-value">' + s.ist + ' <small>/ ' + s.soll + '</small></div>' +
         '<div class="bar"><span style="width:' + pct(s.ist, s.soll) + '%"></span></div>' +
-        '<div class="t-sub">' + esc(s.pending ? t('pendingN', { n: s.pending }) : t('tileStreckeSub')) + '</div></a>' +
-        '<a class="tile' + (c.old ? ' warn' : '') + '" href="#/hladnjaca"><div class="t-label">' + ICONS.cold + esc(t('tileCold')) + '</div>' +
+        (s.pending ? '<div class="t-sub">' + esc(t('pendingN', { n: s.pending })) + '</div>' : '') + '</a>' +
+        '<a class="tile" href="#/hladnjaca"><div class="t-label">' + esc(t('tileCold')) + '</div>' +
         '<div class="t-value">' + c.n + '</div>' +
-        '<div class="t-sub">' + esc(c.old ? t('coldOld', { n: c.old }) : t('tileColdSub')) + '</div></a>' +
+        (c.old ? '<div class="t-sub warn-text">' + esc(t('coldOld', { n: c.old })) + '</div>' : '') + '</a>' +
         '</div>' +
+
+        '<a class="home-cta" href="#/odstrjel/novi">' + ICONS.plus + '<span>' + esc(t('newOdstrjel')) + '</span></a>' +
 
         '<div class="section-title"><h2>' + esc(t('openToday')) + '</h2><a href="#/lovostaj">' + esc(t('allSeasons')) + '</a></div>' +
         (open.length ? '<div class="panel flush"><ul class="list open-list">' + open.map(function (o) {
@@ -86,16 +93,11 @@
             '<span class="open-what">' + esc(o.all ? t('openAll') : o.rows.map(function (r) { return t(r.key); }).join(' · ')) + '</span></div></li>';
         }).join('') + '</ul></div>' : '<div class="panel"><span class="hint">' + esc(t('nothingOpen')) + '</span></div>') +
 
-        // Nächste Drückjagd und nächster Gast — nur, wenn etwas ansteht
-        (next ? '<div class="section-title"><h2>' + esc(t('nextLov')) + '</h2><a href="#/lovovi">' + esc(t('all')) + '</a></div>' +
-          '<div class="panel flush"><ul class="list"><li><a class="row" href="#/lov/' + esc(next.id) + '"><span class="r-icon">' + ICONS.group + '</span>' +
-          '<span class="r-main"><span class="r-title">' + esc(next.naziv || t('lovDefaultName')) + '</span><span class="r-sub">' + esc(UI.fmtDay(next.datum) + ' · ' + Strecke.shortLov(next.lokacija)) + '</span></span>' + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</a></li></ul></div>' : '') +
-        (gast ? '<div class="section-title"><h2>' + esc(t('nextGuest')) + '</h2><a href="#/gosti">' + esc(t('all')) + '</a></div>' +
-          '<div class="panel flush"><ul class="list"><li><a class="row" href="#/gosti/' + encodeURIComponent(gast.g.id) + '"><span class="r-icon">' + ICONS.qr + '</span>' +
-          '<span class="r-main"><span class="r-title">' + esc(gast.g.ime) + '</span><span class="r-sub">' + esc(gast.sub) + '</span></span>' + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</a></li></ul></div>' : '') +
+        (demnaechst.length ? '<div class="section-title"><h2>' + esc(t('homeSoon')) + '</h2></div><div class="panel flush"><ul class="list">' + demnaechst.join('') + '</ul></div>' : '') +
 
         (recent.length ? '<div class="section-title"><h2>' + esc(t('recent')) + '</h2><a href="#/odstrjel">' + esc(t('all')) + '</a></div>' +
-          '<div class="panel flush"><ul class="list">' + recent.map(Strecke.rowHtml).join('') + '</ul></div>' : '');
+          '<div class="panel flush"><ul class="list">' + recent.map(Strecke.rowHtml).join('') + '</ul></div>' : '') +
+        '</div>';
     },
     mount: function (el) {
       Hinweis.glocke();

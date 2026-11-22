@@ -25,20 +25,23 @@ var WetterUI = (function () {
   }
 
   /** Kachel mit aktuellem Wetter. Lädt im Hintergrund nach, wenn der Stand älter als 30 min ist. */
-  function tile() {
+  /** opts.ruhig: Startseite — größer, ohne Mond und „Stand“ (die stehen auf der Wetterseite). */
+  function tile(opts) {
+    opts = opts || {};
+    var cls = 'panel weather-tile' + (opts.ruhig ? ' ruhig' : '');
     var c = Wetter.current();
     if (!c) {
-      return '<a class="panel weather-tile" href="#/wetter"><div class="w-main"><span class="w-icon">' + ICONS.wCloudy + '</span>' +
-        (navigator.onLine ? UI.skel(1) : '<span class="hint">' + esc(t('weatherOffline')) + '</span>') + '</div>' + '<div class="w-sub">' + moonLine() + '</div></a>';
+      return '<a class="' + cls + '" href="#/wetter"><div class="w-main"><span class="w-icon">' + ICONS.wCloudy + '</span>' +
+        (navigator.onLine ? UI.skel(1) : '<span class="hint">' + esc(t('weatherOffline')) + '</span>') + '</div>' + (opts.ruhig ? '' : '<div class="w-sub">' + moonLine() + '</div>') + '</a>';
     }
     var k = Wetter.kind(c.weather_code);
     var old = Date.now() - Wetter.at() > 60 * 60 * 1000;
-    return '<a class="panel weather-tile" href="#/wetter" aria-label="' + esc(t('weatherTitle')) + '">' +
+    return '<a class="' + cls + '" href="#/wetter" aria-label="' + esc(t('weatherTitle')) + '">' +
       '<div class="w-main"><span class="w-icon">' + ICONS.weather[k] + '</span>' +
       '<span class="w-temp num">' + Math.round(c.temperature_2m) + '°</span>' +
       '<span class="w-desc"><b>' + esc(t('w_' + k)) + '</b><span>' + esc(t('feelsLike', { t: Math.round(c.apparent_temperature) })) + '</span></span>' +
       '<span class="w-wind">' + arrow(c.wind_direction_10m, 30) + '<span><b class="num">' + Math.round(c.wind_speed_10m) + '</b> km/h<br><small>' + esc(t('windFrom', { d: Wetter.dirName(c.wind_direction_10m, I18n.lang()) })) + '</small></span></span></div>' +
-      '<div class="w-sub">' + moonLine() + '<span class="hint' + (old ? ' stale' : '') + '">' + esc(t('weatherAsOf') + ' ' + UI.fmtTime(new Date(Wetter.at()))) + '</span></div></a>';
+      (opts.ruhig ? '' : '<div class="w-sub">' + moonLine() + '<span class="hint' + (old ? ' stale' : '') + '">' + esc(t('weatherAsOf') + ' ' + UI.fmtTime(new Date(Wetter.at()))) + '</span></div>') + '</a>';
   }
 
   App.route('wetter', {
