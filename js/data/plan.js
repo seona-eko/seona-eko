@@ -12,6 +12,7 @@
  *   Zrela klasa     zreli        8+       7+            6+
  * Bis Oktober 2026 hieß der Jährlings-Knopf „Mlađa klasa“; Code.gs stellt solche Altdaten einmalig auf „Pomladak“ um.
  * `m`/`z` = Soll männlich/weiblich, wo die LGO sie festlegt (Damkälber wechseln jährlich 2/1 ↔ 1/2 → nur Summe).
+ * Mehrere `klase` in einer Zeile = die LGO wechselt jährlich zwischen diesen Klassen (Schwarzwild jung/mittel) → gemeinsames Soll.
  */
 var KLASE_SVE = ['Tele/prase', 'Pomladak', 'Mlađa klasa', 'Srednja klasa', 'Zrela klasa'];
 var PLAN = {
@@ -32,8 +33,8 @@ var PLAN = {
   'Divlja svinja': [
     { klase: ['Tele/prase'], soll: 23, m: 11, z: 12 },
     { klase: ['Pomladak'], soll: 3, m: 2, z: 1 },
-    { klase: ['Mlađa klasa'], soll: 2, m: 1, z: 1 },
-    { klase: ['Srednja klasa'], soll: 0, m: 0, z: 0 },
+    // LGO: 2 Stück aus Jung- ODER Mittelklasse, jährlich wechselnd → eine gemeinsame Zeile
+    { klase: ['Mlađa klasa', 'Srednja klasa'], soll: 2, m: 1, z: 1 },
     { klase: ['Zrela klasa'], soll: 2, m: 1, z: 1 }
   ],
   'Jelen lopatar': [

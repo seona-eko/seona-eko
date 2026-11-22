@@ -469,6 +469,19 @@ var I18n = (function () {
     return pick(KLASE, v);
   }
 
+  /** Bezeichnung einer Planzeile; mehrere Klassen (jährlich wechselnd) → „Jung/Mittel (3.–5. Lj.)“. */
+  function klasaPlan(vrsta, klase) {
+    if (klase.length < 2) return klasaFor(vrsta, klase[0]);
+    var g = (typeof KLASE_GODINE !== 'undefined' ? KLASE_GODINE : {})[vrsta];
+    var i = STUFE2.indexOf(klase[0]), j = STUFE2.indexOf(klase[klase.length - 1]);
+    var names = klase.map(function (k) { return KLASA_STUFE2[k] ? KLASA_STUFE2[k][idx()] : k; }).join('/');
+    if (!g || i === -1 || j === -1) return names;
+    var a = g[i][0], b = g[j][1];
+    var yrs = lang === 'en' ? 'yr ' + a + (b == null ? '+' : '–' + b)
+      : (b == null ? (lang === 'de' ? 'ab ' : 'od ') + a + '.' : a + '.–' + b + '.') + (lang === 'de' ? ' Lj.' : ' god.');
+    return names + ' (' + yrs + ')';
+  }
+
   var NACINI = {
     'Dočeka (usjedanje)': ['Dočeka (čeka)', 'High seat / stand', 'Ansitz'], 'Prigon/pogon': ['Prigon / pogon', 'Driven hunt', 'Drückjagd'],
     'Šuljanje': ['Šuljanje', 'Stalking', 'Pirsch'], 'Uginula divljač': ['Uginula divljač', 'Found dead / roadkill', 'Fallwild']
@@ -534,7 +547,7 @@ var I18n = (function () {
     locale: function () { return { hr: 'hr-HR', en: 'en-GB', de: 'de-DE' }[lang]; },
     species: function (v) { return pick(SPECIES, v); },
     klasa: function (v) { return v ? pick(KLASE, v) : '—'; },
-    klasaFor: klasaFor, godine: godine, imaStufe2: imaStufe2,
+    klasaFor: klasaFor, klasaPlan: klasaPlan, godine: godine, imaStufe2: imaStufe2,
     klasaTele: function (vrsta) { return (KLASA_TELE[vrsta] || KLASA_TELE['*'])[idx()]; },
     klasaPomladak: function (vrsta) { return (KLASA_POMLADAK[vrsta] || KLASA_POMLADAK['*'])[idx()]; },
     klasaStarije: function () { return KLASA_STARIJE[idx()]; },

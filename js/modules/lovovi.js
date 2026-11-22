@@ -134,8 +134,7 @@
         stands.map(function (o) { return '<option value="' + esc(o.id) + '">' + esc(Objekti.name(o)) + '</option>'; }).join('') + '</select></div>' : '') +
       '<div class="field"><label class="field-label req" for="q-lovac">' + esc(t('lblLovac')) + '</label><input type="text" id="q-lovac" list="q-lovci" autocomplete="off" placeholder="' + esc(t('phLovac')) + '"><datalist id="q-lovci">' +
       lovci.concat(String(l.sudionici || '').split(/\n|,/).map(function (x) { return x.trim(); }).filter(Boolean)).map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></div>' +
-      '<div class="field"><label class="field-label" id="q-nap-label" for="q-nap">' + esc(t('lblNapomena')) + '</label><textarea id="q-nap" rows="2"></textarea>' +
-      '<button type="button" class="btn small" id="q-nap-ok" style="margin-top:8px" hidden>' + ICONS.check + esc(t('btnNoAnomalies')) + '</button></div>' +
+      '<div class="field"><label class="field-label" id="q-nap-label" for="q-nap">' + esc(t('lblNapomena')) + '</label><textarea id="q-nap" rows="2"></textarea></div>' +
       '<label style="display:flex;gap:12px;align-items:center;font-weight:600;min-height:44px;margin-bottom:8px"><input type="checkbox" id="q-cold" checked style="width:22px;height:22px">' + esc(t('coldCheck')) + '</label>' +
       '<div class="error-msg" id="q-err" hidden></div>' +
       '<button type="submit" class="btn primary block" style="min-height:52px">' + esc(t('btnSave')) + '</button></form>';
@@ -153,14 +152,10 @@
       function setSpecies(v) {
         q.species = v;
         UI.$$('.species-btn', el).forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-sp') === v)); });
-        var svinja = v === 'Divlja svinja';
-        el.querySelector('#q-nap-label').classList.toggle('req', svinja);
-        el.querySelector('#q-nap-ok').hidden = !svinja;
         trofej();
       }
       UI.$$('.species-btn', el).forEach(function (b) { b.onclick = function () { setSpecies(b.getAttribute('data-sp')); }; });
       UI.$$('input[name=q-spol], input[name^="q-klasa-"]', el).forEach(function (r) { r.onchange = trofej; });
-      el.querySelector('#q-nap-ok').onclick = function () { var n = el.querySelector('#q-nap'); if (!n.value.trim()) n.value = I18n._dict.hr.btnNoAnomalies.toLowerCase(); };
       el.querySelector('#q-form').addEventListener('submit', async function (ev) {
         ev.preventDefault();
         var err = el.querySelector('#q-err'); err.hidden = true;
@@ -172,7 +167,6 @@
         if (!data.vrsta) return fail(t('errSelectVrsta'));
         if (!data.spol || !data.dobnaKlasa || !data.tezina || !data.brojMarkice || !data.lovac) return fail(t('errRequired'));
         if (!(Number(data.tezina) > 0)) return fail(t('errTezina'));
-        if (data.vrsta === 'Divlja svinja' && !data.napomena) return fail(t('errSvinjaNapomena'));
         if (q.trofej === 'vrhovi') {
           var n = Number(v('rog-vrhovi'));
           if (!(n >= 2 && n <= 30) || Math.round(n) !== n) return fail(t('errVrhovi'));

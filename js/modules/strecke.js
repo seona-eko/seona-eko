@@ -105,7 +105,7 @@ var Strecke = (function () {
       var rows = p.rows.filter(function (row) { return row.soll || row.ist; }).map(function (row) {
         var pct = row.soll ? Math.min(100, Math.round(row.ist / row.soll * 100)) : 0;
         var split = (row.sollM != null) ? '<span class="r-sub num sex-split"><span>' + ICONS.male + row.istM + '/' + row.sollM + '</span><span>' + ICONS.female + row.istZ + '/' + row.sollZ + '</span></span>' : '';
-        return '<tr><td>' + esc(I18n.klasaFor(v, row.klase[row.klase.length - 1])) + split +
+        return '<tr><td>' + esc(I18n.klasaPlan(v, row.klase)) + split +
           '<div class="bar"><span class="' + (row.ist > row.soll ? 'over' : '') + '" style="width:' + pct + '%"></span></div></td>' +
           '<td class="n" style="width:70px"><b class="num">' + row.ist + '</b> / ' + row.soll + '</td></tr>';
       }).join('');

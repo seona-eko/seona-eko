@@ -67,8 +67,7 @@ var Odstrjel = (function () {
       '<div class="grid-2"><div class="field"><label class="field-label req" for="datum">' + esc(t('lblDatum')) + '</label><input type="date" id="datum" value="' + esc(d.datum || '') + '"></div>' +
       '<div class="field"><label class="field-label" for="vrijemeOdstrjela">' + esc(t('lblVrijeme')) + '</label><input type="time" id="vrijemeOdstrjela" value="' + esc(d.vrijemeOdstrjela || '') + '"></div></div>' +
       '<div class="field"><label class="field-label req" for="lovac">' + esc(t('lblLovac')) + '</label><input type="text" id="lovac" list="lovci-list" autocomplete="off" value="' + esc(d.lovac || '') + '" placeholder="' + esc(t('phLovac')) + '"><datalist id="lovci-list"></datalist><div class="chips lovci-chips" id="lovci-chips"></div></div>' +
-      '<div class="field"><label class="field-label" id="napomena-label" for="napomena">' + esc(t('lblNapomena')) + '</label><textarea id="napomena">' + esc(d.napomena || '') + '</textarea>' +
-      '<button type="button" class="btn small" id="napomena-ok" style="margin-top:8px"' + (sp === 'Divlja svinja' ? '' : ' hidden') + '>' + ICONS.check + esc(t('btnNoAnomalies')) + '</button></div>' +
+      '<div class="field"><label class="field-label" id="napomena-label" for="napomena">' + esc(t('lblNapomena')) + '</label><textarea id="napomena" placeholder="' + esc(t('phNapomena')) + '">' + esc(d.napomena || '') + '</textarea></div>' +
       '</div>' +
 
       (edit ? '' : '<div class="panel" id="cold-panel"><label class="switch-row"><span>' + esc(t('coldCheck')) + '</span><input type="checkbox" class="switch" id="cold" checked></label></div>') +
@@ -192,10 +191,6 @@ var Odstrjel = (function () {
     st.species = v;
     UI.$$('.species-btn', el).forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-sp') === v)); });
     el.querySelector('#ostalo-wrap').hidden = v !== 'Ostalo';
-    var svinja = v === 'Divlja svinja';
-    el.querySelector('#napomena-label').classList.toggle('req', svinja);
-    el.querySelector('#napomena').placeholder = svinja ? t('phNapomenaSvinja') : t('phNapomena');
-    el.querySelector('#napomena-ok').hidden = !svinja;
     el.querySelector('#klasa-label').classList.toggle('req', v !== 'Ostalo');
     updateTrofej(el);
   }
@@ -246,11 +241,6 @@ var Odstrjel = (function () {
     UI.$$('.species-btn', el).forEach(function (b) { b.onclick = function () { setSpecies(el, b.getAttribute('data-sp')); }; });
     UI.$$('input[name=spol], input[name^="dobnaKlasa-"]', el).forEach(function (r) { r.addEventListener('change', function () { updateTrofej(el); }); });
     updateTrofej(el);
-    // Schwarzwild: Pflichtbemerkung mit einem Tipp (Wert bleibt Kroatisch, wie alles im Sheet)
-    el.querySelector('#napomena-ok').onclick = function () {
-      var n = el.querySelector('#napomena');
-      if (!n.value.trim()) n.value = I18n._dict.hr.btnNoAnomalies.toLowerCase();
-    };
 
     async function setLoc(pos, acc) {
       st.lat = pos.lat; st.lon = pos.lon; st.acc = acc || null;
@@ -326,7 +316,6 @@ var Odstrjel = (function () {
       lovId: st.lovId || '', stajaliste: st.stajaliste || '',
       lat: st.lat || '', lon: st.lon || ''
     };
-    if (data.vrsta === 'Divlja svinja' && !data.napomena) return showError(el, t('errSvinjaNapomena'));
     if (!data.tezina || !data.spol || !data.lokacija || !data.datum || !data.lovac || !data.brojMarkice) return showError(el, t('errRequired'));
     if (!(Number(data.tezina) > 0)) return showError(el, t('errTezina'));
     if (!data.dobnaKlasa && st.species !== 'Ostalo') return showError(el, t('errKlasa'));
