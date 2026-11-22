@@ -488,9 +488,9 @@ var I18n = (function () {
   };
   var OBJEKTI = {
     kanzel: ['Zatvorena čeka', 'Closed high seat', 'Kanzel'], leiter: ['Otvorena čeka', 'Ladder stand', 'Leiter'],
-    drueckjagdbock: ['Stajalište za pogon', 'Drive-hunt stand', 'Drückjagdbock'], bodensitz: ['Prizemna čeka', 'Ground blind', 'Bodensitz'],
-    kirrung: ['Hranilište (mamac)', 'Baiting site', 'Kirrung'], salzlecke: ['Solište', 'Salt lick', 'Salzlecke'],
-    suhle: ['Kaljužište', 'Wallow', 'Suhle'], fuetterung: ['Hranilište (prihrana)', 'Feeder', 'Fütterung'],
+    drueckjagdbock: ['Zatvorena čeka', 'Closed high seat', 'Kanzel'], bodensitz: ['Prizemna čeka', 'Ground blind', 'Bodensitz'],
+    kirrung: ['Hranilište', 'Feeding site', 'Fütterung'], salzlecke: ['Solište', 'Salt lick', 'Salzlecke'],
+    suhle: ['Kaljužište', 'Wallow', 'Suhle'], fuetterung: ['Hranilište', 'Feeding site', 'Fütterung'],
     schranke: ['Rampa', 'Barrier', 'Schranke'], kamera: ['Foto-zamka', 'Trail camera', 'Wildkamera'],
     zentrale: ['Uprava', 'Headquarters', 'Zentrale'], jagdhuette: ['Lovačka kuća', 'Hunting lodge', 'Jagdhütte'],
     biljeska: ['Bilješka', 'Note', 'Notiz']

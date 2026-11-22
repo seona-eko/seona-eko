@@ -85,8 +85,8 @@ var ICONS = (function () {
   // Reviereinrichtungen: Symbole aus der QField-Feldkarte (70_Karten/80_Fachlayer/_quellen/symbole_jagd)
   I.objekt = {
     kanzel: 'icons/objekti/hochsitz_kanzel.svg', leiter: 'icons/objekti/hochsitz_leiter.svg',
-    drueckjagdbock: 'icons/objekti/drueckjagdbock.svg', bodensitz: 'icons/objekti/bodensitz.svg',
-    kirrung: 'icons/objekti/kirrung.svg', salzlecke: 'icons/objekti/salzlecke.svg',
+    drueckjagdbock: 'icons/objekti/hochsitz_kanzel.svg', bodensitz: 'icons/objekti/bodensitz.svg',
+    kirrung: 'icons/objekti/fuetterung.svg', salzlecke: 'icons/objekti/salzlecke.svg',
     suhle: 'icons/objekti/suhle.svg', fuetterung: 'icons/objekti/fuetterung.svg',
     schranke: 'icons/objekti/schranke.svg', kamera: 'icons/objekti/kamera.svg',
     zentrale: 'icons/objekti/zentrale.svg', jagdhuette: 'icons/objekti/jagdhuette.svg', biljeska: 'icons/objekti/biljeska.svg'

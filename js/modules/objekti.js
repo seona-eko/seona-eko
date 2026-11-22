@@ -6,7 +6,11 @@
 var Objekti = (function () {
   var esc = UI.esc, t = I18n.t;
   // „bodensitz“ wird nicht mehr angeboten (alte Einträge bleiben lesbar); dafür „biljeska“ = Notiz auf der Karte
-  var ARTEN = ['kanzel', 'leiter', 'drueckjagdbock', 'kirrung', 'salzlecke', 'suhle', 'fuetterung', 'schranke', 'kamera', 'zentrale', 'jagdhuette', 'biljeska'];
+  var ARTEN = ['kanzel', 'leiter', 'fuetterung', 'salzlecke', 'suhle', 'schranke', 'kamera', 'zentrale', 'jagdhuette', 'biljeska'];
+  // Seit v2.28: Drückjagdbock zählt als Kanzel, Kirrung als Fütterung. Alte Einträge behalten ihren Wert, werden aber
+  // überall so angezeigt (icons.js, i18n.js) und beim nächsten Speichern umgestellt.
+  var ALIAS = { drueckjagdbock: 'kanzel', kirrung: 'fuetterung' };
+  function norm(a) { return ALIAS[a] || a; }
   function isNotiz(art) { return art === 'biljeska'; }
   var STANJA = ['dobro', 'popravak', 'neupotrebljivo'];
   var BADGE = { dobro: 'ok', popravak: 'warn', neupotrebljivo: 'warn', uklonjen: 'muted' };
@@ -64,8 +68,8 @@ var Objekti = (function () {
     var o = opts.id ? byId(opts.id) : null;
     var up = App.isUprava();
     var limited = o && !up; // Jäger an bestehender Einrichtung: nur Zustand, Bemerkung, Foto
-    var lastArt = (await DB.get('lastObjArt')) || 'kanzel';
-    var st = { art: o ? o.art : lastArt, stanje: o ? (o.stanje || 'dobro') : 'dobro', foto: '' };
+    var lastArt = norm((await DB.get('lastObjArt')) || 'kanzel');
+    var st = { art: o ? norm(o.art) : lastArt, stanje: o ? (o.stanje || 'dobro') : 'dobro', foto: '' };
     var lok = o ? o.lokacija : await Geo.lovisteAt(opts.lat, opts.lon);
     var stanja = STANJA.concat(o && o.stanje === 'uklonjen' ? ['uklonjen'] : []); // alter Wert bleibt sichtbar
 

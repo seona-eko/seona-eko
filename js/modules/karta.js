@@ -304,7 +304,7 @@ var Karta = (function () {
   // Stehende Symbole (Hochsitz, Leiter, Bock, Fütterung …) sitzen mit den Füßen auf dem Punkt, nicht mit der Mitte —
   // sonst steht der Hochsitz optisch ein gutes Stück neben der Stelle, an die man ihn gesetzt hat.
   // Werte = unterster Punkt der Grafik im 24er-Raster der SVG (icons/objekti/); Bild 30 px, 2 px Rand.
-  var FUSS = { kanzel: 21, leiter: 21, drueckjagdbock: 20, bodensitz: 18, fuetterung: 20 };
+  var FUSS = { kanzel: 21, leiter: 21, drueckjagdbock: 21, bodensitz: 18, fuetterung: 20, kirrung: 20 };
   // Unterhalb dieser Zoomstufe nur ruhige Punkte statt Symbole — sonst stapeln sich die Hochsitze zu einem Klumpen
   var PUNKT_BIS = 13; // ab Zoom > 13 Symbole (Nutzerwunsch: früher als bei 15)
   function objIcon(o, zoom) {
