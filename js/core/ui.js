@@ -70,8 +70,43 @@ var UI = (function () {
     if (opts.action) toastEl.querySelector('button').onclick = function () { opts.onAction && opts.onAction(); hideToast(); };
     clearTimeout(toastTimer);
     if (!opts.sticky) toastTimer = setTimeout(hideToast, opts.timeout || 3500);
+    wischbar(toastEl, opts);
   }
-  function hideToast() { if (toastEl) { toastEl.remove(); toastEl = null; } }
+  /** Hinweis zur Seite oder nach unten wegwischen; folgt dem Finger, schnappt zurück, wenn es zu wenig war. */
+  function wischbar(el, opts) {
+    var x0 = null, y0 = null, dx = 0, dy = 0;
+    el.addEventListener('touchstart', function (e) {
+      if (e.target.closest('button')) return;
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = dy = 0;
+      clearTimeout(toastTimer); el.style.transition = 'none'; el.style.animation = 'none';
+    }, { passive: true });
+    el.addEventListener('touchmove', function (e) {
+      if (x0 == null) return;
+      dx = e.touches[0].clientX - x0; dy = Math.max(0, e.touches[0].clientY - y0);
+      var weg = Math.abs(dx) > dy ? 'translateX(' + dx + 'px)' : 'translateY(' + dy + 'px)';
+      el.style.transform = weg; el.style.opacity = String(Math.max(.2, 1 - Math.max(Math.abs(dx), dy) / 220));
+    }, { passive: true });
+    el.addEventListener('touchend', function () {
+      if (x0 == null) return;
+      x0 = null;
+      el.style.transition = 'transform .28s cubic-bezier(.22,1,.36,1), opacity .28s ease';
+      if (Math.abs(dx) > 60 || dy > 40) {
+        el.style.transform = Math.abs(dx) > dy ? 'translateX(' + (dx > 0 ? 120 : -120) + '%)' : 'translateY(140%)';
+        el.style.opacity = '0';
+        setTimeout(function () { if (toastEl === el) hideToast(); else el.remove(); }, 280);
+        return;
+      }
+      el.style.transform = ''; el.style.opacity = '';
+      if (!opts.sticky) toastTimer = setTimeout(hideToast, 2500);
+    });
+  }
+  function hideToast() {
+    if (!toastEl) return;
+    var el = toastEl; toastEl = null;
+    el.style.transition = 'opacity .25s ease, transform .25s ease';
+    el.style.opacity = '0'; el.style.transform = el.style.transform || 'translateY(10px)';
+    setTimeout(function () { el.remove(); }, 260);
+  }
 
   /* ---------- Bottom-Sheet ---------- */
   var current = null;
