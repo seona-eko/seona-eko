@@ -314,7 +314,14 @@ var Karta = (function () {
     if (zoom != null && zoom <= PUNKT_BIS) return L.divIcon({ className: '', html: '<div class="obj-dot' + (o.art === 'biljeska' ? ' note' : '') + (o.stanje === 'uklonjen' ? ' removed' : '') + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
     var art = ICONS.objekt[o.art] ? o.art : 'kanzel';
     var ay = FUSS[art] ? Math.round(2 + FUSS[art] * 26 / 24) : 15;
-    return L.divIcon({ className: '', html: '<div class="' + cls + '" style="position:relative"><img alt="" src="' + ICONS.objekt[art] + '"></div>', iconSize: [30, 30], iconAnchor: [15, ay] });
+    var fussProz = Math.round((ay - 2) / 26 * 100); // Symbol schrumpft zum Standpunkt hin, nicht zur Mitte
+    return L.divIcon({ className: '', html: '<div class="' + cls + '" style="position:relative"><img alt="" src="' + ICONS.objekt[art] + '" style="transform-origin:50% ' + fussProz + '%"></div>', iconSize: [30, 30], iconAnchor: [15, ay] });
+  }
+  /** Symbole werden beim Herauszoomen kleiner statt gleich groß zu bleiben (Zoom 16 → volle Größe, Zoom 13 → 60 %). */
+  function symbolGroesse() {
+    if (!map) return;
+    var z = map.getZoom(), f = Math.max(0, Math.min(1, (z - PUNKT_BIS) / 3));
+    map.getContainer().style.setProperty('--obj-s', (0.6 + 0.4 * f).toFixed(3));
   }
 
   function drawData(ctx) {
@@ -712,6 +719,8 @@ var Karta = (function () {
       if (punkte !== map._punkte) { map._punkte = punkte; if (mode !== 'place') drawData({ query: {} }); }
     });
     map._punkte = map.getZoom() <= PUNKT_BIS;
+    map.on('zoom', symbolGroesse);
+    symbolGroesse();
     el.querySelector('#fab-full').onclick = function () { setFull(!isFull()); };
     var add = el.querySelector('#fab-add');
     if (add) add.onclick = function () { startAdd(); };

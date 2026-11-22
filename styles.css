@@ -399,7 +399,7 @@ details.more[open] summary::before{content:"–";}
 .leaflet-container .leaflet-bar a:hover{background:var(--cream-2);color:var(--ink);}
 .leaflet-container .leaflet-bar a.leaflet-disabled{background:var(--paper);color:var(--ink-faint);opacity:.6;}
 .obj-marker{width:30px;height:30px;display:flex;align-items:center;justify-content:center;}
-.obj-marker img{width:26px;height:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));}
+.obj-marker img{width:26px;height:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));transform:scale(var(--obj-s,1));}
 .obj-marker.removed img{opacity:.45;filter:grayscale(1);}
 .obj-marker.bad::after{content:"";position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;background:#dd985f;border:2px solid #fff;}
 .obj-dot{width:12px;height:12px;border-radius:50%;background:#1a1a1a;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.35);}
