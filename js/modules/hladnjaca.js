@@ -30,7 +30,7 @@
     var d = days(w.hladnjacaOd);
     return '<li><button type="button" class="row" data-wb="' + esc(w.id) + '"><span class="r-icon">' + ICONS.forSpecies(r ? r.vrsta : '') + '</span>' +
       '<span class="r-main"><span class="r-title">' + esc(title(r)) + '</span><span class="r-sub">' + esc(sub(w, r)) + '</span></span>' +
-      '<span class="r-end"><b class="num" style="' + (d >= 7 ? 'color:var(--warn)' : '') + '">' + (d == null ? '—' : d) + '</b>' + esc(t('daysShort')) + '</span></button></li>';
+      '<span class="r-end">' + (d >= 7 ? '<span class="badge warn">' + esc(t('coldWeek')) + '</span>' : '') + '</span></button></li>';
   }
 
   function renderZelle(D) {
@@ -101,7 +101,7 @@
     if (!w) return;
     var st = stage(w);
     var kv = [
-      [t('step_in'), UI.fmtDate(String(w.hladnjacaOd).slice(0, 10)) + ' (' + days(w.hladnjacaOd) + ' ' + t('daysShort') + ')'],
+      [t('step_in'), UI.fmtDate(String(w.hladnjacaOd).slice(0, 10)) + (!w.predanoDatum && days(w.hladnjacaOd) >= 7 ? ' · ' + t('coldWeek') : '')],
       [t('trich'), w.trihinela ? I18n.nalaz(w.trihinela) : ''],
       [t('step_out'), w.predanoDatum ? UI.fmtDate(w.predanoDatum) + ' · ' + (w.izlaz ? t('izlaz_' + w.izlaz) : '') + (w.kupac ? ' · ' + w.kupac : '') : ''],
       [t('lastChange'), (w.updatedBy || '') + (w.updatedAt ? ' · ' + UI.fmtStamp(Number(w.updatedAt)) : '')]
