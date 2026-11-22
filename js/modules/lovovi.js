@@ -187,7 +187,7 @@
         data.id = Store.uuid();
         await Store.queueSubmit(data);
         if (el.querySelector('#q-cold').checked) {
-          await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO(), aspUzorak: '', aspNalaz: data.vrsta === 'Divlja svinja' ? 'ceka' : '' });
+          await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO() });
         }
         App.syncNow({ quiet: true });
         q.n++;

@@ -71,8 +71,7 @@ var Odstrjel = (function () {
       '<button type="button" class="btn small" id="napomena-ok" style="margin-top:8px"' + (sp === 'Divlja svinja' ? '' : ' hidden') + '>' + ICONS.check + esc(t('btnNoAnomalies')) + '</button></div>' +
       '</div>' +
 
-      (edit ? '' : '<div class="panel" id="cold-panel"><label class="switch-row"><span>' + esc(t('coldCheck')) + '</span><input type="checkbox" class="switch" id="cold" checked></label>' +
-        '<div class="field" id="asp-wrap" style="margin-top:12px" hidden><label class="field-label" for="aspUzorak">' + esc(t('lblAspUzorak')) + '</label><input type="text" id="aspUzorak" placeholder="' + esc(t('phAspUzorak')) + '"></div></div>') +
+      (edit ? '' : '<div class="panel" id="cold-panel"><label class="switch-row"><span>' + esc(t('coldCheck')) + '</span><input type="checkbox" class="switch" id="cold" checked></label></div>') +
 
       // Drückjagd-Strecke wird auf der Drückjagdseite erfasst — hier nur Jagdart und Foto
       '<div class="panel">' +
@@ -198,8 +197,6 @@ var Odstrjel = (function () {
     el.querySelector('#napomena').placeholder = svinja ? t('phNapomenaSvinja') : t('phNapomena');
     el.querySelector('#napomena-ok').hidden = !svinja;
     el.querySelector('#klasa-label').classList.toggle('req', v !== 'Ostalo');
-    var asp = el.querySelector('#asp-wrap');
-    if (asp) asp.hidden = !svinja;
     updateTrofej(el);
   }
 
@@ -363,8 +360,7 @@ var Odstrjel = (function () {
       UI.haptic();
       var cold = el.querySelector('#cold');
       if (cold && cold.checked) {
-        var asp = v('aspUzorak');
-        await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO(), aspUzorak: asp, aspNalaz: (asp || data.vrsta === 'Divlja svinja') ? 'ceka' : '' });
+        await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO() });
       }
       await DB.set('last', { lokacija: data.lokacija, lovac: data.lovac, nacinLova: data.nacinLova, datum: data.datum, lovId: data.lovId, at: Date.now() });
       var local = (await DB.get('lovciLocal')) || [];

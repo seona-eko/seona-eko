@@ -547,14 +547,6 @@ ol.safety li{margin:0 0 6px;}
 .hours li.hunt-hour .h-time{color:var(--ok);}
 
 /* ---------------- Kühlzelle: Stationen ---------------- */
-.steps{display:inline-flex;gap:4px;align-items:center;}
-.steps i{width:14px;height:6px;border-radius:3px;background:var(--muted-soft);display:inline-block;}
-.steps i.done{background:var(--ok);}
-.steps i.bad{background:var(--warn);}
-.steps i.skip{background:transparent;border:1px dashed var(--line);height:4px;}
-.step-line{display:flex;align-items:center;gap:8px;margin-top:5px;}
-.step-line .next{font-size:.74rem;font-weight:700;color:var(--accent-text);}
-.steps-legend{display:flex;align-items:center;gap:8px;margin-top:8px;}
 .alert-panel{border-color:var(--warn);background:var(--warn-soft);margin-bottom:12px;}
 .alert-panel b{color:var(--warn);}
 .alert-panel .hint{margin:4px 0 0;}
@@ -680,8 +672,6 @@ body.picker-open{overflow:hidden;}
 
 
 /* SLE-Liste: Markennummer antippen = kopieren */
-.sle-copy{border:0;background:var(--muted-soft);color:inherit;font:inherit;font-weight:700;padding:1px 6px;border-radius:6px;cursor:pointer;}
-.sle-row .r-end{display:flex;flex-direction:column;align-items:flex-end;}
 
 /* Startseite „Heute offen“: eine Zeile je Wildart */
 .open-list .row{min-height:52px;padding-top:8px;padding-bottom:8px;}

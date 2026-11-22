@@ -7,11 +7,7 @@
     var wb = Store.wildbret();
     var list = Object.keys(wb).map(function (k) { return wb[k]; }).filter(function (w) { return w.hladnjacaOd && !w.predanoDatum; });
     var old = list.filter(function (w) { return UI.daysSince(String(w.hladnjacaOd).slice(0, 10)) >= 7; }).length;
-    var pos = list.filter(function (w) { return w.aspNalaz === 'pozitivan'; }).length;
-    var byId = {}; Store.strecke().forEach(function (r) { byId[r.id] = r; });
-    var notSent = 0, sent = 0;
-    list.forEach(function (w) { var s = Hladnjaca.stage(w, byId[w.id]).key; if (s === 'noSample' || s === 'notSent') notSent++; if (s === 'sent') sent++; });
-    return { n: list.length, old: old, pos: pos, notSent: notSent, sent: sent };
+    return { n: list.length, old: old };
   }
 
   /** Je Wildart: was heute offen ist (alle Klassen → „alles“). Wildarten ohne offene Klasse fallen weg. */
@@ -54,9 +50,6 @@
       // Seit über einem Tag nicht gesendet (z. B. Handy nie mit Netz geöffnet) — nicht nur oben rechts klein anzeigen
       var stale = Store.outbox().filter(function (e) { return e.status !== 'error' && Date.now() - e.createdAt > 864e5; }).length;
       var gast = nextGast();
-      // SLE: Wildmarken binnen 7 Tagen austragen — Hinweis, solange etwas offen ist (dringend ab 1 Tag Rest)
-      var sle = App.isUprava() ? Strecke.sleOpen(Stats.inJJ(Store.strecke())) : [];
-      var sleMin = sle.length ? Strecke.sleInfo(sle[0]).left : null;
 
       var pct = function (a, b) { return b ? Math.min(100, Math.round(a / b * 100)) : 0; };
 
@@ -69,10 +62,6 @@
         (stale ? '<a class="panel" href="#/vise?sync=1" style="display:flex;gap:10px;align-items:center;border-color:var(--warn);background:var(--warn-soft);text-decoration:none;color:inherit;margin-bottom:12px">' +
           ICONS.sync.replace('<svg', '<svg style="width:24px;height:24px;color:var(--warn);flex:none"') + '<span><b>' + esc(t('homeStale', { n: stale })) + '</b><br><span class="hint">' + esc(t('homeStaleHint')) + '</span></span></a>' : '') +
 
-        (sle.length ? '<a class="panel" href="#/odstrjel?tab=popis&sle=1" style="display:flex;gap:10px;align-items:center;text-decoration:none;color:inherit;margin-bottom:12px' +
-          (sleMin <= 1 ? ';border-color:var(--warn);background:var(--warn-soft)' : '') + '">' +
-          ICONS.list.replace('<svg', '<svg style="width:24px;height:24px;flex:none' + (sleMin <= 1 ? ';color:var(--warn)' : '') + '"') + '<span><b>' + esc(t('homeSle', { n: sle.length })) + '</b><br><span class="hint">' +
-          esc(sleMin > 0 ? t('homeSleHint', { n: sleMin }) : sleMin === 0 ? t('homeSleToday') : t('homeSleLate')) + '</span></span></a>' : '') +
 
         '<div class="quick">' +
         '<a class="primary" href="#/odstrjel/novi">' + ICONS.plus + '<span><b>' + esc(t('newOdstrjel')) + '</b></span></a>' +
@@ -86,9 +75,9 @@
         '<div class="t-value">' + s.ist + ' <small>/ ' + s.soll + '</small></div>' +
         '<div class="bar"><span style="width:' + pct(s.ist, s.soll) + '%"></span></div>' +
         '<div class="t-sub">' + esc(s.pending ? t('pendingN', { n: s.pending }) : t('tileStreckeSub')) + '</div></a>' +
-        '<a class="tile' + (c.old || c.pos ? ' warn' : '') + '" href="#/hladnjaca"><div class="t-label">' + ICONS.cold + esc(t('tileCold')) + '</div>' +
+        '<a class="tile' + (c.old ? ' warn' : '') + '" href="#/hladnjaca"><div class="t-label">' + ICONS.cold + esc(t('tileCold')) + '</div>' +
         '<div class="t-value">' + c.n + '</div>' +
-        '<div class="t-sub">' + esc(c.pos ? t('aspPositiveShort') : c.old ? t('coldOld', { n: c.old }) : (c.notSent || c.sent) ? t('aspTileLine', { a: c.notSent, b: c.sent }) : t('tileColdSub')) + '</div></a>' +
+        '<div class="t-sub">' + esc(c.old ? t('coldOld', { n: c.old }) : t('tileColdSub')) + '</div></a>' +
         '</div>' +
 
         '<div class="section-title"><h2>' + esc(t('openToday')) + '</h2><a href="#/lovostaj">' + esc(t('allSeasons')) + '</a></div>' +

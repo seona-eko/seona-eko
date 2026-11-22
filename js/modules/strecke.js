@@ -53,47 +53,7 @@ var Stats = (function () {
 
 var Strecke = (function () {
   var esc = UI.esc, t = I18n.t;
-  var state = { tab: 'popis', lok: 'all', vrsta: 'all', sle: false };
-
-  /*
-   * SLE (Središnja lovna evidencija): jede Wildmarke muss binnen 7 Tagen nach dem Abschuss in der SLE ausgetragen werden
-   * (Pravilnik o SLE, čl. 12). Die App erfasst zuerst; hier sieht man, was noch abzuschreiben ist (Spalte AA im Sheet).
-   * Abschüsse vor SLE_OD gelten als schon eingetragen (vor Einführung dieser Liste).
-   */
-  var SLE_OD = '2026-10-05';
-  var SLE_VRSTE = ['Jelen obični', 'Srna', 'Divlja svinja', 'Jelen lopatar', 'Muflon'];
-  // Werte so, wie die SLE sie abfragt (kroatisch)
-  var SLE_DOB = { 'Tele/prase': 'mladunčad', 'Pomladak': 'pomladak', 'Mlađa klasa': 'mlada', 'Srednja klasa': 'srednja', 'Zrela klasa': 'zrela' };
-  /** null = keine SLE-Pflicht/alt; { done, left } = eingetragen bzw. Tage bis zur Frist (negativ = überfällig). */
-  function sleInfo(r) {
-    if (SLE_VRSTE.indexOf(r.vrsta) === -1 || !r.brojMarkice) return null;
-    if (r.sle) return { done: true };
-    var d = String(r.datum || '').slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < SLE_OD) return null;
-    return { done: false, left: 7 - UI.daysSince(d) };
-  }
-  function sleOpen(list) {
-    return list.filter(function (r) { var i = sleInfo(r); return i && !i.done; })
-      .sort(function (a, b) { return String(a.datum).localeCompare(String(b.datum)); });
-  }
-  function sleBadge(i) {
-    var txt = i.left > 0 ? t('sleLeft', { n: i.left }) : i.left === 0 ? t('sleToday') : t('sleLate');
-    return '<span class="badge ' + (i.left <= 1 ? 'warn' : 'muted') + '">' + esc(txt) + '</span>';
-  }
-  function hrDatum(d) { var m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '.' + m[2] + '.' + m[1] + '.' : String(d || ''); }
-  /** Eine Zeile zum Abschreiben in die SLE: Marke, Datum, Wildart, Geschlecht, Dob — kroatisch wie in der SLE. */
-  function sleRowHtml(r) {
-    return '<li><div class="row sle-row"><span class="r-icon">' + ICONS.forSpecies(r.vrsta) + '</span>' +
-      '<span class="r-main"><span class="r-title"><button type="button" class="sle-copy num" data-copy="' + esc(r.brojMarkice) + '">#' + esc(r.brojMarkice) + '</button> · ' + esc(hrDatum(r.datum)) + '</span>' +
-      '<span class="r-sub">' + esc([r.vrsta, r.spol === 'ž' ? 'žensko' : 'muško', SLE_DOB[r.dobnaKlasa] || r.dobnaKlasa || '—'].join(' · ')) + '</span>' +
-      '<span class="r-sub">' + esc(r.lovac || '') + '</span></span>' +
-      '<span class="r-end">' + sleBadge(sleInfo(r)) + '<button type="button" class="btn small dark" data-sle-done="' + esc(r.id) + '" style="margin-top:6px">' + ICONS.check + esc(t('sleDone')) + '</button></span></div></li>';
-  }
-  async function setSle(id, on) {
-    await Store.queueUpsert('odstrjel', { id: id, sle: on ? UI.todayISO() : '' });
-    UI.toast(t(on ? 'sleDoneToast' : 'sleUndoToast'));
-    App.syncNow({ quiet: true });
-  }
+  var state = { tab: 'popis', lok: 'all', vrsta: 'all' };
 
   function title(r) {
     if (r.vrsta && KATEGORIJA[r.vrsta] && r.spol) return kategorija(r.vrsta, r.spol, r.dobnaKlasa, I18n.lang());
@@ -105,8 +65,6 @@ var Strecke = (function () {
     var end = r._error ? '<span class="badge warn">' + esc(t('stError')) + '</span>'
       : r._pending ? '<span class="badge muted">' + esc(t('stPending')) + '</span>'
       : (wb && wb.hladnjacaOd && !wb.predanoDatum ? '<span class="badge plain muted">' + esc(t('inCold')) + '</span>' : '');
-    var si = App.isUprava() ? sleInfo(r) : null;
-    if (si && !si.done) end += '<span style="display:block;margin-top:3px">' + sleBadge(si) + '</span>';
     return '<li><button type="button" class="row" data-id="' + esc(r.id) + '">' +
       '<span class="r-icon">' + ICONS.forSpecies(r.vrsta) + '</span>' +
       '<span class="r-main"><span class="r-title">' + esc(title(r)) + ' · <span class="num">' + esc(r.tezina) + ' kg</span></span>' +
@@ -124,12 +82,6 @@ var Strecke = (function () {
   }
 
   function renderList(list) {
-    if (state.sle) {
-      var open = sleOpen(list);
-      return '<p class="hint" style="margin:0 0 8px">' + esc(t('sleHint')) + '</p>' +
-        (open.length ? '<div class="panel flush"><ul class="list">' + open.map(sleRowHtml).join('') + '</ul></div>'
-          : '<div class="panel">' + UI.emptyState('check', t('sleEmpty'), '') + '</div>');
-    }
     if (state.vrsta !== 'all') list = list.filter(function (r) { return r.vrsta === state.vrsta; });
     if (!list.length) {
       return '<div class="panel">' + UI.emptyState('list', t('emptyStreckeTitle'), t('emptyStreckeText'),
@@ -189,7 +141,6 @@ var Strecke = (function () {
     ];
     var verwaltung = [
       [t('lblMarkica'), r.brojMarkice],
-      [t('sleLabel'), (function () { var i = sleInfo(r); return !i ? '' : i.done ? t('sleDoneOn', { d: UI.fmtDate(r.sle) }) : t('sleOpenTxt'); })()],
       [t('inCold'), wb && wb.hladnjacaOd ? UI.fmtDate(wb.hladnjacaOd.slice(0, 10)) + (wb.predanoDatum ? ' → ' + t('predano') + ' ' + UI.fmtDate(wb.predanoDatum) : '') : '']
     ];
     function gruppe(titel, rows) {
@@ -205,9 +156,6 @@ var Strecke = (function () {
       '<div class="btn-row" style="margin-top:14px">' +
       (r.lat ? '<a class="btn" href="#/karta?lat=' + r.lat + '&lon=' + r.lon + '">' + ICONS.map + esc(t('onMap')) + '</a>' : '') +
       (canEdit ? '<button type="button" class="btn dark" data-edit>' + ICONS.edit + esc(t('edit')) + '</button>' : '') + '</div>' +
-      (App.isUprava() && sleInfo(r) ? (sleInfo(r).done
-        ? '<button type="button" class="btn ghost block small" style="margin-top:10px" data-sle="0">' + esc(t('sleUndo')) + '</button>'
-        : '<button type="button" class="btn block" style="margin-top:10px" data-sle="1">' + ICONS.check + esc(t('sleDone')) + '</button>') : '') +
       (r._pending ? '<button type="button" class="btn danger block" style="margin-top:10px" data-discard>' + ICONS.trash + esc(t('discard')) + '</button>'
         : App.isUprava() ? '<button type="button" class="btn danger block" style="margin-top:10px" data-storno>' + ICONS.trash + esc(t('storno')) + '</button>' : '');
     UI.openSheet(html, function (el, api) {
@@ -229,8 +177,6 @@ var Strecke = (function () {
         // Bereits gesendeter Abschuss mit wartender Korrektur: verworfen wird nur die Korrektur
         if (await UI.confirm(t('discard'), t(r._new ? 'confirmDiscard' : 'confirmDiscardEdit'), t('discard'), true)) await Store.discard('odstrjel:' + r.id);
       };
-      var sb = el.querySelector('[data-sle]');
-      if (sb) sb.onclick = function () { api.close(); setSle(r.id, sb.getAttribute('data-sle') === '1'); };
       var sn = el.querySelector('[data-storno]');
       if (sn) sn.onclick = function () { api.close(); setTimeout(function () { openStorno(r); }, 250); };
     }, { noFocus: true });
@@ -280,12 +226,8 @@ var Strecke = (function () {
       if (ctx.query.tab) state.tab = ctx.query.tab;
       var s = Stats.summary(state.lok);
       var jj = Store.jagdjahr();
-      if (ctx.query.sle) state.sle = ctx.query.sle === '1';
-      var nSle = App.isUprava() ? sleOpen(s.list).length : 0;
-      if (!nSle && !state.sle) state.sle = false;
-      var speciesChips = (nSle || state.sle ? '<button type="button" class="chip sle-chip" id="sle-chip" aria-pressed="' + state.sle + '">' + esc(t('sleChip', { n: nSle })) + '</button>' : '') +
-        ['all'].concat(PLAN_SPECIES).concat(['Muflon']).map(function (v) {
-        return '<button type="button" class="chip" data-vrsta="' + esc(v) + '" aria-pressed="' + (!state.sle && state.vrsta === v) + '">' + esc(v === 'all' ? t('allSpecies') : I18n.species(v)) + '</button>';
+      var speciesChips = ['all'].concat(PLAN_SPECIES).concat(['Muflon']).map(function (v) {
+        return '<button type="button" class="chip" data-vrsta="' + esc(v) + '" aria-pressed="' + (state.vrsta === v) + '">' + esc(v === 'all' ? t('allSpecies') : I18n.species(v)) + '</button>';
       }).join('');
       return tabs(state.tab) + '<div class="page-head"><div class="eyebrow">' + esc(t('huntYear')) + ' ' + esc(jj.label) + '</div>' +
         '<h1>' + esc(t('streckeTitle', { n: s.list.length })) + '</h1>' +
@@ -298,21 +240,12 @@ var Strecke = (function () {
     mount: function (el, ctx) {
       if (ctx.params[0] === 'novi' || ctx.params[0] === 'uredi') return Odstrjel.mount(el, ctx);
       UI.$$('#lok-chips .chip', el).forEach(function (b) { b.onclick = function () { state.lok = b.getAttribute('data-lok'); App.render(true); }; });
-      UI.$$('#vrsta-chips .chip[data-vrsta]', el).forEach(function (b) { b.onclick = function () { state.vrsta = b.getAttribute('data-vrsta'); state.sle = false; App.render(true); }; });
-      var sc = el.querySelector('#sle-chip');
-      if (sc) sc.onclick = function () { state.sle = !state.sle; App.render(true); };
-      UI.$$('[data-sle-done]', el).forEach(function (b) { b.onclick = function () { setSle(b.getAttribute('data-sle-done'), true); }; });
-      UI.$$('[data-copy]', el).forEach(function (b) {
-        b.onclick = function () {
-          var v = b.getAttribute('data-copy');
-          if (navigator.clipboard) navigator.clipboard.writeText(v).then(function () { UI.toast(t('sleCopied', { m: v })); }, function () {});
-        };
-      });
+      UI.$$('#vrsta-chips .chip', el).forEach(function (b) { b.onclick = function () { state.vrsta = b.getAttribute('data-vrsta'); App.render(true); }; });
       UI.$$('.row[data-id]', el).forEach(function (b) { b.onclick = function () { openDetail(b.getAttribute('data-id')); }; });
     },
     get live() { var r = location.hash; return !(/#\/odstrjel\/(novi|uredi)/.test(r)); },
     onData: function () { if (window.Odstrjel && Odstrjel.onData) Odstrjel.onData(); }
   });
 
-  return { openDetail: openDetail, title: title, shortLov: shortLov, rowHtml: rowHtml, tabs: tabs, sleOpen: sleOpen, sleInfo: sleInfo };
+  return { openDetail: openDetail, title: title, shortLov: shortLov, rowHtml: rowHtml, tabs: tabs };
 })();
