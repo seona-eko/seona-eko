@@ -34,9 +34,8 @@
   }
 
   function renderZelle(D) {
-    var old = D.inCold.filter(function (w) { return days(w.hladnjacaOd) >= 7; }).length;
-    return (old ? '<div class="panel alert-panel soft"><b>' + esc(t('coldOld', { n: old })) + '</b></div>' : '') +
-      (D.inCold.length ? '<div class="panel flush"><ul class="list">' + D.inCold.map(function (w) { return rowCold(w, D.byId[w.id]); }).join('') + '</ul></div>'
+    // Kein Sammelhinweis oben: die betroffenen Stücke tragen in der Liste selbst „über eine Woche“
+    return (D.inCold.length ? '<div class="panel flush"><ul class="list">' + D.inCold.map(function (w) { return rowCold(w, D.byId[w.id]); }).join('') + '</ul></div>'
         : '<div class="panel">' + UI.emptyState('cold', t('coldEmpty'), t('coldEmptyText')) + '</div>') +
       (D.without.length ? '<div class="section-title"><h2>' + esc(t('notInCold')) + '</h2></div><div class="panel flush"><ul class="list">' +
         D.without.map(function (r) {

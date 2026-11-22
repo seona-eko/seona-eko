@@ -84,23 +84,33 @@ if (window.L && L.Control && L.Control.Attribution) L.Control.Attribution.protot
  */
 function touchpadPinch(map) {
   if (navigator.maxTouchPoints > 0) return;
-  var box = map.getContainer(), z0 = null, punkt = null;
-  // Chrome/Firefox/Edge: Zusammenziehen kommt als Mausrad mit Strg in vielen kleinen Schritten. Leaflet bremst die stark
-  // (wirkt schwergängig) — direkt und stufenlos zoomen, um den Punkt unter dem Zeiger. Normales Mausrad bleibt bei Leaflet.
+  var box = map.getContainer(), z0 = null, punkt = null, aktiv = false, ende = null;
+  /* Zoomen wie beim Zusammenziehen am Handy (Leaflet TouchZoom): während der Bewegung wird das vorhandene Kartenbild nur
+     skaliert (_move mit pinch), neue Kacheln lädt die Karte erst, wenn die Finger kurz stillstehen (_moveEnd).
+     Vorher wurde bei jedem kleinen Schritt neu gezoomt → Kacheln luden ständig nach, die Karte flackerte und wurde blass. */
+  function zoomUm(cp, z) {
+    z = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z));
+    if (!aktiv) { map._stop(); map._moveStart(true, false); aktiv = true; }
+    var halb = map.getSize().divideBy(2), scale = map.getZoomScale(z);
+    var mitte = map.containerPointToLatLng(halb.add(cp.subtract(halb).multiplyBy(1 - 1 / scale)));
+    map._move(mitte, z, { pinch: true, round: false });
+    clearTimeout(ende);
+    ende = setTimeout(function () { aktiv = false; map._moveEnd(true); }, 160);
+  }
+  // Chrome/Firefox/Edge: Zusammenziehen kommt als Mausrad mit Strg in vielen kleinen Schritten. Normales Mausrad bleibt bei Leaflet.
   box.addEventListener('wheel', function (e) {
     if (!e.ctrlKey) return;
     e.preventDefault(); e.stopPropagation();
     var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-    var z = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), map.getZoom() - dy * 0.02));
-    map.setZoomAround(map.mouseEventToContainerPoint(e), z, { animate: false });
+    zoomUm(map.mouseEventToContainerPoint(e), map.getZoom() - dy * 0.02);
   }, { capture: true, passive: false });
   if (!('ongesturestart' in window)) return;
+  // Safari am Mac: eigene gesture-Ereignisse mit Maßstab seit Beginn
   box.addEventListener('gesturestart', function (e) { e.preventDefault(); z0 = map.getZoom(); punkt = map.mouseEventToContainerPoint(e); });
   box.addEventListener('gesturechange', function (e) {
     e.preventDefault();
     if (z0 == null) return;
-    var z = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z0 + Math.log2(e.scale)));
-    map.setZoomAround(punkt, z, { animate: false });
+    zoomUm(punkt, z0 + Math.log2(e.scale));
   });
   box.addEventListener('gestureend', function (e) { e.preventDefault(); z0 = null; });
 }
