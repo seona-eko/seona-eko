@@ -731,8 +731,11 @@ body.picker-open{overflow:hidden;}
   .topbar{display:none !important;}
   main#view{padding-top:env(safe-area-inset-top,0px);}
   body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);z-index:35;pointer-events:none;
-    background:color-mix(in srgb, var(--cream) 72%, transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);}
+    background:color-mix(in srgb, var(--cream) 34%, transparent);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);}
   body.map-full::before{display:none;}
+  /* Karte läuft unter die Statusleiste (Glasstreifen wie die Fußleiste); Knöpfe oben rutschen darunter */
+  body.auf-karte:not(.map-full) .map-wrap{top:0;}
+  body.auf-karte:not(.map-full) .map-tools,body.auf-karte:not(.map-full) .map-wind.glass,body.auf-karte:not(.map-full) .map-top{top:calc(env(safe-area-inset-top,0px) + 12px);}
   #bottomnav a[data-sync]::after{content:"";position:absolute;top:8px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;
     background:var(--copper);box-shadow:0 0 0 2px var(--paper);}
   #bottomnav a[data-sync="error"]::after{background:var(--warn);}
