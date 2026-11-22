@@ -504,8 +504,13 @@ var Karta = (function () {
     var p = punktUnterFadenkreuz(map, ov);
     return L.latLng(p.lat, p.lon);
   }
+  /* Während des Zoomens (Pinch, Touchpad) skaliert Leaflet die Zeichenfläche nur per CSS; neu zeichnen würde
+     dann an der falschen Stelle landen. Deshalb Linien erst nach dem Zoom neu setzen, solange nur die Zahl. */
+  function messZoomStart() { if (mess) { mess.zoomt = true; mess.gummi.setStyle({ opacity: 0 }); } }
+  function messZoomEnde() { if (mess) { mess.zoomt = false; mess.gummi.setStyle({ opacity: .9 }); messZeichnen(); } }
   function messZeichnen() {
     if (!mess || !map) return;
+    if (mess.zoomt) return;
     var pts = mess.punkte, ziel = fadenLL();
     var summe = 0;
     for (var i = 1; i < pts.length; i++) summe += map.distance(pts[i - 1], pts[i]);
@@ -546,7 +551,7 @@ var Karta = (function () {
     // Erster Punkt wird ab drei Punkten größer — Hinweis: hier schließen
     var erster = mess.kreise.getLayers()[0];
     if (erster && mess.punkte.length >= 3) erster.setRadius(9);
-    mess.kreise.addLayer(L.circleMarker(ll, { radius: 5, color: '#fff', weight: 2, fillColor: '#dd985f', fillOpacity: 1, interactive: false }));
+    mess.kreise.addLayer(L.circleMarker(ll, { renderer: mess.renderer, radius: 5, color: '#fff', weight: 2, fillColor: '#dd985f', fillOpacity: 1, interactive: false }));
     UI.haptic && UI.haptic(8);
     messZeichnen();
   }
@@ -557,12 +562,13 @@ var Karta = (function () {
     var ov = document.getElementById('map-overlay');
     document.getElementById('map-fab').hidden = true;
     var mb = document.getElementById('fab-measure'); if (mb) mb.classList.add('active');
+    var messRenderer = L.svg({ padding: 0.5 });
     mess = {
-      punkte: [], vonMir: false,
-      linie: L.polyline([], { color: '#dd985f', weight: 3, opacity: 1, interactive: false }).addTo(map),
-      gummi: L.polyline([], { color: '#dd985f', weight: 2, opacity: .9, dashArray: '6 7', interactive: false }).addTo(map),
+      punkte: [], vonMir: false, zoomt: false, renderer: messRenderer,
+      linie: L.polyline([], { renderer: messRenderer, color: '#dd985f', weight: 3, opacity: 1, interactive: false }).addTo(map),
+      gummi: L.polyline([], { renderer: messRenderer, color: '#dd985f', weight: 2, opacity: .9, dashArray: '6 7', interactive: false }).addTo(map),
       kreise: L.layerGroup().addTo(map),
-      flaeche: L.polygon([], { stroke: false, fillColor: '#dd985f', fillOpacity: .2, interactive: false }).addTo(map),
+      flaeche: L.polygon([], { renderer: messRenderer, stroke: false, fillColor: '#dd985f', fillOpacity: .2, interactive: false }).addTo(map),
       zu: false
     };
     ov.innerHTML = '<svg class="crosshair" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="24" cy="24" r="10"/><path d="M24 2v12M24 34v12M2 24h12M34 24h12"/></svg>' +
@@ -583,13 +589,15 @@ var Karta = (function () {
     };
     ov.querySelector('[data-mess-end]').onclick = endeMessen;
     map.on('move', messZeichnen);
+    map.on('zoomstart', messZoomStart);
+    map.on('zoomend', messZoomEnde);
     map.on('click', messKlick);
     if (meMarker) { mess.vonMir = true; messPunkt(meMarker.getLatLng()); }
     messZeichnen();
   }
   function messKlick(e) { if (mode === 'messen') messPunkt(e.latlng); }
   function endeMessen() {
-    if (map && mess) { map.off('move', messZeichnen); map.off('click', messKlick); map.removeLayer(mess.linie); map.removeLayer(mess.gummi); map.removeLayer(mess.kreise); map.removeLayer(mess.flaeche); }
+    if (map && mess) { map.off('move', messZeichnen); map.off('zoomstart', messZoomStart); map.off('zoomend', messZoomEnde); map.off('click', messKlick); map.removeLayer(mess.linie); map.removeLayer(mess.gummi); map.removeLayer(mess.kreise); map.removeLayer(mess.flaeche); }
     mess = null;
     document.body.classList.remove('messen');
     var mb = document.getElementById('fab-measure'); if (mb) mb.classList.remove('active');
