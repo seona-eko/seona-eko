@@ -8,32 +8,33 @@
 @font-face{font-family:'Work Sans';font-style:normal;font-weight:400 700;font-display:swap;src:url(fonts/worksans-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
 
 :root{
-  /* Palette (Vorgabe 2026-09-23): Grün #3c4540 · Salbei #bdc9a5 · Weinrot #471b28 · Kupfer #dd985f */
-  --forest-1:#471b28;          /* hell: Weinrot statt Waldgrün (Auswahl, Kopfzeile, Datumskacheln) */
-  --forest-2:#471b28;
-  --forest-3:#7a4a57;
-  --sage:#e8cfd5;
-  --wine:#471b28;
-  --copper:#dd985f;
-  --bark:#471b28;             /* hell: Wildart- und Listen-Symbole in Weinrot */
-  --cream:#ffffff;            /* hell: weißer Grund */
-  --cream-2:#f1f2ee;
-  --paper:#ffffff;
-  --ink:#232a26;
-  --ink-soft:#57625b;
-  --ink-faint:#8b958d;
-  --primary:#471b28;          /* Hauptaktion */
-  --primary-ink:#f7efe6;
-  --accent:#dd985f;           /* einziger Akzent: Markierungen, Linien, Logo */
-  --accent-text:#8f4f22;      /* Kupfer als Text auf hellem Grund (Kontrast) */
-  --accent-ink:#f7f5ee;       /* heller Text auf dunklem Grün */
-  --ok:#471b28;               /* hell: auch „offen/erledigt“ in Weinrot */
-  --ok-soft:#f1e5e8;
-  --warn:#b4372f;             /* Warnung: eigenes Rot — Kupfer bleibt nur für Aktionen */
-  --warn-soft:#f6dedb;
-  --muted-soft:#e7e9e2;
-  --line:#e0e3d9;
-  --backdrop:#f3f4f0;
+  /* Palette „Moos & Messing“ (Vorgabe 2026-11-23): Moosgrün für Aktionen und Auswahl, Messing als Akzent,
+     warmer heller Grund; dunkel: fast schwarzes Grün, helles Moos als Hauptfarbe, Messing für Links. */
+  --forest-1:#33402c;          /* Auswahl, Kopfzeile, Datumskacheln */
+  --forest-2:#33402c;
+  --forest-3:#4f5d3a;
+  --sage:#cfd8bf;              /* heller Text auf Moos (Kopfzeile) */
+  --wine:#33402c;
+  --copper:#b08a3e;            /* Messing: kleine Akzente (Punkte, Logo) */
+  --bark:#4f5d3a;              /* Wildart- und Listen-Symbole in Moosgrün */
+  --cream:#f3f1ea;             /* Grund */
+  --cream-2:#e7e6dd;
+  --paper:#fdfcf8;
+  --ink:#1e231f;
+  --ink-soft:#5d635a;
+  --ink-faint:#8a8f84;
+  --primary:#33402c;           /* Hauptaktion: dunkles Moos */
+  --primary-ink:#f2f0e6;
+  --accent:#b08a3e;            /* Messing: Markierungen, Linien */
+  --accent-text:#8a6a2a;       /* Messing als Text auf hellem Grund (Kontrast) */
+  --accent-ink:#f2f0e6;        /* heller Text auf Moos */
+  --ok:#4f5d3a;
+  --ok-soft:#e3e7d8;
+  --warn:#a63a2c;
+  --warn-soft:#f4dfda;
+  --muted-soft:#e4e3da;
+  --line:#dedbd0;
+  --backdrop:#ecebe3;
   --scrim:rgba(28,34,30,.5);
   --radius:16px;
   --radius-sm:10px;
@@ -46,22 +47,22 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --forest-1:#2b322e; --forest-2:#39433d; --forest-3:#4c5750; --bark:#c9b08c;
-    --cream:#181c19; --cream-2:#242a26; --paper:#1f2521;
-    --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
-    --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
-    --ok:#a9c28a; --ok-soft:#2c3827; --warn:#f2776e; --warn-soft:#3a1d1c; --muted-soft:#2b322d;
-    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;--karte-schatten:none;--sage:#bdc9a5;
+    --forest-1:#1d241f; --forest-2:#26302a; --forest-3:#3a463d; --bark:#9fb27f;
+    --cream:#0e120f; --cream-2:#1d241f; --paper:#161b17;
+    --ink:#eef1ea; --ink-soft:#a7b0a6; --ink-faint:#7c857b;
+    --primary:#a9bb86; --primary-ink:#121a0e; --accent:#c9a55a; --accent-text:#c9a55a; --accent-ink:#eef1ea; --copper:#c9a55a;
+    --ok:#a9bb86; --ok-soft:#232d1f; --warn:#ee7a68; --warn-soft:#3a1d1c; --muted-soft:#232a25;
+    --line:#2a322c; --backdrop:#090b09; --scrim:rgba(0,0,0,.6); --map-out:#141814;--karte-schatten:none;--sage:#bdc9a5;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-    --forest-1:#2b322e; --forest-2:#39433d; --forest-3:#4c5750; --bark:#c9b08c;
-    --cream:#181c19; --cream-2:#242a26; --paper:#1f2521;
-    --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
-    --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
-    --ok:#a9c28a; --ok-soft:#2c3827; --warn:#f2776e; --warn-soft:#3a1d1c; --muted-soft:#2b322d;
-    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;--karte-schatten:none;--sage:#bdc9a5;
+    --forest-1:#1d241f; --forest-2:#26302a; --forest-3:#3a463d; --bark:#9fb27f;
+    --cream:#0e120f; --cream-2:#1d241f; --paper:#161b17;
+    --ink:#eef1ea; --ink-soft:#a7b0a6; --ink-faint:#7c857b;
+    --primary:#a9bb86; --primary-ink:#121a0e; --accent:#c9a55a; --accent-text:#c9a55a; --accent-ink:#eef1ea; --copper:#c9a55a;
+    --ok:#a9bb86; --ok-soft:#232d1f; --warn:#ee7a68; --warn-soft:#3a1d1c; --muted-soft:#232a25;
+    --line:#2a322c; --backdrop:#090b09; --scrim:rgba(0,0,0,.6); --map-out:#141814;--karte-schatten:none;--sage:#bdc9a5;
     color-scheme:dark;
 }
 
@@ -358,7 +359,7 @@ details.more[open] summary::before{content:"–";}
 .overlay .success-icon{width:64px;height:64px;color:var(--copper);display:block;margin:0 auto 10px;}
 .overlay .warn-text{color:var(--copper);font-weight:600;}
 .overlay .btn{border-color:rgba(255,255,255,.5);color:var(--accent-ink);background:transparent;}
-.overlay .btn.primary{background:var(--copper);border-color:var(--copper);color:#2a0f17;}
+.overlay .btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-ink);}
 
 .toast{
   position:fixed;left:16px;right:16px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);z-index:90;
@@ -369,7 +370,7 @@ details.more[open] summary::before{content:"–";}
   animation:toast-in .38s cubic-bezier(.22,1,.36,1);touch-action:none;
 }
 .toast .btn{min-height:34px;border-color:rgba(255,255,255,.4);color:var(--accent-ink);background:transparent;}
-.toast.update .btn{background:var(--copper);border-color:var(--copper);color:#2a0f17;}
+.toast.update .btn{background:var(--primary);border-color:var(--primary);color:var(--primary-ink);}
 
 /* ---------------- Karte ---------------- */
 .map-wrap{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + var(--top-h));bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));}
@@ -401,12 +402,12 @@ details.more[open] summary::before{content:"–";}
 .obj-marker{width:34px;height:34px;display:flex;align-items:center;justify-content:center;}
 .obj-marker img{width:30px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));transform:scale(var(--obj-s,1));}
 .obj-marker.removed img{opacity:.45;filter:grayscale(1);}
-.obj-marker.bad::after{content:"";position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;background:#dd985f;border:2px solid #fff;}
+.obj-marker.bad::after{content:"";position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;background:var(--copper);border:2px solid #fff;}
 .obj-dot{width:12px;height:12px;border-radius:50%;background:#1a1a1a;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.35);}
 .obj-dot.removed{opacity:.45;}
 .obj-dot.note{background:#fff;border-color:#1a1a1a;border-radius:3px;}
-.kill-dot{width:14px;height:14px;border-radius:50%;background:#dd985f;border:2px solid #2a0f17;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.4);}
-.kill-mark{width:30px;height:30px;border-radius:50%;background:#dd985f;color:#2a0f17;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;}
+.kill-dot{width:14px;height:14px;border-radius:50%;background:var(--copper);border:2px solid var(--ink);box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.4);}
+.kill-mark{width:30px;height:30px;border-radius:50%;background:var(--copper);color:#1e231f;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;}
 .kill-mark svg{width:18px;height:18px;}
 .me-dot{width:18px;height:18px;border-radius:50%;background:#2f6fc0;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,111,192,.25);}
 .map-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--ink-soft);margin-top:8px;}
@@ -514,7 +515,7 @@ details.more[open] summary::before{content:"–";}
 .panel.next-hunt{border-color:var(--forest-3);box-shadow:inset 4px 0 0 var(--copper);}
 ol.safety{margin:4px 0 0;padding-left:20px;line-height:1.5;}
 ol.safety li{margin:0 0 6px;}
-.meet-marker{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#471b28;border:3px solid #dd985f;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.meet-marker{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--primary);border:3px solid var(--copper);box-shadow:0 2px 6px rgba(0,0,0,.35);}
 
 /* ---------------- Sonnenzeiten, Wetter, Mond ---------------- */
 .sunline{display:inline-flex;gap:14px;align-items:center;}
@@ -586,7 +587,7 @@ body.picker-open{overflow:hidden;}
 .loc-block .loc-buttons .btn{min-height:64px;flex-direction:column;gap:4px;padding:8px 6px;text-align:center;line-height:1.2;}
 .loc-result{display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
 .loc-mini{width:96px;height:96px;background-size:256px 256px !important;border-radius:var(--radius-sm);overflow:hidden;flex:none;border:1px solid var(--line);position:relative;background:#efe9d8;}
-.loc-mini .pin{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#471b28;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);}
+.loc-mini .pin{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--primary);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);}
 .loc-text{flex:1;min-width:0;font-size:.85rem;}
 .loc-text b{display:block;font-size:.95rem;}
 .loc-text .btn-row{margin-top:8px;}
@@ -923,7 +924,7 @@ body.map-full .map-wrap .leaflet-bottom{bottom:env(safe-area-inset-bottom,0px);}
 .g-out small{font-size:13px;color:var(--g-faint);}
 .g-temp{font-family:var(--font-display);font-weight:500;font-size:30px;}
 .g-circle{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none;}
-.g-circle.main{background:var(--copper);border-color:transparent;color:#2a0f17;}
+.g-circle.main{background:var(--primary);border-color:transparent;color:var(--primary-ink);}
 .g-circle svg{width:20px;height:20px;}
 .g-small{margin:30px 0 0;padding-top:18px;border-top:1px solid var(--g-hair);font-size:13px;line-height:1.55;color:var(--g-faint);}
 .g-small a{color:var(--accent-text);text-decoration:none;font-weight:600;}
