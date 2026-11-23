@@ -1082,3 +1082,10 @@ img,svg{-webkit-user-drag:none;}
 .chip-select select:focus,.chip-select select:focus-visible{outline:none;}
 .chip-select:focus-within{box-shadow:0 0 0 2px color-mix(in srgb, var(--ink) 25%, transparent);}
 .tile{box-shadow:var(--karte-schatten,0 1px 3px rgba(35,42,38,.06));}
+
+/* Wischen zum Löschen (UI.wischLoeschen): rote Fläche mit Mülleimer hinter der Zeile */
+li.wl{position:relative;overflow:hidden;}
+li.wl > .row{position:relative;z-index:1;background:var(--paper);touch-action:pan-y;}
+.wl-del{position:absolute;right:0;top:0;bottom:0;width:84px;border:0;background:var(--warn);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding:0 30px 0 0;cursor:pointer;}
+.wl-del svg{width:24px;height:24px;transition:transform .2s ease;}
+li.wl-weit .wl-del svg{transform:scale(1.15);}

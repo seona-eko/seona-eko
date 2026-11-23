@@ -105,7 +105,22 @@
       var l = lovById(decodeURIComponent(ctx.params[0] || ''));
       if (!l) return;
       UI.$$('.row[data-id]', el).forEach(function (b) { b.onclick = function () { Strecke.openDetail(b.getAttribute('data-id')); }; });
-      UI.$$('.row[data-stand]', el).forEach(function (b) { b.onclick = function () { openStandSheet(l.id, b.getAttribute('data-stand'), {}); }; });
+      UI.$$('.row[data-stand]', el).forEach(function (b) {
+        b.onclick = function () { openStandSheet(l.id, b.getAttribute('data-stand'), {}); };
+        if (!App.isUprava()) return;
+        UI.wischLoeschen(b.parentNode, { label: t('standDelete'), onDelete: async function () {
+          var akt = lovById(l.id), vorher = staendeOf(akt), weg = vorher.filter(function (x) { return x.id === b.getAttribute('data-stand'); })[0];
+          await Store.queueUpsert('lov', { id: l.id, staende: vorher.filter(function (x) { return x !== weg; }) });
+          App.syncNow({ quiet: true });
+          UI.toast(t('standDeleted', { n: weg ? weg.nr : '' }), { timeout: 6000, action: t('undo'), onAction: async function () {
+            var jetzt = staendeOf(lovById(l.id));
+            if (weg && !jetzt.some(function (x) { return x.id === weg.id; })) {
+              await Store.queueUpsert('lov', { id: l.id, staende: jetzt.concat([weg]) });
+              App.syncNow({ quiet: true });
+            }
+          } });
+        } });
+      });
       var add = el.querySelector('#lov-add'); if (add) add.onclick = function () { openQuick(l); };
       if (ctx.query.add) openQuick(l);
       var e = el.querySelector('#edit-lov'); if (e) e.onclick = function () { openForm(l); };

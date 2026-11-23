@@ -108,6 +108,71 @@ var UI = (function () {
     setTimeout(function () { el.remove(); }, 260);
   }
 
+  /* ---------- Wischen zum Löschen (wie iOS) ----------
+   * Zeile nach links: dahinter Rot mit Mülleimer. Kurz wischen und loslassen → Zeile bleibt offen stehen;
+   * Mülleimer antippen oder weit durchwischen → onDelete. Tippen auf die offene Zeile schließt sie wieder.
+   * li muss die Zeile (.row) enthalten; ICONS.trash als Symbol. */
+  var wlOffen = null;
+  function wlSchliessen(ausser) {
+    if (wlOffen && wlOffen !== ausser) { wlOffen._wlSetze(0, true); wlOffen = null; }
+  }
+  function wischLoeschen(li, opts) {
+    var row = li.querySelector('.row');
+    if (!row || li._wl) return;
+    li._wl = true;
+    li.classList.add('wl');
+    li.setAttribute('data-noswipe', '');
+    var del = document.createElement('button');
+    del.type = 'button'; del.className = 'wl-del';
+    del.setAttribute('aria-label', opts.label || '');
+    del.innerHTML = ICONS.trash;
+    li.insertBefore(del, row);
+    var OFFEN = 84, pos = 0, x0 = null, y0 = 0, start = 0, quer = null, bewegt = false;
+    function setze(x, weich) {
+      pos = x;
+      row.style.transition = weich ? 'transform .32s cubic-bezier(.22,1,.36,1)' : 'none';
+      row.style.transform = x ? 'translate3d(' + x + 'px,0,0)' : '';
+      del.style.width = Math.max(OFFEN, -x) + 'px';
+      li.classList.toggle('wl-weit', -x > li.offsetWidth * 0.55);
+    }
+    li._wlSetze = setze;
+    function loeschen() {
+      wlOffen = null;
+      var h = li.offsetHeight;
+      row.style.transition = 'transform .25s ease'; row.style.transform = 'translate3d(' + (-li.offsetWidth) + 'px,0,0)';
+      del.style.width = li.offsetWidth + 'px';
+      li.style.height = h + 'px';
+      setTimeout(function () { li.style.transition = 'height .25s ease, opacity .25s ease'; li.style.height = '0px'; li.style.opacity = '0'; }, 180);
+      setTimeout(function () { opts.onDelete(); }, 430);
+      if (haptic) haptic(12);
+    }
+    del.onclick = function (e) { e.stopPropagation(); loeschen(); };
+    row.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) return;
+      wlSchliessen(li);
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; start = pos; quer = null; bewegt = false;
+    }, { passive: true });
+    row.addEventListener('touchmove', function (e) {
+      if (x0 == null) return;
+      var dx = e.touches[0].clientX - x0, dy = e.touches[0].clientY - y0;
+      if (quer == null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) quer = Math.abs(dx) > Math.abs(dy);
+      if (!quer) return;
+      bewegt = true;
+      setze(Math.min(0, Math.max(-li.offsetWidth, start + dx)), false);
+    }, { passive: true });
+    row.addEventListener('touchend', function () {
+      if (x0 == null) return;
+      x0 = null;
+      if (!quer) return;
+      if (-pos > li.offsetWidth * 0.55) { loeschen(); return; }
+      if (-pos > OFFEN / 2) { setze(-OFFEN, true); wlOffen = li; } else { setze(0, true); if (wlOffen === li) wlOffen = null; }
+    });
+    // Tipp auf eine offene Zeile schließt sie nur (öffnet nicht den Eintrag); nach einem Wisch kein Klick
+    row.addEventListener('click', function (e) {
+      if (bewegt || pos !== 0) { e.preventDefault(); e.stopImmediatePropagation(); bewegt = false; if (pos !== 0) { setze(0, true); wlOffen = null; } }
+    }, true);
+  }
+
   /* ---------- Bottom-Sheet ---------- */
   var current = null;
   function openSheet(html, onMount, opts) {
@@ -262,7 +327,7 @@ var UI = (function () {
   return {
     esc: esc, $: $, $$: $$, todayISO: todayISO, nowLocalISO: nowLocalISO, parseISO: parseISO,
     fmtDate: fmtDate, fmtRange: fmtRange, fmtDay: fmtDay, fmtLong: fmtLong, fmtTime: fmtTime, fmtStamp: fmtStamp, daysSince: daysSince,
-    toast: toast, hideToast: hideToast, openSheet: openSheet, closeSheet: closeSheet,
+    toast: toast, hideToast: hideToast, openSheet: openSheet, closeSheet: closeSheet, wischLoeschen: wischLoeschen,
     isSheetOpen: function () { return !!current; }, onSheetClosed: function (fn) { closedListeners.push(fn); }, confirm: confirmSheet,
     readPhoto: readPhoto, loadPhoto: loadPhoto, emptyState: emptyState, sectionTabs: sectionTabs, back: back, skel: skel,
     // Kurzer Impuls als Bestätigung. ms: 25 = gespeichert, 10 = großer Knopf angetippt
