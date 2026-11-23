@@ -87,8 +87,10 @@
           '<div class="panel flush" style="margin-top:12px"><ul class="list">' + s.map(Strecke.rowHtml).join('') + '</ul></div>' : '') +
         '<div class="section-title"><h2>' + esc(t('stands')) + '</h2>' + (stands.length ? '<a href="#/karta?lov=' + encodeURIComponent(l.id) + '">' + esc(t('onMap')) + '</a>' : '') + '</div>' +
         (stands.length ? '<div class="panel flush"><ul class="list">' + stands.map(function (x) {
-          return '<li><a class="row" href="#/karta?lov=' + encodeURIComponent(l.id) + '"><span class="r-icon stand-nr">' + esc(String(x.nr)) + '</span><span class="r-main"><span class="r-title">' + esc(t('standN', { n: x.nr })) + '</span>' +
-            '<span class="r-sub">' + esc(x.strijelac ? x.strijelac + (x.gostId ? ' · ' + t('guestTag') : '') : t('standFree')) + '</span></span>' + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</a></li>';
+          var n = s.filter(function (r) { return r.stajaliste === x.id; }).length;
+          return '<li><button type="button" class="row" data-stand="' + esc(x.id) + '"><span class="r-icon stand-nr">' + esc(String(x.nr)) + '</span><span class="r-main"><span class="r-title">' + esc(t('standN', { n: x.nr })) + '</span>' +
+            '<span class="r-sub">' + esc(x.strijelac ? x.strijelac + (x.gostId ? ' · ' + t('guestTag') : '') : t('standFree')) + '</span></span>' +
+            (n ? '<span class="r-end"><b>' + n + '</b>' + esc(t('pieces')) + '</span>' : '') + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</button></li>';
         }).join('') + '</ul></div>'
           : '<div class="panel"><p class="hint" style="margin:0 0 ' + (App.isUprava() ? '12px' : '0') + '">' + esc(t('standsEmpty')) + '</p>' +
             (App.isUprava() ? '<a class="btn block" href="#/karta?lov=' + encodeURIComponent(l.id) + '">' + ICONS.pin + esc(t('standsOnMap')) + '</a>' : '') + '</div>') +
@@ -103,6 +105,7 @@
       var l = lovById(decodeURIComponent(ctx.params[0] || ''));
       if (!l) return;
       UI.$$('.row[data-id]', el).forEach(function (b) { b.onclick = function () { Strecke.openDetail(b.getAttribute('data-id')); }; });
+      UI.$$('.row[data-stand]', el).forEach(function (b) { b.onclick = function () { openStandSheet(l.id, b.getAttribute('data-stand'), {}); }; });
       var add = el.querySelector('#lov-add'); if (add) add.onclick = function () { openQuick(l); };
       if (ctx.query.add) openQuick(l);
       var e = el.querySelector('#edit-lov'); if (e) e.onclick = function () { openForm(l); };
@@ -260,6 +263,72 @@
       });
     }, { noFocus: true });
   }
+
+  /**
+   * Stand-Blatt (aus der Liste der Jagd und von der Karte): wer steht hier — Teilnehmer und Gäste des Tages als Knöpfe,
+   * sonst freier Name —, darunter die Stücke, die von diesem Stand gemeldet wurden. Nur die Verwaltung darf zuweisen.
+   */
+  function openStandSheet(lovId, standId, opts) {
+    opts = opts || {};
+    var l = lovById(lovId); if (!l) return;
+    var st = staendeOf(l).filter(function (x) { return x.id === standId; })[0]; if (!st) return;
+    var up = App.isUprava(), datum = String(l.datum).slice(0, 10);
+    var strecke = streckeOf(l.id).filter(function (r) { return r.stajaliste === st.id; });
+    var gaeste = up ? Store.gosti().filter(function (g) { return !g.deleted && String(g.od || '').slice(0, 10) <= datum && String(g.do || g.od || '').slice(0, 10) >= datum; }) : [];
+    var namen = String(l.sudionici || '').split(/\n|,/).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (l.vodja && namen.indexOf(l.vodja) === -1) namen.unshift(l.vodja);
+    var wahl = { name: st.strijelac || '', gostId: st.gostId || '' };
+    if (wahl.name && !wahl.gostId && namen.indexOf(wahl.name) === -1) namen.push(wahl.name);
+    if (wahl.gostId && !gaeste.some(function (g) { return g.id === wahl.gostId; })) {
+      var g0 = Store.gosti().filter(function (g) { return g.id === wahl.gostId; })[0];
+      if (g0) gaeste.unshift(g0);
+    }
+    var html = '<div class="eyebrow-sm">' + esc(l.naziv || t('lovDefaultName')) + '</div><h2>' + esc(t('standN', { n: st.nr })) + '</h2>' +
+      (up ? '<div class="field-label">' + esc(t('standWho')) + '</div><div class="stand-wahl" id="st-wahl">' +
+        gaeste.map(function (g) { return '<button type="button" data-g="' + esc(g.id) + '" data-n="' + esc(g.ime) + '">' + esc(g.ime) + ' · ' + esc(t('guestTag')) + '</button>'; }).join('') +
+        namen.map(function (n) { return '<button type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') +
+        '<button type="button" class="frei" data-n="">' + esc(t('standFree')) + '</button></div>' +
+        '<div class="field" style="margin-top:12px"><input type="text" id="st-name" placeholder="' + esc(t('phName')) + '" value=""></div>' +
+        (gaeste.length ? '<p class="hint">' + esc(t('standGuestHint')) + '</p>' : '')
+        : '<p style="margin:0 0 6px"><b>' + esc(st.strijelac || t('standFree')) + '</b></p>') +
+      '<div class="section-title" style="margin-top:18px"><h2>' + esc(t('standStrecke')) + '</h2></div>' +
+      (strecke.length ? '<div class="panel flush"><ul class="list">' + strecke.map(Strecke.rowHtml).join('') + '</ul></div>'
+        : '<p class="hint" style="margin:0">' + esc(t('standNoPieces')) + '</p>') +
+      '<div class="btn-row" style="margin-top:16px">' +
+      (up ? '<button type="button" class="btn primary" id="st-save">' + esc(t('btnSave')) + '</button>' : '') +
+      (opts.karte ? '' : '<a class="btn" href="#/karta?lov=' + encodeURIComponent(l.id) + '">' + ICONS.map + esc(t('onMap')) + '</a>') +
+      '</div>' +
+      (up ? '<button type="button" class="btn ghost block small" id="st-del" style="margin-top:10px;color:var(--warn)">' + ICONS.trash + esc(t('standDelete')) + '</button>' : '');
+    UI.openSheet(html, function (el, api) {
+      UI.$$('.row[data-id]', el).forEach(function (b) { b.onclick = function () { api.close(); setTimeout(function () { Strecke.openDetail(b.getAttribute('data-id')); }, 260); }; });
+      if (!up) return;
+      function markiere() {
+        UI.$$('#st-wahl button', el).forEach(function (b) {
+          b.setAttribute('aria-pressed', String((b.getAttribute('data-g') || '') === wahl.gostId && b.getAttribute('data-n') === wahl.name));
+        });
+      }
+      UI.$$('#st-wahl button', el).forEach(function (b) {
+        b.onclick = function () { wahl = { name: b.getAttribute('data-n'), gostId: b.getAttribute('data-g') || '' }; el.querySelector('#st-name').value = ''; markiere(); };
+      });
+      el.querySelector('#st-name').oninput = function () { wahl = { name: this.value.trim(), gostId: '' }; markiere(); };
+      markiere();
+      async function speichere(liste) {
+        await Store.queueUpsert('lov', { id: l.id, staende: liste });
+        App.syncNow({ quiet: true });
+      }
+      el.querySelector('#st-save').onclick = async function () {
+        var akt = lovById(lovId);
+        api.close();
+        await speichere(staendeOf(akt).map(function (x) { return x.id === standId ? Object.assign({}, x, { strijelac: wahl.name, gostId: wahl.gostId }) : x; }));
+      };
+      el.querySelector('#st-del').onclick = async function () {
+        var akt = lovById(lovId);
+        api.close();
+        await speichere(staendeOf(akt).filter(function (x) { return x.id !== standId; }));
+      };
+    }, { noFocus: true });
+  }
+  window.LovStand = { open: openStandSheet };
 
   function openForm(l) {
     var lovci = Store.lovci();
