@@ -359,7 +359,7 @@ details.more[open] summary::before{content:"–";}
 .overlay .success-icon{width:64px;height:64px;color:var(--copper);display:block;margin:0 auto 10px;}
 .overlay .warn-text{color:var(--copper);font-weight:600;}
 .overlay .btn{border-color:rgba(255,255,255,.5);color:var(--accent-ink);background:transparent;}
-.overlay .btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-ink);}
+.overlay .btn.primary{background:var(--copper);border-color:var(--copper);color:#1e231f;} /* Messing: hebt sich auf dem Moosgrund in beiden Modi ab */
 
 .toast{
   position:fixed;left:16px;right:16px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);z-index:90;
