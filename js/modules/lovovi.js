@@ -78,13 +78,10 @@
         (isPast || s.length ? '<button type="button" class="btn primary block" id="lov-add" style="margin-bottom:12px">' + ICONS.plus + esc(t('addToLov')) + '</button>' : '') +
         '<div class="grid-2"><div class="tile"><div class="t-label">' + ICONS.list + esc(t('tileStrecke')) + '</div><div class="t-value">' + s.length + '</div><div class="t-sub">' + esc(t('pieces')) + '</div></div>' +
         '<a class="tile" href="#/lovkarta/' + encodeURIComponent(l.id) + '"><div class="t-label">' + ICONS.pin + esc(t('stands')) + '</div><div class="t-value">' + stands.length + '</div><div class="t-sub">' + esc(stands.length ? t('standsSummary', { n: stands.length, b: besetzt }) : (sudionici.length ? t('participantsN', { n: sudionici.length }) : '—')) + '</div></a></div>' +
-        (s.length ? '<div class="section-title"><h2>' + esc(t('lovStrecke')) + '</h2></div><div class="panel stack">' +
-          Object.keys(bySpecies).map(function (v) {
-            var b = bySpecies[v];
-            return '<div><div style="display:flex;justify-content:space-between;align-items:center"><b>' + esc(I18n.species(v)) + '</b><span class="num">' + b.n + ' · ' + Math.round(b.kg) + ' kg</span></div>' +
-              '<div class="hint" style="margin-top:2px">' + Object.keys(b.kat).map(function (k) { return esc(k) + ' ' + b.kat[k]; }).join(' · ') + '</div></div>';
-          }).join('') + '</div>' +
-          '<div class="panel flush" style="margin-top:12px"><ul class="list">' + s.map(Strecke.rowHtml).join('') + '</ul></div>' : '') +
+        // Eine Liste der Stücke; darüber nur die Summen je Wildart als kleine Zeile (keine zweite Aufstellung)
+        (s.length ? '<div class="section-title"><h2>' + esc(t('lovStrecke')) + '</h2><span class="hint">' +
+          esc(Object.keys(bySpecies).map(function (v) { return I18n.species(v) + ' ' + bySpecies[v].n; }).join(' · ')) + '</span></div>' +
+          '<div class="panel flush"><ul class="list">' + s.map(Strecke.rowHtml).join('') + '</ul></div>' : '') +
         '<div class="section-title"><h2>' + esc(t('stands')) + '</h2>' + (stands.length ? '<a href="#/lovkarta/' + encodeURIComponent(l.id) + '">' + esc(t('onMap')) + '</a>' : '') + '</div>' +
         (stands.length ? '<div class="panel flush"><ul class="list">' + stands.map(function (x) {
           var n = s.filter(function (r) { return r.stajaliste === x.id; }).length;
