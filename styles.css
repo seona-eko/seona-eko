@@ -1103,3 +1103,6 @@ body.map-full .map-zurueck{top:calc(env(safe-area-inset-top,0px) + 12px);}
 /* Text nur in Schrift-/Grauton; Warnungen erkennt man am roten Punkt, nicht an roter Schrift */
 .warn-text,.home2 .warn-text{color:var(--ink);font-weight:600;}
 .warn-text::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-right:7px;vertical-align:1px;}
+
+/* Quellenzeile nicht über der Karte (steht im Ebenen-Blatt und unter Mehr → Über die App) */
+.map-wrap .leaflet-control-attribution{display:none;}

@@ -225,7 +225,7 @@ var Karta = (function () {
     var keys = ['objekti', 'biljeske', 'odstrjel', 'odjeli'];
     UI.openSheet('<h2>' + esc(t('mapLayers')) + '</h2><div class="layer-list">' + keys.map(function (k) {
       return '<label class="switch-row"><span>' + esc(t('layer_' + k)) + '</span><input type="checkbox" class="switch" data-layer="' + k + '"' + (show[k] ? ' checked' : '') + '></label>';
-    }).join('') + '</div>', function (el) {
+    }).join('') + '</div><p class="hint" style="margin:14px 2px 0">' + esc(t('mapSourceLine')) + '</p>', function (el) {
       UI.$$('input[data-layer]', el).forEach(function (inp) {
         inp.onchange = function () {
           var k = inp.getAttribute('data-layer');
@@ -330,7 +330,7 @@ var Karta = (function () {
   // Werte = unterster Punkt der Grafik im 24er-Raster der SVG (icons/objekti/); Bild 30 px, 2 px Rand.
   var FUSS = { kanzel: 21, leiter: 21, drueckjagdbock: 21, bodensitz: 18, fuetterung: 20, kirrung: 20 };
   // Unterhalb dieser Zoomstufe nur ruhige Punkte statt Symbole — sonst stapeln sich die Hochsitze zu einem Klumpen
-  var PUNKT_BIS = 13; // ab Zoom > 13 Symbole (Nutzerwunsch: früher als bei 15)
+  var PUNKT_BIS = 11.5; // Symbole fast immer (klein beim Herauszoomen); Punkte nur in der ganz weiten Übersicht
   function objIcon(o, zoom) {
     var cls = 'obj-marker' + (o.stanje === 'uklonjen' ? ' removed' : '') + (o.stanje === 'popravak' || o.stanje === 'neupotrebljivo' ? ' bad' : '');
     if (zoom != null && zoom <= PUNKT_BIS) return L.divIcon({ className: '', html: '<div class="obj-dot' + (o.art === 'biljeska' ? ' note' : '') + (o.stanje === 'uklonjen' ? ' removed' : '') + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
@@ -342,8 +342,8 @@ var Karta = (function () {
   /** Symbole werden beim Herauszoomen kleiner statt gleich groß zu bleiben (Zoom 16 → volle Größe, Zoom 13 → 70 %). */
   function symbolGroesse() {
     if (!map) return;
-    var z = map.getZoom(), f = Math.max(0, Math.min(1, (z - PUNKT_BIS) / 3));
-    map.getContainer().style.setProperty('--obj-s', (0.7 + 0.3 * f).toFixed(3));
+    var z = map.getZoom(), f = Math.max(0, Math.min(1, (z - 12) / 4));
+    map.getContainer().style.setProperty('--obj-s', (0.6 + 0.4 * f).toFixed(3));
   }
 
   function drawData(ctx) {
