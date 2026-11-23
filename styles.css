@@ -26,7 +26,7 @@
   --primary:#33402c;           /* Hauptaktion: dunkles Moos */
   --primary-ink:#f2f0e6;
   --accent:#b08a3e;            /* Messing: Markierungen, Linien */
-  --accent-text:#8a6a2a;       /* Messing als Text auf hellem Grund (Kontrast) */
+  --accent-text:#33402c;       /* Links und kleine Überschriften: dieselbe Farbe wie die Hauptaktion (keine Extra-Textfarbe) */
   --accent-ink:#f2f0e6;        /* heller Text auf Moos */
   --ok:#4f5d3a;
   --ok-soft:#e3e7d8;
@@ -50,7 +50,7 @@
     --forest-1:#1d241f; --forest-2:#26302a; --forest-3:#3a463d; --bark:#9fb27f;
     --cream:#0e120f; --cream-2:#1d241f; --paper:#161b17;
     --ink:#eef1ea; --ink-soft:#a7b0a6; --ink-faint:#7c857b;
-    --primary:#a9bb86; --primary-ink:#121a0e; --accent:#c9a55a; --accent-text:#c9a55a; --accent-ink:#eef1ea; --copper:#c9a55a;
+    --primary:#a9bb86; --primary-ink:#121a0e; --accent:#c9a55a; --accent-text:#a9bb86; --accent-ink:#eef1ea; --copper:#c9a55a;
     --ok:#a9bb86; --ok-soft:#232d1f; --warn:#ee7a68; --warn-soft:#3a1d1c; --muted-soft:#232a25;
     --line:#2a322c; --backdrop:#090b09; --scrim:rgba(0,0,0,.6); --map-out:#141814;--karte-schatten:none;--sage:#bdc9a5;
     color-scheme:dark;
@@ -60,7 +60,7 @@
     --forest-1:#1d241f; --forest-2:#26302a; --forest-3:#3a463d; --bark:#9fb27f;
     --cream:#0e120f; --cream-2:#1d241f; --paper:#161b17;
     --ink:#eef1ea; --ink-soft:#a7b0a6; --ink-faint:#7c857b;
-    --primary:#a9bb86; --primary-ink:#121a0e; --accent:#c9a55a; --accent-text:#c9a55a; --accent-ink:#eef1ea; --copper:#c9a55a;
+    --primary:#a9bb86; --primary-ink:#121a0e; --accent:#c9a55a; --accent-text:#a9bb86; --accent-ink:#eef1ea; --copper:#c9a55a;
     --ok:#a9bb86; --ok-soft:#232d1f; --warn:#ee7a68; --warn-soft:#3a1d1c; --muted-soft:#232a25;
     --line:#2a322c; --backdrop:#090b09; --scrim:rgba(0,0,0,.6); --map-out:#141814;--karte-schatten:none;--sage:#bdc9a5;
     color-scheme:dark;
@@ -543,7 +543,7 @@ ol.safety li{margin:0 0 6px;}
 .hours .h-wind small{color:var(--ink-soft);}
 .hours .h-rain{min-width:52px;text-align:right;font-size:.8rem;color:var(--ink-soft);white-space:nowrap;}
 .hours li.hunt-hour{background:var(--ok-soft);}
-.hours li.hunt-hour .h-time{color:var(--ok);}
+.hours li.hunt-hour .h-time{color:var(--ink);font-weight:700;}
 
 /* ---------------- Kühlzelle: Stationen ---------------- */
 .alert-panel{border-color:var(--warn);background:var(--warn-soft);margin-bottom:12px;}
@@ -674,7 +674,7 @@ body.picker-open{overflow:hidden;}
 
 /* Startseite „Heute offen“: eine Zeile je Wildart */
 .open-list .row{min-height:52px;padding-top:8px;padding-bottom:8px;}
-.open-what{color:var(--ok);font-weight:600;font-size:.88rem;text-align:right;max-width:55%;}
+.open-what{color:var(--ink-soft);font-weight:600;font-size:.88rem;text-align:right;max-width:55%;}
 
 /* ---------------- iPhone: Menüleiste im Glas-Look (wie iOS 26 / WhatsApp, Instagram) ----------------
    Schwebende, abgerundete Leiste mit Weichzeichner; Inhalt und Karte laufen darunter durch.
@@ -1075,7 +1075,7 @@ img,svg{-webkit-user-drag:none;}
 .open-art{display:flex;align-items:center;gap:10px;min-width:calc(50% - 9px);}
 .open-art .r-icon{width:34px;height:34px;}
 .open-art b{display:block;font-size:.95rem;}
-.open-art small{display:block;font-size:.78rem;color:var(--ok);font-weight:600;}
+.open-art small{display:block;font-size:.78rem;color:var(--ink-soft);font-weight:600;}
 .g-leer{color:var(--ink-soft);margin:6px 0 0;line-height:1.5;}
 
 /* Revier-Auswahl im Chip: nicht die großen Formularfelder erben (iOS zeigte sie riesig), kein Kupfer-Rahmen */
@@ -1099,3 +1099,7 @@ li.wl-weit .wl-del svg{transform:scale(1.15);}
 .jagdkarte .map-wind{display:none !important;}
 body.map-full .map-zurueck{top:calc(env(safe-area-inset-top,0px) + 12px);}
 @media (max-width: 719px) and (orientation: portrait){ body.auf-karte:not(.map-full) .map-zurueck{top:calc(env(safe-area-inset-top,0px) + 12px);} }
+
+/* Text nur in Schrift-/Grauton; Warnungen erkennt man am roten Punkt, nicht an roter Schrift */
+.warn-text,.home2 .warn-text{color:var(--ink);font-weight:600;}
+.warn-text::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-right:7px;vertical-align:1px;}
