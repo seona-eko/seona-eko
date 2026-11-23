@@ -233,7 +233,7 @@ var Odstrjel = (function () {
       st.lovId = ''; st.stajaliste = '';
       if (q.lov) { // alter Link „#/odstrjel/novi?lov=…" funktioniert weiter
         var lov = Store.lovovi().filter(function (l) { return l.id === q.lov; })[0];
-        if (lov) { st.lovId = lov.id; el.querySelector('#nacinLova').value = 'Prigon/pogon'; if (lov.lokacija) el.querySelector('#lokacija').value = lov.lokacija; el.querySelector('#datum').value = String(lov.datum).slice(0, 10); }
+        if (lov) { st.lovId = lov.id; el.querySelector('#nacinLova').value = 'Prigon/pogon'; if (lov.lokacija && lov.lokacija.indexOf(',') === -1) el.querySelector('#lokacija').value = lov.lokacija; el.querySelector('#datum').value = String(lov.datum).slice(0, 10); }
       }
       if (q.vrsta) setSpecies(el, q.vrsta);
     }

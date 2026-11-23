@@ -9,6 +9,8 @@
   /** Stände der Drückjagd (eigene Punkte auf der Karte, keine Einrichtungen), nach Nummer sortiert. */
   function staendeOf(l) { return (l && Array.isArray(l.staende) ? l.staende.slice() : []).sort(function (a, b) { return a.nr - b.nr; }); }
   window.LovStaende = staendeOf;
+  /** Reviere einer Drückjagd — eine Jagd kann über zwei oder drei Reviere gehen (lokacija „A, B“). */
+  function revOf(l) { return String(l && l.lokacija || '').split(/,\s*/).filter(Boolean); }
   function streckeOf(id) { return Store.strecke().filter(function (r) { return r.lovId === id; }); }
   function dateBlock(iso) {
     var d = UI.parseISO(String(iso).slice(0, 10));
@@ -133,7 +135,7 @@
     return KLASE_SVE.reduce(function (a, k) { return a.concat(list.filter(function (x) { return x.klasa === k; })); }, []);
   }
   function openQuick(l) {
-    var stands = staendeOf(l);
+    var stands = staendeOf(l), reviere = revOf(l);
     var lovci = Store.lovci().concat(String(l.sudionici || '').split(/\n|,/).map(function (x) { return x.trim(); }).filter(Boolean));
     var q = { species: QUICK_SPECIES[0], stueck: null, stand: null, lovac: '', n: 0, trofej: null };
     var html = '<div class="q-kopf"><h2>' + esc(t('lovQuickTitle')) + '</h2><span class="hint" id="q-n"></span></div>' +
@@ -148,6 +150,10 @@
         return '<button type="button" data-st="' + esc(x.id) + '" aria-pressed="false">' + esc(String(x.nr)) + '</button>';
       }).join('') + '</div>' : '') +
       '<p class="q-schuetze" id="q-schuetze"></p>' +
+      // Mehrere Reviere: jedes Stück gehört zu genau einem (Abschussplan je Revier) — vom Stand, sonst hier wählen
+      (reviere.length > 1 ? '<div class="field-label" style="margin-top:10px">' + esc(t('lblLoviste')) + '</div><div class="q-staende q-rev" id="q-rev">' + reviere.map(function (x) {
+        return '<button type="button" data-rev="' + esc(x) + '" aria-pressed="false">' + esc(Strecke.shortLov(x)) + '</button>';
+      }).join('') + '</div>' : '') +
       '<div class="field" id="q-lovac-wrap" hidden><label class="field-label req" for="q-lovac">' + esc(t('lblLovac')) + '</label><input type="text" id="q-lovac" list="q-lovci" autocomplete="off" placeholder="' + esc(t('phLovac')) + '"><datalist id="q-lovci">' +
         lovci.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></div>' +
       '<details class="more"><summary>' + esc(t('lblNapomena')) + '</summary><div class="field" style="margin-top:8px"><textarea id="q-nap" rows="2"></textarea></div>' +
@@ -200,10 +206,16 @@
           q.stand = q.stand === neu ? null : neu;
           UI.$$('#q-staende button', el).forEach(function (o) { o.setAttribute('aria-pressed', String(!!q.stand && o === b)); });
           q.lovac = '';
+          if (q.stand && Number(q.stand.lat) && reviere.length > 1) Geo.lovisteAt(q.stand.lat, q.stand.lon).then(function (r) { if (reviere.indexOf(r) !== -1) setzeRevier(r); });
           el.querySelector('#q-lovac-wrap').hidden = !(q.stand && q.stand.strijelac) ? false : true;
           zeigeSchuetze();
         };
       });
+      function setzeRevier(x) {
+        q.revier = x || '';
+        UI.$$('#q-rev button', el).forEach(function (o) { o.setAttribute('aria-pressed', String(o.getAttribute('data-rev') === q.revier)); });
+      }
+      UI.$$('#q-rev button', el).forEach(function (b) { b.onclick = function () { setzeRevier(b.getAttribute('data-rev')); }; });
       zeichneStueck();
       zeigeSchuetze();
       el.querySelector('#q-form').addEventListener('submit', async function (ev) {
@@ -215,9 +227,10 @@
         var lovac = !wrap.hidden ? v('q-lovac') : (q.lovac || (q.stand && q.stand.strijelac) || '');
         if (!q.stueck) return fail(t('errRequired'));
         var data = { vrsta: q.species, spol: q.stueck.spol, dobnaKlasa: q.stueck.klasa, klaseV: 2, tezina: v('q-kg'), brojMarkice: '', lovac: lovac,
-          napomena: v('q-nap'), lokacija: l.lokacija, datum: String(l.datum).slice(0, 10), nacinLova: 'Prigon/pogon', lovId: l.id,
+          napomena: v('q-nap'), lokacija: reviere.length > 1 ? (q.revier || '') : (reviere[0] || ''), datum: String(l.datum).slice(0, 10), nacinLova: 'Prigon/pogon', lovId: l.id,
           stajaliste: q.stand ? q.stand.id : '', lat: '', lon: '', zona: '', vrijemeOdstrjela: '' };
         if (!data.tezina || !data.lovac) return fail(t('errRequired'));
+        if (!data.lokacija) return fail(t('errLovRevierStueck'));
         if (!(Number(data.tezina) > 0)) return fail(t('errTezina'));
         if (q.trofej === 'vrhovi') {
           var n = Number(v('rog-vrhovi'));
@@ -238,7 +251,7 @@
         UI.toast(kategorija(data.vrsta, data.spol, data.dobnaKlasa, I18n.lang()) + ' · ' + data.tezina + ' kg — ' + t('saved'));
         // Für das nächste Stück leeren; Wildart bleibt
         el.querySelector('#q-kg').value = ''; el.querySelector('#q-nap').value = '';
-        q.stueck = null; q.stand = null; q.lovac = ''; q.trofej = null; el.querySelector('#q-trofej').innerHTML = '';
+        q.stueck = null; q.stand = null; q.lovac = ''; q.trofej = null; setzeRevier(''); el.querySelector('#q-trofej').innerHTML = '';
         UI.$$('#q-staende button', el).forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
         el.querySelector('#q-lovac').value = ''; el.querySelector('#q-lovac-wrap').hidden = true;
         zeichneStueck(); zeigeSchuetze();
@@ -252,8 +265,9 @@
     var lovci = Store.lovci();
     var html = '<h2>' + esc(l ? t('editLov') : t('newLov')) + '</h2><form id="lov-form" novalidate>' +
       '<div class="grid-2"><div class="field"><label class="field-label req" for="lov-datum">' + esc(t('lblDatum')) + '</label><input type="date" id="lov-datum" value="' + esc(l ? String(l.datum).slice(0, 10) : '') + '"></div>' +
-      '<div class="field"><label class="field-label" for="lov-lok">' + esc(t('lblLoviste')) + '</label><select id="lov-lok">' +
-      Store.lovista().map(function (x) { return '<option' + (l && l.lokacija === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div></div>' +
+      '</div>' +
+      '<div class="field"><span class="field-label req">' + esc(t('lovReviere')) + '</span><div class="stand-wahl" id="lov-rev">' +
+      Store.lovista().map(function (x, i) { var an = l ? revOf(l).indexOf(x) !== -1 : i === 0; return '<button type="button" data-rev="' + esc(x) + '" aria-pressed="' + an + '">' + esc(Strecke.shortLov(x)) + '</button>'; }).join('') + '</div></div>' +
       '<div class="field"><label class="field-label" for="lov-naziv">' + esc(t('lblLovNaziv')) + '</label><input type="text" id="lov-naziv" value="' + esc(l ? l.naziv : '') + '" placeholder="' + esc(t('phLovNaziv')) + '"></div>' +
       '<div class="field"><label class="field-label" for="lov-vodja">' + esc(t('lblVodja')) + '</label><input type="text" id="lov-vodja" list="lov-lovci" value="' + esc(l ? l.vodja : '') + '"><datalist id="lov-lovci">' + lovci.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></div>' +
       '<div class="field"><label class="field-label" for="lov-sud">' + esc(t('participants')) + '</label><textarea id="lov-sud" placeholder="' + esc(t('phParticipants')) + '">' + esc(l ? l.sudionici : '') + '</textarea></div>' +
@@ -263,11 +277,17 @@
       '<div class="error-msg" id="lov-err" hidden></div>' +
       '<button type="submit" class="btn primary block">' + esc(t('btnSave')) + '</button></form>';
     UI.openSheet(html, function (el, api) {
+      UI.$$('#lov-rev button', el).forEach(function (b) {
+        b.onclick = function () { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); };
+      });
       el.querySelector('#lov-form').addEventListener('submit', async function (ev) {
         ev.preventDefault();
+        var er = el.querySelector('#lov-err');
         var datum = el.querySelector('#lov-datum').value;
-        if (!datum) { var er = el.querySelector('#lov-err'); er.textContent = t('errLovDatum'); er.hidden = false; return; }
-        var rec = { id: l ? l.id : Store.uuid(), datum: datum, lokacija: el.querySelector('#lov-lok').value,
+        if (!datum) { er.textContent = t('errLovDatum'); er.hidden = false; return; }
+        var reviere = UI.$$('#lov-rev button[aria-pressed="true"]', el).map(function (b) { return b.getAttribute('data-rev'); });
+        if (!reviere.length) { er.textContent = t('errLovRevier'); er.hidden = false; return; }
+        var rec = { id: l ? l.id : Store.uuid(), datum: datum, lokacija: reviere.join(', '),
           naziv: el.querySelector('#lov-naziv').value.trim(), vodja: el.querySelector('#lov-vodja').value.trim(),
           sudionici: el.querySelector('#lov-sud').value.trim(), napomena: el.querySelector('#lov-nap').value.trim(),
           sastanak: el.querySelector('#lov-sast').value.trim(), napomenaGost: el.querySelector('#lov-gnap').value.trim() };

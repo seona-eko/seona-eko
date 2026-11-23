@@ -72,7 +72,8 @@ var Strecke = (function () {
       '<span class="r-end">' + end + (r.brojMarkice ? '<span class="num" style="display:block;margin-top:3px">#' + esc(r.brojMarkice) + '</span>' : '') + '</span></button></li>';
   }
 
-  function shortLov(l) { return String(l || '').replace(/^XIV\/\d+\s*/, ''); }
+  /** „XIV/192 Klanac“ → „Klanac“; eine Drückjagd über mehrere Reviere („A, B“) → „Gornja Motičina · Klanac“. */
+  function shortLov(l) { return String(l || '').split(/,\s*/).map(function (x) { return x.replace(/^XIV\/\d+\s*/, ''); }).filter(Boolean).join(' · '); }
 
   /** Revier-Auswahl als kleines Auswahlfeld (statt einer eigenen Chip-Reihe). */
   function lovChips() {
