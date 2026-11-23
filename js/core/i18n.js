@@ -256,7 +256,7 @@ var I18n = (function () {
   var ADD = {
     hr: {
       instTitle: 'Instalirajte aplikaciju', instText: 'Samo instalirana aplikacija radi bez interneta i ne gubi unose.',
-      instIos1: 'U Safariju dolje desno dodirnite „•••“, zatim „Dijeli“. (Stariji iPhone: ikona Dijeli dolje u sredini.)', instIos2: 'Odaberite „Dodaj na početni zaslon“ (po potrebi povucite prema dolje) i dodirnite „Dodaj“.', instIos3: 'Otvorite Seona Eko s početnog zaslona.',
+      instIos1: 'U Safariju dodirnite tri točke „•••“, zatim „Dijeli“.', instIos2: 'Odaberite „Dodaj na početni zaslon“ (po potrebi povucite prema dolje) i dodirnite „Dodaj“.', instIos3: 'Otvorite Seona Eko s početnog zaslona.',
       instAndroid: 'Instaliraj aplikaciju', instAndroidManual: 'U Chromeu: izbornik ⋮ → „Instaliraj aplikaciju" (ili „Dodaj na početni zaslon").',
       instInApp: 'Otvorili ste poveznicu unutar WhatsAppa. Otvorite je u pregledniku: izbornik ⋮ ili ••• → „Otvori u pregledniku" (iPhone: Safari).',
       instLater: 'Nastavi u pregledniku',
@@ -310,7 +310,7 @@ var I18n = (function () {
     },
     en: {
       instTitle: 'Install the app', instText: 'Only the installed app works without internet and never loses entries.',
-      instIos1: 'In Safari tap “•••” at the bottom right, then “Share”. (Older iPhones: Share icon at the bottom centre.)', instIos2: 'Choose “Add to Home Screen” (scroll down if needed) and tap “Add”.', instIos3: 'Open Seona Eko from your home screen.',
+      instIos1: 'In Safari tap the three dots “•••”, then “Share”.', instIos2: 'Choose “Add to Home Screen” (scroll down if needed) and tap “Add”.', instIos3: 'Open Seona Eko from your home screen.',
       instAndroid: 'Install app', instAndroidManual: 'In Chrome: menu ⋮ → "Install app" (or "Add to Home screen").',
       instInApp: 'You opened the link inside WhatsApp. Open it in your browser: menu ⋮ or ••• → "Open in browser" (iPhone: Safari).',
       instLater: 'Continue in browser',
@@ -364,7 +364,7 @@ var I18n = (function () {
     },
     de: {
       instTitle: 'App installieren', instText: 'Nur die installierte App funktioniert ohne Netz und verliert keine Einträge.',
-      instIos1: 'In Safari unten rechts auf „•••“ tippen, dann „Teilen“. (Ältere iPhones: Teilen-Symbol unten in der Mitte.)', instIos2: '„Zum Home-Bildschirm“ wählen (ggf. nach unten wischen) und „Hinzufügen“ tippen.', instIos3: 'Seona Eko vom Home-Bildschirm aus öffnen.',
+      instIos1: 'In Safari auf die drei Punkte „•••“ tippen, dann „Teilen“.', instIos2: '„Zum Home-Bildschirm“ wählen (ggf. nach unten wischen) und „Hinzufügen“ tippen.', instIos3: 'Seona Eko vom Home-Bildschirm aus öffnen.',
       instAndroid: 'App installieren', instAndroidManual: 'In Chrome: Menü ⋮ → „App installieren" (oder „Zum Startbildschirm hinzufügen").',
       instInApp: 'Sie haben den Link in WhatsApp geöffnet. Bitte im Browser öffnen: Menü ⋮ oder ••• → „Im Browser öffnen" (iPhone: Safari).',
       instLater: 'Im Browser weiter',
