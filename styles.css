@@ -15,10 +15,10 @@
   --sage:#bdc9a5;
   --wine:#471b28;
   --copper:#dd985f;
-  --bark:#6b5a44;
-  --cream:#eef1e7;
-  --cream-2:#e2e7d7;
-  --paper:#fbfcf8;
+  --bark:#471b28;             /* hell: Wildart- und Listen-Symbole in Weinrot */
+  --cream:#ffffff;            /* hell: weißer Grund */
+  --cream-2:#f1f2ee;
+  --paper:#ffffff;
   --ink:#232a26;
   --ink-soft:#57625b;
   --ink-faint:#8b958d;
@@ -31,9 +31,9 @@
   --ok-soft:#dfe7cf;
   --warn:#b4372f;             /* Warnung: eigenes Rot — Kupfer bleibt nur für Aktionen */
   --warn-soft:#f6dedb;
-  --muted-soft:#dde2d3;
-  --line:#cdd5c0;
-  --backdrop:#cfd6c3;
+  --muted-soft:#e7e9e2;
+  --line:#e0e3d9;
+  --backdrop:#f3f4f0;
   --scrim:rgba(28,34,30,.5);
   --radius:16px;
   --radius-sm:10px;
@@ -51,7 +51,7 @@
     --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
     --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
     --ok:#a9c28a; --ok-soft:#2c3827; --warn:#f2776e; --warn-soft:#3a1d1c; --muted-soft:#2b322d;
-    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;
+    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;--karte-schatten:none;
     color-scheme:dark;
   }
 }
@@ -61,7 +61,7 @@
     --ink:#edf0e7; --ink-soft:#b3bcae; --ink-faint:#7f8a81;
     --primary:#dd985f; --primary-ink:#2a0f17; --accent:#dd985f; --accent-text:#e8ad7c; --accent-ink:#f2f0e8;
     --ok:#a9c28a; --ok-soft:#2c3827; --warn:#f2776e; --warn-soft:#3a1d1c; --muted-soft:#2b322d;
-    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;
+    --line:#38423c; --backdrop:#0e110f; --scrim:rgba(0,0,0,.6); --map-out:#1b201c;--karte-schatten:none;
     color-scheme:dark;
 }
 
@@ -164,7 +164,7 @@ html.ios main#view{min-height:calc(100vh + env(safe-area-inset-top,0px) + 1px);}
 .section-title a,.section-title button.link{font-size:.8rem;font-weight:600;color:var(--accent-text);text-decoration:none;background:none;border:none;padding:0;cursor:pointer;}
 
 /* ---------------- Flächen ---------------- */
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--karte-schatten,0 1px 3px rgba(35,42,38,.06));}
 .panel + .panel{margin-top:12px;}
 .panel.flush{padding:0;overflow:hidden;}
 .stack{display:flex;flex-direction:column;gap:12px;}
@@ -1076,3 +1076,9 @@ img,svg{-webkit-user-drag:none;}
 .open-art b{display:block;font-size:.95rem;}
 .open-art small{display:block;font-size:.78rem;color:var(--ok);font-weight:600;}
 .g-leer{color:var(--ink-soft);margin:6px 0 0;line-height:1.5;}
+
+/* Revier-Auswahl im Chip: nicht die großen Formularfelder erben (iOS zeigte sie riesig), kein Kupfer-Rahmen */
+.chip-select select{width:auto;min-height:0;height:auto;line-height:1.2;font-size:.82rem;border-radius:999px;background-image:none;box-shadow:none;}
+.chip-select select:focus,.chip-select select:focus-visible{outline:none;}
+.chip-select:focus-within{box-shadow:0 0 0 2px color-mix(in srgb, var(--ink) 25%, transparent);}
+.tile{box-shadow:var(--karte-schatten,0 1px 3px rgba(35,42,38,.06));}
