@@ -7,7 +7,7 @@
  * Bei jeder Änderung an App-Dateien CACHE_VERSION hochzählen — sonst sehen installierte Handys
  * die neue Version nicht. Die App zeigt dann „Dostupna je nova verzija — Osvježi".
  */
-var CACHE_VERSION = 'seona-v140';
+var CACHE_VERSION = 'seona-v141';
 var MAP_CACHE = 'seona-karta-v4';
 var SHELL = [
   './', 'index.html', 'styles.css', 'config.js', 'manifest.webmanifest',
@@ -18,7 +18,7 @@ var SHELL = [
   'js/modules/home.js', 'js/modules/odstrjel.js', 'js/modules/strecke.js', 'js/modules/karta.js', 'js/modules/objekti.js',
   'js/modules/lovovi.js', 'js/modules/hladnjaca.js', 'js/modules/lovostaj.js', 'js/modules/vise.js', 'js/modules/gost.js', 'js/modules/gosti.js', 'js/modules/wetter.js', 'js/modules/tutorial.js',
   'map/meta.json', 'map/reviere.geojson', 'map/namen.geojson',
-  'icons/icon-192-hell.png', 'icons/icon-512-hell.png', 'icons/icon-maskable-512-hell.png', 'icons/apple-touch-icon-hell.png',
+  'icons/icon-192-hell2.png', 'icons/icon-512-hell2.png', 'icons/icon-maskable-512-hell2.png', 'icons/apple-touch-icon-hell2.png',
   'icons/objekti/hochsitz_kanzel.svg', 'icons/objekti/hochsitz_leiter.svg', 'icons/objekti/drueckjagdbock.svg', 'icons/objekti/bodensitz.svg',
   'icons/objekti/kirrung.svg', 'icons/objekti/salzlecke.svg', 'icons/objekti/suhle.svg', 'icons/objekti/fuetterung.svg',
   'icons/objekti/schranke.svg', 'icons/objekti/kamera.svg', 'icons/objekti/zentrale.svg', 'icons/objekti/jagdhuette.svg'
