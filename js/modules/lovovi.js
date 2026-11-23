@@ -76,7 +76,7 @@
         '<h1>' + esc(l.naziv || t('lovDefaultName')) + '</h1>' +
         '<p>' + esc(UI.fmtDate(String(l.datum).slice(0, 10), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + (l.vodja ? ' · ' + esc(t('lblVodja')) + ': ' + esc(l.vodja) : '') + '</p></div>' +
         (isPast || s.length ? '<button type="button" class="btn primary block" id="lov-add" style="margin-bottom:12px">' + ICONS.plus + esc(t('addToLov')) + '</button>' : '') +
-        '<div class="grid-2"><div class="tile"><div class="t-label">' + ICONS.list + esc(t('tileStrecke')) + '</div><div class="t-value">' + s.length + '</div><div class="t-sub num">' + Math.round(kg) + ' kg</div></div>' +
+        '<div class="grid-2"><div class="tile"><div class="t-label">' + ICONS.list + esc(t('tileStrecke')) + '</div><div class="t-value">' + s.length + '</div><div class="t-sub">' + esc(t('pieces')) + '</div></div>' +
         '<a class="tile" href="#/lovkarta/' + encodeURIComponent(l.id) + '"><div class="t-label">' + ICONS.pin + esc(t('stands')) + '</div><div class="t-value">' + stands.length + '</div><div class="t-sub">' + esc(stands.length ? t('standsSummary', { n: stands.length, b: besetzt }) : (sudionici.length ? t('participantsN', { n: sudionici.length }) : '—')) + '</div></a></div>' +
         (s.length ? '<div class="section-title"><h2>' + esc(t('lovStrecke')) + '</h2></div><div class="panel stack">' +
           Object.keys(bySpecies).map(function (v) {
