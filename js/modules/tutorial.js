@@ -10,13 +10,13 @@ var Tutorial = (function () {
   // Kurz halten: eine Karte je Hauptsache (früher 31 Schritte, zu lang für eine kurze Einführung)
   var STEPS = [
     ['#/home', '', 'start'],
-    ['#/home', '.quick a.primary', 'homeNew'],
+    ['#/home', '.home-cta', 'homeNew'],
     ['#/odstrjel/novi', '.loc-buttons', 'formOrt'],
     ['#/karta', '#bottomnav [data-nav="karta"]', 'karta'],
     ['#/karta', '#fab-locate', 'kartaGps'],
     ['#/karta', '#fab-add', 'kartaAdd'],
     ['#/odstrjel?tab=popis', '#bottomnav [data-nav="odstrjel"]', 'strecke'],
-    ['#/hladnjaca', '#cold-tabs', 'cold'],
+    ['#/hladnjaca', '.section-tabs a[aria-current="page"]', 'cold'],
     ['#/lovovi', '#bottomnav [data-nav="lovovi"]', 'jagden'],
     ['#/home', '', 'ende']
   ];
@@ -43,8 +43,8 @@ var Tutorial = (function () {
       (function look() {
         var x = document.querySelector(sel);
         if (x && x.getBoundingClientRect().width) return resolve(x);
-        if (++n > 15) return resolve(null);
-        setTimeout(look, 100);
+        if (++n > 8) return resolve(null);
+        setTimeout(look, 60);
       })();
     });
   }
@@ -61,15 +61,15 @@ var Tutorial = (function () {
     el.classList.remove('dim');
     var r = target.getBoundingClientRect(), pad = 6;
     hole.style.display = 'block';
-    hole.style.left = (r.left - pad) + 'px'; hole.style.top = (r.top - pad) + 'px';
-    hole.style.width = (r.width + 2 * pad) + 'px'; hole.style.height = (r.height + 2 * pad) + 'px';
+    hole.style.transform = 'translate3d(' + Math.round(r.left - pad) + 'px,' + Math.round(r.top - pad) + 'px,0)';
+    hole.style.width = Math.round(r.width + 2 * pad) + 'px'; hole.style.height = Math.round(r.height + 2 * pad) + 'px';
     card.className = 'tut-card ' + (r.top + r.height / 2 > window.innerHeight / 2 ? 'top' : 'bottom');
   }
 
   async function show() {
     var my = ++token;
     var s = STEPS[i], last = i === STEPS.length - 1;
-    if (location.hash !== s[0]) { App.go(s[0]); await new Promise(function (r) { setTimeout(r, 120); }); }
+    if (location.hash !== s[0]) { App.go(s[0]); await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); }); }
     var x = await find(s[1]);
     if (my !== token || !el) return;
     if (s[1] && !x) { // Element gibt es gerade nicht (z. B. noch keine Einträge) → Schritt auslassen
@@ -100,7 +100,8 @@ var Tutorial = (function () {
     try { card.querySelector('[data-next]').focus({ preventScroll: true }); } catch (e) {}
   }
 
-  function onResize() { place(); }
+  var rafId = 0;
+  function onResize() { if (rafId) return; rafId = requestAnimationFrame(function () { rafId = 0; place(); }); }
 
   function open() {
     if (el) return;
