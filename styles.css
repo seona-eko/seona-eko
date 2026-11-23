@@ -813,7 +813,7 @@ a.row:active,button.row:active,.row[data-id]:active{background:color-mix(in srgb
    Säule rechts oben (Ebenen · Ortung · Vollbild), Wind-Plakette links oben, nur das „+“ unten rechts farbig. */
 .map-tools{position:absolute;right:12px;top:12px;z-index:520;display:flex;flex-direction:column;gap:10px;}
 body.map-full .map-tools,body.map-full .map-wind{top:calc(env(safe-area-inset-top,0px) + 12px);}
-.fab.glass,.map-wind.glass{background:color-mix(in srgb, var(--cream) 62%, transparent);color:var(--ink);
+.fab.glass,.map-wind.glass,.map-zurueck.glass{background:color-mix(in srgb, var(--cream) 62%, transparent);color:var(--ink);
   border:1px solid color-mix(in srgb, #fff 14%, transparent);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
   box-shadow:0 4px 16px rgba(0,0,0,.22);}
 .fab.glass{width:44px;height:44px;}
@@ -1089,3 +1089,12 @@ li.wl > .row{position:relative;z-index:1;background:var(--paper);touch-action:pa
 .wl-del{position:absolute;right:0;top:0;bottom:0;width:84px;border:0;background:var(--warn);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding:0 30px 0 0;cursor:pointer;}
 .wl-del svg{width:24px;height:24px;transition:transform .2s ease;}
 li.wl-weit .wl-del svg{transform:scale(1.15);}
+
+/* Jagdkarte: Zurück-Knopf oben links statt Wind */
+.map-zurueck{position:absolute;left:12px;top:12px;z-index:520;display:flex;align-items:center;gap:6px;height:44px;padding:0 16px 0 10px;border-radius:22px;
+  text-decoration:none;color:var(--ink);font-weight:600;font-size:.9rem;max-width:calc(100% - 90px);}
+.map-zurueck svg{width:20px;height:20px;flex:none;}
+.map-zurueck span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.jagdkarte .map-wind{display:none !important;}
+body.map-full .map-zurueck{top:calc(env(safe-area-inset-top,0px) + 12px);}
+@media (max-width: 719px) and (orientation: portrait){ body.auf-karte:not(.map-full) .map-zurueck{top:calc(env(safe-area-inset-top,0px) + 12px);} }

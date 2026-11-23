@@ -174,18 +174,19 @@ var Karta = (function () {
   function guest() { return App.isGost(); }
 
   function render(ctx) {
-    var g = guest();
+    var g = guest(), jagd = ctx && ctx.jagd, jl = jagd ? lovNow(ctx.query.lov) : null;
     // Einheitliche Glas-Knöpfe: rechts oben eine Säule (Ebenen · Ortung · Vollbild), links oben der Wind als Plakette,
     // unten rechts nur die eine farbige Hauptaktion „+“. Zoomen mit zwei Fingern (keine +/−-Knöpfe).
-    return '<div class="map-wrap"><div id="map" aria-label="' + esc(t('navKarta')) + '"></div>' +
+    return '<div class="map-wrap' + (jagd ? ' jagdkarte' : '') + '"><div id="map" aria-label="' + esc(t('navKarta')) + '"></div>' +
+      (jagd ? '<a class="map-zurueck glass" href="#/lov/' + encodeURIComponent(ctx.query.lov) + '">' + ICONS.back + '<span>' + esc(jl ? (jl.naziv || t('lovDefaultName')) : t('lovoviTitle')) + '</span></a>' : '') +
       '<a class="map-wind glass" id="map-wind" href="#/wetter" hidden></a>' +
       '<div class="map-tools">' +
-      (g ? '' : '<button type="button" class="fab glass" id="fab-layers" aria-label="' + esc(t('mapLayers')) + '">' + EBENEN_ICON + '</button>') +
+      (g || jagd ? '' : '<button type="button" class="fab glass" id="fab-layers" aria-label="' + esc(t('mapLayers')) + '">' + EBENEN_ICON + '</button>') +
       '<button type="button" class="fab glass" id="fab-locate" aria-label="' + esc(t('myLocation')) + '">' + ICONS.locate + '</button>' +
       '<button type="button" class="fab glass" id="fab-measure" aria-label="' + esc(t('measure')) + '">' + ICONS.ruler + '</button>' +
       '<button type="button" class="fab glass map-full-btn" id="fab-full" aria-label="' + esc(t('fullscreen')) + '">' + ICONS.expand + '</button></div>' +
       '<div class="map-fab" id="map-fab">' +
-      (g ? '' : '<button type="button" class="fab primary" id="fab-add" aria-label="' + esc(t('addObjekt')) + '">' + ICONS.plus + '</button>') + '</div>' +
+      (g || jagd ? '' : '<button type="button" class="fab primary" id="fab-add" aria-label="' + esc(t('addObjekt')) + '">' + ICONS.plus + '</button>') + '</div>' +
       '<div id="map-overlay"></div></div>';
   }
 
@@ -303,12 +304,13 @@ var Karta = (function () {
   /** Treffpunkte der kommenden Drückjagden (und einer ausdrücklich gewählten). */
   function drawMeet(ctx) {
     if (layers.meet) { map.removeLayer(layers.meet); layers.meet = null; }
-    var focusId = ctx && ctx.query && ctx.query.meet;
+    var jagdId = ctx && ctx.jagd ? ctx.query.lov : null;
+    if (!guest() && !jagdId) return; // allgemeine Karte des Teams: keine Treffpunkte (die gehören auf die Jagdkarte)
     var today = UI.todayISO();
     var g = L.layerGroup();
     Store.lovovi().forEach(function (l) {
       if (!(Number(l.sastanakLat) && Number(l.sastanakLon))) return;
-      if (String(l.datum).slice(0, 10) < today && l.id !== focusId) return;
+      if (jagdId ? l.id !== jagdId : String(l.datum).slice(0, 10) < today) return;
       var m = L.marker([l.sastanakLat, l.sastanakLon], { icon: L.divIcon({ className: '', html: '<div class="meet-marker"></div>', iconSize: [30, 30], iconAnchor: [15, 30] }), zIndexOffset: 900, title: t('gMeeting') });
       m.on('click', function () { if (mode === 'messen') return; openMeet(l); });
       g.addLayer(m);
@@ -349,6 +351,7 @@ var Karta = (function () {
     ['objekti', 'biljeske', 'odstrjel', 'lovFocus'].forEach(function (k) { if (layers[k]) { map.removeLayer(layers[k]); layers[k] = null; } });
     drawMeet(ctx);
     if (guest()) { drawGastStaende(ctx); return; }
+    if (ctx && ctx.jagd) { var jl = lovNow(ctx.query.lov); if (jl) drawStaende(jl, ctx); return; }
     var lovFocus = ctx && ctx.query && ctx.query.lov ? Store.lovovi().filter(function (l) { return l.id === ctx.query.lov; })[0] : null;
     // Einrichtungen und Notizen sind getrennt ein- und ausblendbar
     var zeigeObj = show.objekti || !!lovFocus, zeigeNotiz = show.biljeske;
@@ -738,7 +741,10 @@ var Karta = (function () {
     if (add) add.onclick = function () { startAdd(); };
     if (ctx.query.meet) focusMeet(ctx.query.meet);
     if (guest()) { offlineBanner(); return; }
-    if (ctx.query.lov && App.isUprava()) staendeModus(ctx.query.lov);
+    if (ctx.jagd && App.isUprava()) {
+      staendeModus(ctx.query.lov);
+      if (ctx.query.meet) UI.toast(t('meetPlaceHint'), { timeout: 6000 });
+    }
     if (ctx.query.add) startAdd();
     if (ctx.query.move) startMove(ctx.query.move);
     offlineBanner();
@@ -802,6 +808,7 @@ var Karta = (function () {
     ov.innerHTML = '<svg class="crosshair" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="24" cy="24" r="10"/><path d="M24 2v12M24 34v12M2 24h12M34 24h12"/></svg>' +
       '<div class="mess-bar glass"><div class="mess-wert"><span id="st-info"></span></div><div class="mess-knoepfe">' +
       '<button type="button" class="mess-k haupt" data-st-add>' + ICONS.plus + '<span></span></button>' +
+      '<button type="button" class="mess-k" data-st-meet aria-label="' + esc(t('meetSet')) + '" title="' + esc(t('meetSet')) + '">' + ICONS.pin + '</button>' +
       '<button type="button" class="mess-k" data-st-done>' + esc(t('standDone')) + '</button></div></div>';
     ov.querySelector('[data-st-add]').onclick = async function () {
       var p = punktUnterFadenkreuz(map, ov), akt = lovNow(id);
@@ -811,6 +818,14 @@ var Karta = (function () {
       leiste();
     };
     ov.querySelector('[data-st-done]').onclick = function () { App.go('#/lov/' + encodeURIComponent(id)); };
+    // Treffpunkt: Fadenkreuz auf die Stelle, Stecknadel antippen
+    ov.querySelector('[data-st-meet]').onclick = async function () {
+      var p = punktUnterFadenkreuz(map, ov);
+      await Store.queueUpsert('lov', { id: id, sastanakLat: Math.round(p.lat * 1e6) / 1e6, sastanakLon: Math.round(p.lon * 1e6) / 1e6 });
+      App.syncNow({ quiet: true });
+      UI.haptic && UI.haptic(8);
+      UI.toast(t('meetSaved'));
+    };
     leiste();
     Store.onChange && Store.onChange(function () { if (mode === 'staende' && document.getElementById('st-info')) leiste(); });
   }
@@ -864,6 +879,16 @@ var Karta = (function () {
     if (map) { map.remove(); map = null; }
     layers = {}; meMarker = null; meCircle = null; mode = null; focusMarker = null; follow = false; grenzen = null;
   }
+
+  /** Eigene Karte einer Drückjagd (#/lovkarta/<id>): nur Stände und Treffpunkt, Zurück führt zur Jagd. */
+  function jagdCtx(ctx) { ctx.jagd = true; ctx.query = Object.assign({}, ctx.query, { lov: decodeURIComponent(ctx.params[0] || '') }); return ctx; }
+  App.route('lovkarta', {
+    nav: 'lovovi', full: true, live: false,
+    render: function (ctx) { return render(jagdCtx(ctx)); },
+    mount: function (el, ctx) { return mount(el, ctx.jagd ? ctx : jagdCtx(ctx)); },
+    unmount: unmount,
+    onData: function () { if (map && mode !== 'place') drawData(aktCtx || { query: {} }); }
+  });
 
   App.route('karta', {
     nav: 'karta', full: true, live: false,

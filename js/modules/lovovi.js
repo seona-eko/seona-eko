@@ -77,7 +77,7 @@
         '<p>' + esc(UI.fmtDate(String(l.datum).slice(0, 10), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + (l.vodja ? ' · ' + esc(t('lblVodja')) + ': ' + esc(l.vodja) : '') + '</p></div>' +
         (isPast || s.length ? '<button type="button" class="btn primary block" id="lov-add" style="margin-bottom:12px">' + ICONS.plus + esc(t('addToLov')) + '</button>' : '') +
         '<div class="grid-2"><div class="tile"><div class="t-label">' + ICONS.list + esc(t('tileStrecke')) + '</div><div class="t-value">' + s.length + '</div><div class="t-sub num">' + Math.round(kg) + ' kg</div></div>' +
-        '<a class="tile" href="#/karta?lov=' + encodeURIComponent(l.id) + '"><div class="t-label">' + ICONS.pin + esc(t('stands')) + '</div><div class="t-value">' + stands.length + '</div><div class="t-sub">' + esc(stands.length ? t('standsSummary', { n: stands.length, b: besetzt }) : (sudionici.length ? t('participantsN', { n: sudionici.length }) : '—')) + '</div></a></div>' +
+        '<a class="tile" href="#/lovkarta/' + encodeURIComponent(l.id) + '"><div class="t-label">' + ICONS.pin + esc(t('stands')) + '</div><div class="t-value">' + stands.length + '</div><div class="t-sub">' + esc(stands.length ? t('standsSummary', { n: stands.length, b: besetzt }) : (sudionici.length ? t('participantsN', { n: sudionici.length }) : '—')) + '</div></a></div>' +
         (s.length ? '<div class="section-title"><h2>' + esc(t('lovStrecke')) + '</h2></div><div class="panel stack">' +
           Object.keys(bySpecies).map(function (v) {
             var b = bySpecies[v];
@@ -85,7 +85,7 @@
               '<div class="hint" style="margin-top:2px">' + Object.keys(b.kat).map(function (k) { return esc(k) + ' ' + b.kat[k]; }).join(' · ') + '</div></div>';
           }).join('') + '</div>' +
           '<div class="panel flush" style="margin-top:12px"><ul class="list">' + s.map(Strecke.rowHtml).join('') + '</ul></div>' : '') +
-        '<div class="section-title"><h2>' + esc(t('stands')) + '</h2>' + (stands.length ? '<a href="#/karta?lov=' + encodeURIComponent(l.id) + '">' + esc(t('onMap')) + '</a>' : '') + '</div>' +
+        '<div class="section-title"><h2>' + esc(t('stands')) + '</h2>' + (stands.length ? '<a href="#/lovkarta/' + encodeURIComponent(l.id) + '">' + esc(t('onMap')) + '</a>' : '') + '</div>' +
         (stands.length ? '<div class="panel flush"><ul class="list">' + stands.map(function (x) {
           var n = s.filter(function (r) { return r.stajaliste === x.id; }).length;
           return '<li><button type="button" class="row" data-stand="' + esc(x.id) + '"><span class="r-icon stand-nr">' + esc(String(x.nr)) + '</span><span class="r-main"><span class="r-title">' + esc(t('standN', { n: x.nr })) + '</span>' +
@@ -93,9 +93,9 @@
             (n ? '<span class="r-end"><b>' + n + '</b>' + esc(t('pieces')) + '</span>' : '') + ICONS.chevron.replace('<svg', '<svg class="chev"') + '</button></li>';
         }).join('') + '</ul></div>'
           : '<div class="panel"><p class="hint" style="margin:0 0 ' + (App.isUprava() ? '12px' : '0') + '">' + esc(t('standsEmpty')) + '</p>' +
-            (App.isUprava() ? '<a class="btn block" href="#/karta?lov=' + encodeURIComponent(l.id) + '">' + ICONS.pin + esc(t('standsOnMap')) + '</a>' : '') + '</div>') +
+            (App.isUprava() ? '<a class="btn block" href="#/lovkarta/' + encodeURIComponent(l.id) + '">' + ICONS.pin + esc(t('standsOnMap')) + '</a>' : '') + '</div>') +
         (sudionici.length ? '<div class="section-title"><h2>' + esc(t('participants')) + '</h2></div><div class="panel"><div class="chips" style="flex-wrap:wrap">' + sudionici.map(function (p) { return '<span class="badge plain muted">' + esc(p) + '</span>'; }).join('') + '</div></div>' : '') +
-        '<div class="section-title"><h2>' + esc(t('gMeeting')) + '</h2>' + (App.isUprava() ? '<a href="#/karta?meet=' + encodeURIComponent(l.id) + '">' + esc(l.sastanakLat ? t('onMap') : t('meetSet')) + '</a>' : '') + '</div>' +
+        '<div class="section-title"><h2>' + esc(t('gMeeting')) + '</h2>' + (App.isUprava() ? '<a href="#/lovkarta/' + encodeURIComponent(l.id) + '?meet=1">' + esc(l.sastanakLat ? t('onMap') : t('meetSet')) + '</a>' : '') + '</div>' +
         '<div class="panel"><p style="margin:0">' + esc(l.sastanak || t('meetNone')) + '</p>' +
         (l.napomenaGost ? '<p class="hint" style="margin:8px 0 0;white-space:pre-wrap"><b>' + esc(t('lblNapomenaGost')) + ':</b> ' + esc(l.napomenaGost) + '</p>' : '') + '</div>' +
         (l.napomena ? '<div class="section-title"><h2>' + esc(t('lblNapomenaIntern')) + '</h2></div><div class="panel"><p style="margin:0;white-space:pre-wrap">' + esc(l.napomena) + '</p></div>' : '') +
@@ -311,7 +311,7 @@
         : '<p class="hint" style="margin:0">' + esc(t('standNoPieces')) + '</p>') +
       '<div class="btn-row" style="margin-top:16px">' +
       (up ? '<button type="button" class="btn primary" id="st-save">' + esc(t('btnSave')) + '</button>' : '') +
-      (opts.karte ? '' : '<a class="btn" href="#/karta?lov=' + encodeURIComponent(l.id) + '">' + ICONS.map + esc(t('onMap')) + '</a>') +
+      (opts.karte ? '' : '<a class="btn" href="#/lovkarta/' + encodeURIComponent(l.id) + '">' + ICONS.map + esc(t('onMap')) + '</a>') +
       '</div>' +
       (up ? '<button type="button" class="btn ghost block small" id="st-del" style="margin-top:10px;color:var(--warn)">' + ICONS.trash + esc(t('standDelete')) + '</button>' : '');
     UI.openSheet(html, function (el, api) {
