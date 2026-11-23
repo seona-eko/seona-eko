@@ -367,7 +367,7 @@ var App = (function () {
       '<img src="icons/icon-192-hell.png" alt="" class="inst-icon">' +
       '<h2>' + esc(t('instTitle')) + '</h2><p>' + esc(t('instText')) + '</p>' +
       (inApp ? '<p class="notice">' + esc(t('instInApp')) + '</p>'
-        : ios ? '<ol class="inst-steps"><li>' + ICONS.share + '<span>' + esc(t('instIos1')) + '</span></li><li>' + ICONS.plus + '<span>' + esc(t('instIos2')) + '</span></li><li>' + ICONS.home + '<span>' + esc(t('instIos3')) + '</span></li></ol>'
+        : ios ? '<ol class="inst-steps"><li>' + ICONS.more + '<span>' + esc(t('instIos1')) + '</span></li><li>' + ICONS.share + '<span>' + esc(t('instIos2')) + '</span></li><li>' + ICONS.home + '<span>' + esc(t('instIos3')) + '</span></li></ol>'
         : '<button type="button" class="btn primary block" id="inst-android"' + (installEvent ? '' : ' hidden') + '>' + ICONS.plus + esc(t('instAndroid')) + '</button>' +
           '<p class="hint" style="margin-top:10px">' + esc(t('instAndroidManual')) + '</p>') +
       '<button type="button" class="btn ghost block" id="inst-later" style="margin-top:14px">' + esc(t('instLater')) + '</button></div>';

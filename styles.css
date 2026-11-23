@@ -1106,3 +1106,20 @@ body.map-full .map-zurueck{top:calc(env(safe-area-inset-top,0px) + 12px);}
 
 /* Quellenzeile nicht über der Karte (steht im Ebenen-Blatt und unter Mehr → Über die App) */
 .map-wrap .leaflet-control-attribution{display:none;}
+
+/* ---------- Einrichtung & Installation in den App-Farben (hell: Creme/Moos, dunkel: Schwarzgrün/helles Moos) ---------- */
+.overlay{background:var(--cream);color:var(--ink);}
+.overlay p,.overlay .field-label,.overlay .or-line{color:var(--ink-soft);}
+.overlay p.setup-welcome{color:var(--ink);}
+.overlay input,.overlay select{background:var(--paper);border-color:var(--line);color:var(--ink);}
+.overlay .error-msg{color:var(--warn);}
+.overlay .notice{background:var(--cream-2);color:var(--ink);}
+.overlay .success-icon,.overlay .warn-text{color:var(--primary);}
+.overlay .btn{border-color:var(--line);color:var(--ink);background:var(--paper);}
+.overlay .btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-ink);}
+.overlay .scan-btn{background:var(--primary);border-color:var(--primary);color:var(--primary-ink);}
+.overlay .or-line::before,.overlay .or-line::after{background:var(--line);}
+.overlay .inst-icon{box-shadow:0 2px 10px rgba(0,0,0,.18);}
+.inst-steps li{background:var(--paper);border:1px solid var(--line);color:var(--ink);}
+.inst-steps li svg{color:var(--primary);}
+.overlay .logo,.overlay svg.logo,.overlay .setup-logo{color:var(--primary);}
