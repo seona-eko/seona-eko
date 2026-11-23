@@ -364,7 +364,7 @@ var App = (function () {
     el.className = 'overlay show install';
     el.setAttribute('role', 'dialog');
     el.innerHTML = '<div class="box">' +
-      '<img src="icons/icon-192.png" alt="" class="inst-icon">' +
+      '<img src="icons/icon-192-hell.png" alt="" class="inst-icon">' +
       '<h2>' + esc(t('instTitle')) + '</h2><p>' + esc(t('instText')) + '</p>' +
       (inApp ? '<p class="notice">' + esc(t('instInApp')) + '</p>'
         : ios ? '<ol class="inst-steps"><li>' + ICONS.share + '<span>' + esc(t('instIos1')) + '</span></li><li>' + ICONS.plus + '<span>' + esc(t('instIos2')) + '</span></li><li>' + ICONS.home + '<span>' + esc(t('instIos3')) + '</span></li></ol>'

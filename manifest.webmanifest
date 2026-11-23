@@ -10,12 +10,12 @@
   "background_color": "#0e120f",
   "theme_color": "#33402c",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/icon-192-hell.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-hell.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512-hell.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Novi odstrjel", "short_name": "Odstrjel", "url": "./#/odstrjel/novi", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Karta", "url": "./#/karta", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Novi odstrjel", "short_name": "Odstrjel", "url": "./#/odstrjel/novi", "icons": [{ "src": "icons/icon-192-hell.png", "sizes": "192x192" }] },
+    { "name": "Karta", "url": "./#/karta", "icons": [{ "src": "icons/icon-192-hell.png", "sizes": "192x192" }] }
   ]
 }
