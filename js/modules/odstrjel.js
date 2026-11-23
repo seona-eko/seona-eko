@@ -70,7 +70,6 @@ var Odstrjel = (function () {
       '<div class="field"><label class="field-label" id="napomena-label" for="napomena">' + esc(t('lblNapomena')) + '</label><textarea id="napomena" placeholder="' + esc(t('phNapomena')) + '">' + esc(d.napomena || '') + '</textarea></div>' +
       '</div>' +
 
-      (edit ? '' : '<div class="panel" id="cold-panel"><label class="switch-row"><span>' + esc(t('coldCheck')) + '</span><input type="checkbox" class="switch" id="cold" checked></label></div>') +
 
       // Drückjagd-Strecke wird auf der Drückjagdseite erfasst — hier nur Jagdart und Foto
       '<div class="panel">' +
@@ -347,10 +346,8 @@ var Odstrjel = (function () {
       if (st.foto) data.foto = st.foto;
       await Store.queueSubmit(data);
       UI.haptic();
-      var cold = el.querySelector('#cold');
-      if (cold && cold.checked) {
-        await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO() });
-      }
+      // Jedes neue Stück kommt in die Kühlzelle (kein Haken mehr)
+      await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO() });
       await DB.set('last', { lokacija: data.lokacija, lovac: data.lovac, nacinLova: data.nacinLova, datum: data.datum, lovId: data.lovId, at: Date.now() });
       var local = (await DB.get('lovciLocal')) || [];
       if (local.map(function (n) { return n.toLowerCase(); }).indexOf(data.lovac.toLowerCase()) === -1) { local.push(data.lovac); await DB.set('lovciLocal', local); }

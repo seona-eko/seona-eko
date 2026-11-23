@@ -175,7 +175,7 @@
       '<div class="field" id="q-lovac-wrap" hidden><span class="field-label req">' + esc(t('lblLovac')) + '</span><div class="stand-wahl" id="q-lovci">' +
         lovci.map(function (n) { return '<button type="button" data-n="' + esc(n) + '" aria-pressed="false">' + esc(n) + '</button>'; }).join('') + '</div></div>' +
       '<details class="more"><summary>' + esc(t('lblNapomena')) + '</summary><div class="field" style="margin-top:8px"><textarea id="q-nap" rows="2"></textarea></div>' +
-        '<label style="display:flex;gap:12px;align-items:center;font-weight:600;min-height:44px"><input type="checkbox" id="q-cold" checked style="width:22px;height:22px">' + esc(t('coldCheck')) + '</label></details>' +
+        '</details>' +
       '<div class="error-msg" id="q-err" hidden></div>' +
       '<button type="submit" class="btn primary block q-save">' + esc(t('qSaveNext')) + '</button></form>';
     UI.openSheet(html, function (el) {
@@ -269,7 +269,7 @@
         if (q.stand && Number(q.stand.lat)) { data.lat = q.stand.lat; data.lon = q.stand.lon; data.zona = await Geo.ortLabel(q.stand.lat, q.stand.lon) || ''; }
         data.id = Store.uuid();
         await Store.queueSubmit(data);
-        if (el.querySelector('#q-cold').checked) await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO() });
+        await Store.queueUpsert('wildbret', { id: data.id, hladnjacaOd: UI.nowLocalISO() }); // jedes Stück in die Kühlzelle
         App.syncNow({ quiet: true });
         UI.haptic && UI.haptic();
         q.n++;
