@@ -154,7 +154,9 @@
   }
   function openQuick(l) {
     var stands = staendeOf(l), reviere = revOf(l);
-    var lovci = Store.lovci().concat(String(l.sudionici || '').split(/\n|,/).map(function (x) { return x.trim(); }).filter(Boolean));
+    var lovci = [];
+    [l.vodja].concat(String(l.sudionici || '').split(/\n|,/), stands.map(function (x) { return x.strijelac; }), Store.lovci())
+      .map(function (x) { return String(x || '').trim(); }).forEach(function (n) { if (n && lovci.indexOf(n) === -1) lovci.push(n); });
     var q = { species: QUICK_SPECIES[0], stueck: null, stand: null, lovac: '', n: 0, trofej: null };
     var html = '<div class="q-kopf"><h2>' + esc(t('lovQuickTitle')) + '</h2><span class="hint" id="q-n"></span></div>' +
       '<form id="q-form" novalidate>' +
@@ -172,24 +174,34 @@
       (reviere.length > 1 ? '<div class="field-label" style="margin-top:10px">' + esc(t('lblLoviste')) + '</div><div class="q-staende q-rev" id="q-rev">' + reviere.map(function (x) {
         return '<button type="button" data-rev="' + esc(x) + '" aria-pressed="false">' + esc(Strecke.shortLov(x)) + '</button>';
       }).join('') + '</div>' : '') +
-      '<div class="field" id="q-lovac-wrap" hidden><label class="field-label req" for="q-lovac">' + esc(t('lblLovac')) + '</label><input type="text" id="q-lovac" list="q-lovci" autocomplete="off" placeholder="' + esc(t('phLovac')) + '"><datalist id="q-lovci">' +
-        lovci.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></div>' +
+      // Schütze: vom Stand übernommen; sonst Auswahl aus den eingetragenen Jägern (kein freies Feld)
+      '<div class="field" id="q-lovac-wrap" hidden><span class="field-label req">' + esc(t('lblLovac')) + '</span><div class="stand-wahl" id="q-lovci">' +
+        lovci.map(function (n) { return '<button type="button" data-n="' + esc(n) + '" aria-pressed="false">' + esc(n) + '</button>'; }).join('') + '</div></div>' +
       '<details class="more"><summary>' + esc(t('lblNapomena')) + '</summary><div class="field" style="margin-top:8px"><textarea id="q-nap" rows="2"></textarea></div>' +
         '<label style="display:flex;gap:12px;align-items:center;font-weight:600;min-height:44px"><input type="checkbox" id="q-cold" checked style="width:22px;height:22px">' + esc(t('coldCheck')) + '</label></details>' +
       '<div class="error-msg" id="q-err" hidden></div>' +
       '<button type="submit" class="btn primary block q-save">' + esc(t('qSaveNext')) + '</button></form>';
     UI.openSheet(html, function (el) {
+      function markiereLovac() {
+        UI.$$('#q-lovci button', el).forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-n') === q.lovac)); });
+      }
+      /** Hat der Stand einen Schützen: nur „Erlegt von …“ (ändern öffnet die Auswahl). Sonst die Auswahl der Jäger. */
       function zeigeSchuetze() {
         var box = el.querySelector('#q-schuetze'), wrap = el.querySelector('#q-lovac-wrap');
-        var name = q.lovac || (q.stand && q.stand.strijelac) || '';
-        if (name && wrap.hidden) {
-          box.innerHTML = esc(t('qShotBy')) + ' <b>' + esc(name) + '</b> <button type="button" class="link" id="q-aendern">· ' + esc(t('qChange')) + '</button>';
-          box.querySelector('#q-aendern').onclick = function () { wrap.hidden = false; el.querySelector('#q-lovac').value = name; box.innerHTML = ''; el.querySelector('#q-lovac').focus(); };
+        var vomStand = q.stand && q.stand.strijelac;
+        if (vomStand && !q.auswahl) {
+          wrap.hidden = true;
+          box.innerHTML = esc(t('qShotBy')) + ' <b>' + esc(q.lovac || vomStand) + '</b> <button type="button" class="link" id="q-aendern">· ' + esc(t('qChange')) + '</button>';
+          box.querySelector('#q-aendern').onclick = function () { q.auswahl = true; q.lovac = q.lovac || vomStand; zeigeSchuetze(); };
         } else {
           box.innerHTML = '';
           wrap.hidden = false;
+          markiereLovac();
         }
       }
+      UI.$$('#q-lovci button', el).forEach(function (b) {
+        b.onclick = function () { q.lovac = b.getAttribute('data-n'); markiereLovac(); };
+      });
       function trofej() {
         var x = q.stueck, nacin = x ? Odstrjel.trofejNacin(q.species, x.spol, x.klasa) : '';
         if (nacin === 'foto') nacin = '';
@@ -223,9 +235,8 @@
           var neu = stands.filter(function (x) { return x.id === b.getAttribute('data-st'); })[0];
           q.stand = q.stand === neu ? null : neu;
           UI.$$('#q-staende button', el).forEach(function (o) { o.setAttribute('aria-pressed', String(!!q.stand && o === b)); });
-          q.lovac = '';
+          q.lovac = ''; q.auswahl = false;
           if (q.stand && Number(q.stand.lat) && reviere.length > 1) Geo.lovisteAt(q.stand.lat, q.stand.lon).then(function (r) { if (reviere.indexOf(r) !== -1) setzeRevier(r); });
-          el.querySelector('#q-lovac-wrap').hidden = !(q.stand && q.stand.strijelac) ? false : true;
           zeigeSchuetze();
         };
       });
@@ -241,8 +252,7 @@
         var err = el.querySelector('#q-err'); err.hidden = true;
         function fail(m) { err.textContent = m; err.hidden = false; }
         var v = function (id) { var x = el.querySelector('#' + id); return x ? x.value.trim() : ''; };
-        var wrap = el.querySelector('#q-lovac-wrap');
-        var lovac = !wrap.hidden ? v('q-lovac') : (q.lovac || (q.stand && q.stand.strijelac) || '');
+        var lovac = q.lovac || (q.stand && q.stand.strijelac) || '';
         if (!q.stueck) return fail(t('errRequired'));
         var data = { vrsta: q.species, spol: q.stueck.spol, dobnaKlasa: q.stueck.klasa, klaseV: 2, tezina: v('q-kg'), brojMarkice: '', lovac: lovac,
           napomena: v('q-nap'), lokacija: reviere.length > 1 ? (q.revier || '') : (reviere[0] || ''), datum: String(l.datum).slice(0, 10), nacinLova: 'Prigon/pogon', lovId: l.id,
@@ -271,7 +281,7 @@
         el.querySelector('#q-kg').value = ''; el.querySelector('#q-nap').value = '';
         q.stueck = null; q.stand = null; q.lovac = ''; q.trofej = null; setzeRevier(''); el.querySelector('#q-trofej').innerHTML = '';
         UI.$$('#q-staende button', el).forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
-        el.querySelector('#q-lovac').value = ''; el.querySelector('#q-lovac-wrap').hidden = true;
+        q.auswahl = false;
         zeichneStueck(); zeigeSchuetze();
         el.querySelector('#q-n').textContent = t('lovQuickN', { n: q.n });
         el.scrollTop = 0;
