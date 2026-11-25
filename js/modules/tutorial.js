@@ -17,8 +17,10 @@ var Tutorial = (function () {
     ['#/karta', '#fab-measure', 'kartaMessen'],
     ['#/karta', '#fab-add', 'kartaAdd'],
     ['#/odstrjel?tab=popis', '#bottomnav [data-nav="odstrjel"]', 'strecke'],
+    ['#/odstrjel?tab=popis', '#view .list .row', 'storno'],
     ['#/hladnjaca', '.section-tabs a[aria-current="page"]', 'cold'],
     ['#/lovovi', '#bottomnav [data-nav="lovovi"]', 'jagden'],
+    ['#/gosti', '#new-gost', 'gast'],
     ['#/home', '', 'ende']
   ];
   // Bereich über dem Text (welche Seite gerade gezeigt wird)
@@ -27,7 +29,7 @@ var Tutorial = (function () {
   var el = null, hole = null, i = 0, dir = 1, target = null, token = 0;
 
   function vars() {
-    return { neu: t('newOdstrjel'), standort: t('myLocation'), karte: t('pickOnMap'), kuehl: t('coldCheck'), stueck: t('addToLov') };
+    return { neu: t('newOdstrjel'), storno: t('storno'), raus: t('next_out'), gast: t('newGuest') };
   }
 
   function bereich(route) {
@@ -43,7 +45,7 @@ var Tutorial = (function () {
       var n = 0;
       (function look() {
         var x = document.querySelector(sel);
-        if (x && x.getBoundingClientRect().width) return resolve(x);
+        if (x && x.isConnected && x.getBoundingClientRect().width) return resolve(x);
         if (++n > 8) return resolve(null);
         setTimeout(look, 60);
       })();
@@ -70,7 +72,14 @@ var Tutorial = (function () {
   async function show() {
     var my = ++token;
     var s = STEPS[i], last = i === STEPS.length - 1;
-    if (location.hash !== s[0]) { App.go(s[0]); await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); }); }
+    if (location.hash !== s[0]) {
+      await new Promise(function (r) {
+        var fertig = function () { window.removeEventListener('hashchange', fertig); clearTimeout(nt); requestAnimationFrame(function () { r(); }); };
+        var nt = setTimeout(fertig, 400);
+        window.addEventListener('hashchange', fertig);
+        App.go(s[0]);
+      });
+    }
     var x = await find(s[1]);
     if (my !== token || !el) return;
     if (s[1] && !x) { // Element gibt es gerade nicht (z. B. noch keine Einträge) → Schritt auslassen
@@ -115,6 +124,10 @@ var Tutorial = (function () {
     el.setAttribute('aria-labelledby', 'tut-title');
     el.innerHTML = '<div class="tut-hole"></div><div class="tut-card"></div>';
     hole = el.querySelector('.tut-hole');
+    // Hintergrund sperren: kein Scrollen, Zoomen oder Wischen hinter der Tour
+    var sperre = function (e) { e.preventDefault(); };
+    el.addEventListener('wheel', sperre, { passive: false });
+    el.addEventListener('touchmove', sperre, { passive: false });
     document.body.appendChild(el);
     document.body.classList.add('tut-open');
     window.addEventListener('resize', onResize);

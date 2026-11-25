@@ -610,7 +610,8 @@ body.picker-open{overflow:hidden;}
 .guest-code b{font-family:var(--font-display);font-size:1.6rem;letter-spacing:.14em;margin-left:6px;user-select:all;}
 
 /* Einführung für das Team: Karte über der unteren Navigation, passender Menüpunkt hervorgehoben */
-.tut-scrim{position:fixed;inset:0;z-index:92;background:transparent;}
+.tut-scrim{position:fixed;inset:0;z-index:9000;background:transparent;touch-action:none;overscroll-behavior:contain;}
+body.tut-open{overflow:hidden;}
 .tut-scrim.dim{background:rgba(20,26,23,.6);}
 /* Lichtkegel: Rahmen um das gezeigte Element, alles andere abgedunkelt */
 .tut-hole{position:fixed;left:0;top:0;display:none;border-radius:12px;box-shadow:0 0 0 200vmax rgba(20,26,23,.6),0 0 0 3px var(--primary) inset;pointer-events:none;will-change:transform;transition:transform .22s cubic-bezier(.22,1,.36,1);}

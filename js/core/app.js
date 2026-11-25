@@ -438,7 +438,7 @@ var App = (function () {
       // iPhone/iPad: in installierten Web-Apps noch fehleranfällig (schwarzer Bildschirm gemeldet) → dort ohne Überblenden
       var ios = document.documentElement.classList.contains('ios');
       // beim Wischen zwischen Reitern läuft eine eigene Gleitbewegung → kein zusätzliches Überblenden
-      var wisch = document.documentElement.hasAttribute('data-wisch');
+      var wisch = document.documentElement.hasAttribute('data-wisch') || document.body.classList.contains('tut-open'); // auch während der Tour ohne Überblenden
       if (document.startViewTransition && !still && !ios && !wisch) { try { document.startViewTransition(function () { render(); }); return; } catch (e) {} }
       render();
     });
