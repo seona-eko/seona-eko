@@ -113,6 +113,14 @@ var Tutorial = (function () {
   var rafId = 0;
   function onResize() { if (rafId) return; rafId = requestAnimationFrame(function () { rafId = 0; place(); }); }
 
+  // Hintergrund sperren (auch am iPhone, wo „overflow:hidden“ allein das Scrollen nicht stoppt)
+  function sperre(e) { e.preventDefault(); }
+  function nurTour(e) {
+    if (!el) return;
+    if (e.type === 'keydown') { if (!el.contains(e.target) && !/^(Tab|Enter| |Escape)$/.test(e.key)) e.preventDefault(); return; }
+    if (!el.querySelector('.tut-card').contains(e.target)) { e.preventDefault(); e.stopPropagation(); }
+  }
+
   function open() {
     if (el) return;
     i = 0; dir = 1; target = null;
@@ -125,9 +133,9 @@ var Tutorial = (function () {
     el.innerHTML = '<div class="tut-hole"></div><div class="tut-card"></div>';
     hole = el.querySelector('.tut-hole');
     // Hintergrund sperren: kein Scrollen, Zoomen oder Wischen hinter der Tour
-    var sperre = function (e) { e.preventDefault(); };
-    el.addEventListener('wheel', sperre, { passive: false });
-    el.addEventListener('touchmove', sperre, { passive: false });
+    document.addEventListener('wheel', sperre, { passive: false, capture: true });
+    document.addEventListener('touchmove', sperre, { passive: false, capture: true });
+    ['click', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { document.addEventListener(ev, nurTour, true); });
     document.body.appendChild(el);
     document.body.classList.add('tut-open');
     window.addEventListener('resize', onResize);
@@ -139,6 +147,9 @@ var Tutorial = (function () {
     token++;
     window.removeEventListener('resize', onResize);
     window.removeEventListener('scroll', onResize);
+    document.removeEventListener('wheel', sperre, { passive: false, capture: true });
+    document.removeEventListener('touchmove', sperre, { passive: false, capture: true });
+    ['click', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { document.removeEventListener(ev, nurTour, true); });
     document.body.classList.remove('tut-open');
     if (el) { el.remove(); el = null; hole = null; }
     target = null;
