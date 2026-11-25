@@ -41,8 +41,8 @@
       var past = all.filter(function (l) { return String(l.datum).slice(0, 10) < today; }).reverse();
       var next = up[0];
       return tabs('lov') + '<div class="page-head"><div class="eyebrow">' + esc(t('huntYear')) + ' ' + esc(Store.jagdjahr().label) + '</div>' +
-        '<h1>' + esc(App.isUprava() ? t('lovCount', { n: all.length }) : t('lovoviTitle')) + '</h1>' +
-        '<p>' + esc(next ? t('lovoviNext', { d: UI.fmtDay(String(next.datum).slice(0, 10)), l: Strecke.shortLov(next.lokacija) }) : t('noNextLov')) + '</p></div>' +
+        '<h1>' + esc(next ? t('lovoviNextT', { d: UI.fmtDay(String(next.datum).slice(0, 10)) }) : t('lovoviNone')) + '</h1>' +
+        (next && next.lokacija ? '<p>' + esc(Strecke.shortLov(next.lokacija)) + '</p>' : '') + '</div>' +
         (App.isUprava() ? '<button type="button" class="btn block" id="new-lov" style="margin-bottom:14px">' + ICONS.plus + esc(t('newLov')) + '</button>' : '') +
         (all.length ? '' : '<div class="panel">' + UI.emptyState('group', t('emptyLovTitle'), App.isUprava() ? t('emptyLovUprava') : t('emptyLovLovac')) + '</div>') +
         (up.length ? '<div class="section-title"><h2>' + esc(t('upcoming')) + '</h2></div><div class="panel flush"><ul class="list">' + up.map(lovRow).join('') + '</ul></div>' : '') +

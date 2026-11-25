@@ -11,9 +11,10 @@ var Tutorial = (function () {
   var STEPS = [
     ['#/home', '', 'start'],
     ['#/home', '.home-cta', 'homeNew'],
-    ['#/odstrjel/novi', '.loc-buttons', 'formOrt'],
     ['#/karta', '#bottomnav [data-nav="karta"]', 'karta'],
+    ['#/karta', '#fab-layers', 'kartaEbenen'],
     ['#/karta', '#fab-locate', 'kartaGps'],
+    ['#/karta', '#fab-measure', 'kartaMessen'],
     ['#/karta', '#fab-add', 'kartaAdd'],
     ['#/odstrjel?tab=popis', '#bottomnav [data-nav="odstrjel"]', 'strecke'],
     ['#/hladnjaca', '.section-tabs a[aria-current="page"]', 'cold'],
